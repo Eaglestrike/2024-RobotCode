@@ -593,6 +593,12 @@ public:
    * Init function
    */
   void Init() {
+    if (m_initialized) {
+      return;
+    }
+
+    m_initialized = true;
+
     // make directory if doesn't exist
     if (stat(FOLDER.c_str(), &m_st) == -1) {
       mkdir(FOLDER.c_str(), 0700);
@@ -777,4 +783,5 @@ private:
   std::string m_dateStr = TimeMgr::GetTimeStr();
   CSVLogger m_csv;
   FileLogger m_file;
+  bool m_initialized = false;
 };

@@ -16,7 +16,7 @@
 #include "Util/SocketClient.h"
 
 class Robot : public frc::TimedRobot {
- public:
+public:
   Robot();
   void RobotInit() override;
   void RobotPeriodic() override;
@@ -31,7 +31,10 @@ class Robot : public frc::TimedRobot {
   void SimulationInit() override;
   void SimulationPeriodic() override;
 
- private: 
+private: 
+  void ShuffleboardInit();
+  void ShuffleboardPeriodic();
+
   // Controller
   Controller m_controller;
 
@@ -46,4 +49,5 @@ class Robot : public frc::TimedRobot {
 
   // Logger
   FRCLogger m_logger;
+  bool m_prevIsLogging;
 };

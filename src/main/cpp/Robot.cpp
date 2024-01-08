@@ -25,10 +25,12 @@ Robot::Robot() :
   {
     std::cerr << e.what() << std::endl;
   }
+
+  m_logger.SetLogToConsole(true);
 }
 
 void Robot::RobotInit() {
-  m_logger.Init();
+  ShuffleboardInit();
 }
 
 /**
@@ -40,6 +42,8 @@ void Robot::RobotInit() {
  * LiveWindow and SmartDashboard integrated updating.
  */
 void Robot::RobotPeriodic() {
+  ShuffleboardPeriodic();
+
   m_logger.Periodic();
 }
 
@@ -91,6 +95,27 @@ void Robot::TestPeriodic() {}
 void Robot::SimulationInit() {}
 
 void Robot::SimulationPeriodic() {}
+
+/**
+ * Shuffleboard Init
+*/
+void Robot::ShuffleboardInit() {
+  frc::SmartDashboard::PutBoolean("Logging", false);
+}
+
+/**
+ * Shuffleboard Periodic
+*/
+void Robot::ShuffleboardPeriodic() {
+  bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
+  if (isLogging && !m_prevIsLogging) {
+    m_logger.Init(); // in case file was not created, will exit immediately if initialized
+    m_logger.Enable();
+  } else if (!isLogging & m_prevIsLogging) {
+    m_logger.Disable();
+  }
+  m_prevIsLogging = isLogging;
+}
 
 #ifndef RUNNING_FRC_TESTS
 int main() {
