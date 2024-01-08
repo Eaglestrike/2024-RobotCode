@@ -626,6 +626,10 @@ public:
    * Enables logger by opening file
    */
   void Enable() {
+    if (!m_initialized) {
+      Init();
+    }
+
     m_csv.Enable();
     m_file.Enable();
   }

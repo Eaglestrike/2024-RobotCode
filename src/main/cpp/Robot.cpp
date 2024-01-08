@@ -105,11 +105,10 @@ void Robot::ShuffleboardInit() {
 
 /**
  * Shuffleboard Periodic
-*/
+ */
 void Robot::ShuffleboardPeriodic() {
   bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
   if (isLogging && !m_prevIsLogging) {
-    m_logger.Init(); // in case file was not created, will exit immediately if initialized
     m_logger.Enable();
   } else if (!isLogging & m_prevIsLogging) {
     m_logger.Disable();
