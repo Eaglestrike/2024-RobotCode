@@ -13,6 +13,7 @@
 #include "Controller/Controller.h"
 #include "Drive/SwerveControl.h"
 #include "Util/Logger.h"
+#include "Util/SocketClient.h"
 
 class Robot : public frc::TimedRobot {
  public:

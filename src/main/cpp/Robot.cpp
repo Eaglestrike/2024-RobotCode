@@ -7,7 +7,25 @@
 #include <fmt/core.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 
-Robot::Robot() {}
+#include "Controller/ControllerMap.h"
+
+using namespace Actions;
+
+Robot::Robot() :
+  m_swerveController{true, false},
+  m_client{"10.1.14.21", 5807, 500, 5000},
+  m_logger{"log", {}}
+  {
+  // navx
+  try
+  {
+    m_navx = new AHRS(frc::SerialPort::kUSB2);
+  }
+  catch (const std::exception &e)
+  {
+    std::cerr << e.what() << std::endl;
+  }
+}
 
 void Robot::RobotInit() {
   m_logger.Init();
@@ -40,9 +58,27 @@ void Robot::AutonomousInit() {}
 
 void Robot::AutonomousPeriodic() {}
 
-void Robot::TeleopInit() {}
+void Robot::TeleopInit() {
+  m_swerveController.SetAngCorrection(true);
+  m_swerveController.SetAutoMode(false);
+}
 
-void Robot::TeleopPeriodic() {}
+void Robot::TeleopPeriodic() {
+  double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.1);
+  double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.1);
+
+  double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.1);
+
+  double mult = SwerveConstants::NORMAL_SWERVE_MULT;
+  double vx = std::clamp(lx, -1.0, 1.0) * mult;
+  double vy = std::clamp(ly, -1.0, 1.0) * mult;
+  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
+
+  vec::Vector2D setVel = {-vy, -vx};
+  double curYaw = m_navx->GetYaw();
+
+  m_swerveController->SetRobotVelocityTele(setVel, w, curYaw, 0);
+}
 
 void Robot::DisabledInit() {}
 

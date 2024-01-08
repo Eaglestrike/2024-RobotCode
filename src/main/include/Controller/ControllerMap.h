@@ -7,6 +7,11 @@
 namespace Actions{
     enum Action{
         NONE = -1,
+        SWERVE_STRAFEX,
+        SWERVE_STRAFEY,
+        SWERVE_ROTATION,
+        ZERO_DRIVE_PID,
+        ZERO_YAW,
         ACTION_COUNT //Just the number of actions, as it is at the end of a enum
     };
 
@@ -30,13 +35,13 @@ namespace ControllerMapData{
     //Buttons are structs in the form of {Joystick, ButtonData}
     //There are already some named ButtonData and Buttons
     const std::vector<ControlMapElement> ButtonMap = {
-        {{LJOY, X_AXIS},        NONE},
-        {{LJOY, Y_AXIS},        NONE},
+        {{LJOY, X_AXIS},        SWERVE_STRAFEX},
+        {{LJOY, Y_AXIS},        SWERVE_STRAFEY},
         {{LJOY, TRIGGER},       NONE},
         {{LJOY, B_4},           NONE},
         {{LJOY, B_2},           NONE},
         {{RJOY, B_3},           NONE},
-        {{RJOY, X_AXIS},        NONE},
+        {{RJOY, X_AXIS},        SWERVE_ROTATION},
         {{RJOY, Y_AXIS},        NONE},
         {{RJOY, TRIGGER},       NONE},
         {{RJOY, B_2},           NONE},
@@ -52,8 +57,8 @@ namespace ControllerMapData{
         {XBOX_L_BUMPER ,        NONE},
         {XBOX_LTRIGGER ,        NONE},
         {XBOX_R_BUMPER ,        NONE},
-        {{XBOX, B_7} ,          NONE},
-        {{XBOX, B_8} ,          NONE},
+        {{XBOX, B_7} ,          ZERO_DRIVE_PID},
+        {{XBOX, B_8} ,          ZERO_YAW},
         {XBOX_RTRIGGER ,        NONE}
     };
 
