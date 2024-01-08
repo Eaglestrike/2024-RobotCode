@@ -157,7 +157,7 @@ void SwerveModule::SetLock(bool lock) {
   m_lock = lock;
 }
 
-void SwerveModule::CoreTeleopPeriodic()
+void SwerveModule::CorePeriodic()
 {
   // get current angle
   double correctedEncoderReading = GetCorrectedEncoderReading();

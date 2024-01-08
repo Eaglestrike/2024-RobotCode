@@ -28,7 +28,7 @@ public:
   void SetLock(bool lock);
 
 private:
-  void CoreTeleopPeriodic() override;
+  void CorePeriodic() override;
 
   void CoreShuffleboardInit() override;
   void CoreShuffleboardPeriodic() override;

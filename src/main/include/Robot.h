@@ -12,7 +12,6 @@
 
 #include "Controller/Controller.h"
 #include "Drive/SwerveControl.h"
-#include "Drive/SwerveModule.h"
 #include "Util/Logger.h"
 
 class Robot : public frc::TimedRobot {
@@ -39,8 +38,7 @@ class Robot : public frc::TimedRobot {
   AHRS *m_navx;
 
   // Swerve
-  SwerveModule m_swerveFr, m_swerveBr, m_swerveFl, m_swerveBl;
-  SwerveControl *m_swerveController;
+  SwerveControl m_swerveController;
 
   // Jetson
   SocketClient m_client;
