@@ -73,6 +73,26 @@ namespace SwerveConstants
   const double kV = 2.18;
   const double kA = 0.55;
 
+  const double TRANS_POS_ERR_TOLERANCE = 0.025;
+  const double TRANS_VEL_ERR_TOLERANCE = 100;
+
+  const double ANG_POS_ERR_TOLERANCE = 0.025;
+  const double ANG_VEL_ERR_TOLERANCE = 100;
+
+  const double UNREASONABLE_ANG_SPEED = 62.4828; // rad/s
+
+  const double TRANS_KP = 1.0;
+  const double TRANS_KI = 0;
+  const double TRANS_KD = 0.07;
+  const double TRANS_MAXSP = 3;
+  const double TRANS_MAXACC = 2.5;
+
+  const double ANG_KP = 6;
+  const double ANG_KI = 0;
+  const double ANG_KD = 0.5;
+  const double ANG_MAXSP = 1.5;
+  const double ANG_MAXACC = 1.5;
+
   const double NORMAL_SWERVE_MULT = 12.0;
   const double SLOW_SWERVE_MULT = 3.0;
 
@@ -140,137 +160,5 @@ namespace SwerveConstants
      .angMotorInverted = BL_ANG_INVERTED,
      .offset = BL_OFFSET,
      .position = {-SwerveConstants::CENTER_TO_EDGE, SwerveConstants::CENTER_TO_EDGE}
-  };
-}
-
-namespace OdometryConstants {
-  const double P_INITIAL = 1.0;
-  const double POS_STD_DEV = 0.1;
-  const double MEASURE_STD_DEV = 0.1;
-  const double CAMERA_TRUST_K = -10.0;
-
-  const struct RugConfig{
-    vec::Vector2D direction = vec::Vector2D{1, 0}.rotate(1.57); //Where the carpet points
-    vec::Vector2D perpDirection = direction.rotate(M_PI/2.0);
-    double shiftDistance = 0.0; //Distance shifted by driving along carpet hairs -> m
-    // double shiftDistanceK = 0.835; //Distance gained by driving with hair -> extra m/m
-    double shiftDistanceK = 1; // disable shiftDistanceK
-    double perpShiftDistance = 0.0; //Distance shifted by driving perpendicularly to the hair -> m
-    double perpShiftDistanceK = 1.0; //Distance gained by driving perpendicularly with hair -> extra m/m
-  } RUG_CONFIG;
-
-  const double E0 = 1.0;
-  const double Q = 0.01;
-  const double CAM_TRUST_KANG = 10.0; // unused for now, can use if relying on apriltag angle
-  const double CAM_TRUST_KPOS = 500.0;
-  const double CAM_TRUST_KPOSINT = 100.0;
-  const double MAX_TIME = 0.5;
-
-  // trust term for wheels
-  const double ALPHA = 0.7;
-
-  // for cam data greater than AT_REJECT meters, we reject
-  const double AT_REJECT = 6;
-}
-
-namespace LineupConstants {
-  const double TRANS_KP = 0.7;
-  const double TRANS_KI = 0.1;
-  const double TRANS_KD = 0.07;
-
-  const double ANG_KP = 6;
-  const double ANG_KI = 0;
-  const double ANG_KD = 0.5;
-
-  const double TRANS_MAXSP = 3;
-  const double TRANS_MAXACC = 1;
-
-  const double ANG_MAXSP = 1.5;
-  const double ANG_MAXACC = 1;
-
-  const double TRANS_POS_ERR_TOLERANCE = 0.025;
-  const double TRANS_VEL_ERR_TOLERANCE = 100;
-
-  const double ANG_POS_ERR_TOLERANCE = 0.08;
-  const double ANG_VEL_ERR_TOLERANCE = 100;
-}
-
-namespace AutoConstants {
-  const double TRANS_POS_ERR_TOLERANCE = 0.025;
-  const double TRANS_VEL_ERR_TOLERANCE = 100;
-
-  const double ANG_POS_ERR_TOLERANCE = 0.025;
-  const double ANG_VEL_ERR_TOLERANCE = 100;
-
-  const double UNREASONABLE_ANG_SPEED = 62.4828; // rad/s
-
-  const double TRANS_KP = 1.0;
-  const double TRANS_KI = 0;
-  const double TRANS_KD = 0.07;
-  const double TRANS_MAXSP = 3;
-  const double TRANS_MAXACC = 2.5;
-
-  const double ANG_KP = 6;
-  const double ANG_KI = 0;
-  const double ANG_KD = 0.5;
-  const double ANG_MAXSP = 1.5;
-  const double ANG_MAXACC = 1.5;
-
-  const double TRIM_DIST = 0.3;
-
-  const double PRE_DOCK_SPEED = 1.5;
-  const double MAX_DOCK_SPEED = 3;
-
-  const double PRE_DOCK_ANG = 5 * M_PI / 180;
-  const double DOCK_ANG = 0.235;
-  const double DOCKED_TOL = 0.159;
-
-  const double KTILT = 2.5;
-}
-
-namespace AutoPaths {
-  struct SwervePose {
-    double time;
-    double x, y;
-    double vx, vy;
-    double ang, angVel;
-  };
-
-  // TODO fill values, index = position 1-9
-  // only x, y, ang will matter
-  const std::vector<SwervePose> BLUE_LINEUP_POS;
-
-  // TODO fill values
-  const std::vector<SwervePose> BIG_BOY{
-    {
-      .time = 0,
-      .x = 1.92, .y = 1.56,
-      .vx = 0, .vy = 0,
-      .ang = 0, .angVel = 0
-    },
-    {
-      .time = 1.5,
-      .x = 3.7, .y = 0.8,
-      .vx = 0.5, .vy = 0,
-      .ang = M_PI / 2, .angVel = 2,
-    },
-    {
-      .time = 3,
-      .x = 6, .y = 0.92,
-      .vx = 0, .vy = 0,
-      .ang = M_PI, .angVel = 0,
-    },
-    {
-      .time = 4.5,
-      .x = 4.296, .y = 1.56,
-      .vx = -1.5, .vy = 0,
-      .ang = 3 * M_PI / 2, .angVel = 2,
-    },
-    {
-      .time = 6,
-      .x = 1.92, .y = 0.8,
-      .vx = 0, .vy = 0,
-      .ang = M_PI * 2, .angVel = 0
-    }
   };
 }
