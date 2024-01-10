@@ -21,7 +21,7 @@
 /**
  * Log levels
  */
-enum class LogLevel : int {
+enum class LogLevels : int {
   TRACE = 0,
   DEBUG = 1,
   INFO = 2,
@@ -31,7 +31,7 @@ enum class LogLevel : int {
   OFF = 6
 };
 
-namespace {
+namespace frclogger_internal {
 /**
  * Time manager class
  */
@@ -175,7 +175,7 @@ public:
    *
    * @param level Level
    */
-  void SetLevel(LogLevel level) { m_level = level; }
+  void SetLevel(LogLevels level) { m_level = level; }
 
   /**
    * Sets if should log to console
@@ -203,7 +203,7 @@ public:
    *
    * @returns current level
    */
-  LogLevel GetLevel() const { return m_level; }
+  LogLevels GetLevel() const { return m_level; }
 
   /**
    * Logs trace
@@ -212,7 +212,7 @@ public:
    * @param msg Log message
    */
   void Trace(std::string heading, std::string msg) {
-    LogLevel(heading, msg, LogLevel::TRACE);
+    LogLevel(heading, msg, LogLevels::TRACE);
   }
 
   /**
@@ -222,7 +222,7 @@ public:
    * @param msg Log message
    */
   void Debug(std::string heading, std::string msg) {
-    LogLevel(heading, msg, LogLevel::DEBUG);
+    LogLevel(heading, msg, LogLevels::DEBUG);
   }
 
   /**
@@ -232,7 +232,7 @@ public:
    * @param msg Log message
    */
   void Info(std::string heading, std::string msg) {
-    LogLevel(heading, msg, LogLevel::INFO);
+    LogLevel(heading, msg, LogLevels::INFO);
   }
 
   /**
@@ -242,7 +242,7 @@ public:
    * @param msg Log message
    */
   void Warn(std::string heading, std::string msg) {
-    LogLevel(heading, msg, LogLevel::WARN);
+    LogLevel(heading, msg, LogLevels::WARN);
   }
 
   /**
@@ -252,7 +252,7 @@ public:
    * @param msg Log message
    */
   void Error(std::string heading, std::string msg) {
-    LogLevel(heading, msg, LogLevel::ERROR);
+    LogLevel(heading, msg, LogLevels::ERROR);
   }
 
   /**
@@ -262,7 +262,7 @@ public:
    * @param msg Log message
    */
   void Fatal(std::string heading, std::string msg) {
-    LogLevel(heading, msg, LogLevel::FATAL);
+    LogLevel(heading, msg, LogLevels::FATAL);
   }
 
   /**
@@ -293,7 +293,7 @@ private:
   std::string m_name;
   bool m_logToConsole;
 
-  LogLevel m_level;
+  LogLevels m_level;
 
   std::queue<std::string> m_toLog;
 
@@ -304,7 +304,7 @@ private:
    * @param msg Log message
    * @param level Log level
    */
-  void LogLevel(std::string heading, std::string msg, LogLevel level) {
+  void LogLevel(std::string heading, std::string msg, LogLevels level) {
     if (!IsEnabled() || level < m_level) {
       return;
     }
@@ -320,19 +320,19 @@ private:
    *
    * @returns log level string
    */
-  std::string GetLogLevelStr(enum LogLevel level) const {
+  std::string GetLogLevelStr(enum LogLevels level) const {
     switch (level) {
-    case LogLevel::TRACE:
+    case LogLevels::TRACE:
       return "TRACE";
-    case LogLevel::DEBUG:
+    case LogLevels::DEBUG:
       return "DEBUG";
-    case LogLevel::INFO:
+    case LogLevels::INFO:
       return "INFO";
-    case LogLevel::WARN:
+    case LogLevels::WARN:
       return "WARN";
-    case LogLevel::ERROR:
+    case LogLevels::ERROR:
       return "ERROR";
-    case LogLevel::FATAL:
+    case LogLevels::FATAL:
       return "FATAL";
     default:
       return "";
@@ -616,7 +616,7 @@ public:
    * @param time Current time to sync up time, use seconds
    */
   void Periodic(double time) {
-    TimeMgr::GetInstance().UpdateTime(time);
+    frclogger_internal::TimeMgr::GetInstance().UpdateTime(time);
 
     m_csv.Periodic();
     m_file.Periodic();
@@ -700,7 +700,7 @@ public:
    *
    * @param level Level
    */
-  void SetLevel(LogLevel level) { m_file.SetLevel(level); }
+  void SetLevel(LogLevels level) { m_file.SetLevel(level); }
 
   /**
    * Sets if should log to console
@@ -723,7 +723,7 @@ public:
    *
    * @returns current level
    */
-  LogLevel GetLevel() const { return m_file.GetLevel(); }
+  LogLevels GetLevel() const { return m_file.GetLevel(); }
 
   /**
    * Logs trace
@@ -784,8 +784,8 @@ public:
 private:
   struct stat m_st = {0};
   std::string FOLDER = "frclogs/";
-  std::string m_dateStr = TimeMgr::GetTimeStr();
-  CSVLogger m_csv;
-  FileLogger m_file;
+  std::string m_dateStr = frclogger_internal::TimeMgr::GetTimeStr();
+  frclogger_internal::CSVLogger m_csv;
+  frclogger_internal::FileLogger m_file;
   bool m_initialized = false;
 };

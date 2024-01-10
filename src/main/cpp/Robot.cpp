@@ -44,7 +44,7 @@ void Robot::RobotInit() {
 void Robot::RobotPeriodic() {
   ShuffleboardPeriodic();
 
-  m_logger.Periodic();
+  m_logger.Periodic(Utils::GetCurTimeS());
 }
 
 /**
@@ -81,7 +81,7 @@ void Robot::TeleopPeriodic() {
   vec::Vector2D setVel = {-vy, -vx};
   double curYaw = m_navx->GetYaw();
 
-  m_swerveController->SetRobotVelocityTele(setVel, w, curYaw, 0);
+  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, 0);
 }
 
 void Robot::DisabledInit() {}
