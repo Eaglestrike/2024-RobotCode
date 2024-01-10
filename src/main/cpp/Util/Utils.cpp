@@ -174,3 +174,23 @@ double Utils::GetAngBetweenVec(const vec::Vector2D v1, const vec::Vector2D v2) {
  return std::acos(std::clamp(
       dot(v1, v2) / (magn(v1) * magn(v2)), -1.0, 1.0));
 }
+
+
+/**
+ * Gets the sign of a value
+ * 
+ * @param x number
+ * 
+ * @returns the sign (-1.0, 0.0, 1.0)
+*/
+double Utils::Sign(double x){
+  if(x > 0.0){
+    return 1.0;
+  }
+  else if(x < 0.0){
+    return -1.0;
+  }
+  else{
+    return 0.0;
+  }
+}

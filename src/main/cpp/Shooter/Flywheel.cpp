@@ -2,7 +2,7 @@
 
 #include "iostream"
 
-#include "Util/Util.h"
+#include "Util/Utils.h"
 
 /**
  * Constructor
@@ -14,7 +14,8 @@ Flywheel::Flywheel(std::string name, bool enabled, bool shuffleboard):
     maxVolts_{ShooterConstants::FLYWHEEL_MAX_VOLTS},
     state_{State::IDLE},
     profile_{ShooterConstants::FLYWHEEL_MAX_A},
-    feedforward_{ShooterConstants::FLYWHEEL_FF}
+    feedforward_{ShooterConstants::FLYWHEEL_FF},
+    shuff_{name, shuffleboard}
 {
 
 }
@@ -62,8 +63,8 @@ void Flywheel::SetFeedforward(double ks, double kv, double ka){
 
 //Core Functions
 void Flywheel::CorePeriodic(){
-    double pos = motor_.GetSelectedSensorPosition()/2048.0;
-    double vel = motor_.GetSelectedSensorVelocity()/2048.0;
+    double pos = 2*M_PI * motor_.GetPosition().GetValueAsDouble();
+    double vel = 2*M_PI * motor_.GetVelocity().GetValueAsDouble();
     double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
     currPose_ = {pos, vel, acc};
 };
@@ -81,7 +82,7 @@ void Flywheel::CoreTeleopPeriodic(){
         case State::AT_TARGET:
         {
             Poses::Pose1D targetPose = profile_.GetPose();
-            volts_ = (Utils::sign(targetPose.vel) * feedforward_.ks) + (targetPose.vel * feedforward_.kv) + (targetPose.acc * feedforward_.ka);
+            volts_ = (Utils::Sign(targetPose.vel) * feedforward_.ks) + (targetPose.vel * feedforward_.kv) + (targetPose.acc * feedforward_.ka);
             break;
         }
         case State::JUST_VOLTAGE:

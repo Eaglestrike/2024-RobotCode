@@ -34,4 +34,6 @@ namespace Utils {
   vec::Vector2D GetUnitVecDir(const double ang);
   vec::Vector2D GetProjection(const vec::Vector2D v, const vec::Vector2D w);
   double GetAngBetweenVec(const vec::Vector2D v1, const vec::Vector2D v2);
+
+  double Sign(double x);
 };

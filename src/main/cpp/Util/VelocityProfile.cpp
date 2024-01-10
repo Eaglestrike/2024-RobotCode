@@ -1,6 +1,6 @@
 #include "Util/VelocityProfile.h"
 
-#include "Util/Util.h"
+#include "Util/Utils.h"
 
 /**
  * Constructors
@@ -29,7 +29,7 @@ void VelocityProfile::SetTarget(double finalVel, Poses::Pose1D startPose){
     }
 
     double dV = finalVel - startPose.vel;//Change in velocity
-    double sV = Utils::sign(dV);
+    double sV = Utils::Sign(dV);
     startPose_.acc = sV*maxA_;
 
     if(startPose_.acc != 0.0){

@@ -1,14 +1,16 @@
 #pragma once
 
-#include <ctre/Phoenix.h>
-
-#include "Shooter/ShooterConstants.h"
+#include <ctre/phoenix6/TalonFX.hpp>
 
 #include "Util/Poses.h"
 #include "Util/Mechanism.h"
 #include "Util/VelocityProfile.h"
 
 #include "ShuffleboardSender/ShuffleboardSender.h"
+
+#include "Constants/ShooterConstants.h"
+
+using ctre::phoenix6::hardware::TalonFX;
 
 class Flywheel : public Mechanism{
     public:
@@ -45,7 +47,7 @@ class Flywheel : public Mechanism{
         void CoreShuffleboardUpdate() override;
 
         //Motor
-        WPI_TalonFX motor_;
+        TalonFX motor_;
         double volts_;
         double maxVolts_;
         Poses::Pose1D currPose_;
@@ -57,4 +59,6 @@ class Flywheel : public Mechanism{
 
         //Shuffleboard
         std::string StateToString(State state);
+
+        ShuffleboardSender shuff_;
 };
