@@ -19,7 +19,23 @@ namespace ShooterConstants{
     const std::string SHOOTER_CANBUS = "";
 
     //Flywheel Constants
-    const int FLYWHEEL_ID = 0;
+    struct FlywheelConfig{
+        std::string name;
+        int id;
+        bool inverted;
+    };
+
+    const FlywheelConfig LEFT_FLYWHEEL{
+        .name = "Left Flywheel",
+        .id = 0,
+        .inverted = true
+    };
+
+    const FlywheelConfig RIGHT_FLYWHEEL{
+        .name = "Right Flywheel",
+        .id = 0,
+        .inverted = false
+    };
 
     const double FLYWHEEL_MAX_A = 0.0; //Max Acceleration
     const double FLYWHEEL_MAX_VOLTS = 0.0;
@@ -38,6 +54,7 @@ namespace ShooterConstants{
 
     //Pivot Constants
     const int PIVOT_ID = 0;
+    const int PIVOT_CHILD_ID = 0;
     
     const double PIVOT_MIN = 0.0;
     const double PIVOT_MAX = 0.0;
@@ -68,13 +85,11 @@ namespace ShooterConstants{
         double vel;
     };
 
-    std::map<double, ShootConfig> SHOOT_DATA = { //Distance -> ang, vel
-        {0.0, {0.0, 0.0}}
+    const std::map<double, ShootConfig> SHOOT_DATA = { //Distance -> ang, vel
+        //{0.0, {0.0, 0.0}}
     };
 
-    std::map<double, double> SHOOT_SPIN = { // Angle -> Spin
-        {0.0, 0.0}
-    };
+    const double K_SPIN = 0.0;
 
     const double STROLL_SPEED = 0.0;
 }

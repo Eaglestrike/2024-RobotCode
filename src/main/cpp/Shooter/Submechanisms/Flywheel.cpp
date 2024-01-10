@@ -7,17 +7,17 @@
 /**
  * Constructor
 */
-Flywheel::Flywheel(std::string name, bool enabled, bool shuffleboard):
-    Mechanism{name, enabled, shuffleboard},
-    motor_{ShooterConstants::FLYWHEEL_ID},
+Flywheel::Flywheel(ShooterConstants::FlywheelConfig config, bool enabled, bool shuffleboard):
+    Mechanism{config.name, enabled, shuffleboard},
+    motor_{config.id, ShooterConstants::SHOOTER_CANBUS},
     volts_{0.0},
     maxVolts_{ShooterConstants::FLYWHEEL_MAX_VOLTS},
     state_{State::IDLE},
     profile_{ShooterConstants::FLYWHEEL_MAX_A},
     feedforward_{ShooterConstants::FLYWHEEL_FF},
-    shuff_{name, shuffleboard}
+    shuff_{config.name, shuffleboard}
 {
-
+    motor_.SetInverted(config.inverted);
 }
 
 //Core Functions
@@ -59,6 +59,9 @@ void Flywheel::Idle(){
 
 /**
  * Set target velocity
+ * 
+ * @param vel m/s
+ * @param spin rad/s
 */
 void Flywheel::SetTarget(double vel){
     profile_.SetTarget(vel, currPose_);

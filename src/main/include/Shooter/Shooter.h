@@ -42,11 +42,16 @@ class Shooter : public Mechanism{
 
         State state_;
 
-        Flywheel flywheel_;
+        void SetUp(double vel, double spin, double pivot);
+        Flywheel lflywheel_;
+        Flywheel rflywheel_;
         Pivot pivot_;
 
-        std::map<double, ShooterConstants::ShootConfig> shootData_;
-        std::map<double, double> shootSpin_;
+        double strollSpeed_;
 
+        std::map<double, ShooterConstants::ShootConfig> shootData_;
+        double kSpin_;
+
+        std::string StateToString(State state);
         ShuffleboardSender shuff_;
 };

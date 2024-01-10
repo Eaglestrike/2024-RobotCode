@@ -2,12 +2,24 @@
 
 #include <cmath>
 
+#include <ctre/phoenix6/controls/Follower.hpp>
+
 #include "Util/Utils.h"
 
+using ctre::phoenix6::controls::Follower;
+
+/**
+ * Constructor
+ * 
+ * @param name name
+ * @param enabled enabled
+ * @param shuffleboard shuffleboard debug
+*/
 Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     Mechanism(name, enabled, shuffleboard),
     state_{IDLE},
     motor_{ShooterConstants::PIVOT_ID, ShooterConstants::SHOOTER_CANBUS},
+    motorChild_{ShooterConstants::PIVOT_CHILD_ID, ShooterConstants::SHOOTER_CANBUS},
     volts_{0.0},
     maxVolts_{ShooterConstants::PIVOT_MAX_VOLTS},
     encoder_{ShooterConstants::PIVOT_ID},
@@ -22,13 +34,12 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     currPose_{0.0, 0.0, 0.0},
     shuff_{name, shuffleboard}
 {
-
+    motorChild_.SetControl(Follower(ShooterConstants::PIVOT_ID, true)); //Follow parent
 }
 
-void Pivot::Idle(){
-    state_ = IDLE;
-}
-
+/**
+ * Core functions
+*/
 void Pivot::CorePeriodic(){
     double pos = (encoder_.GetAbsolutePosition() + offset_);
     double vel = 2*M_PI * motor_.GetVelocity().GetValueAsDouble(); //Rotations -> Radians
@@ -66,9 +77,20 @@ void Pivot::CoreTeleopPeriodic(){
 }
 
 /**
- * Pivot starts aiming towards the angle
+ * Sets to idle (no voltage)
+*/
+void Pivot::Idle(){
+    state_ = IDLE;
+}
+
+/**
+ * Pivot starts aiming towards the angle as long as it's in bounds
 */
 void Pivot::SetAngle(double angle){
+    if(angle > bounds_.max || angle < bounds_.min){
+        return;
+    }
+
     profile_.setTarget(currPose_, {.pos = angle, .vel = 0.0, .acc = 0.0});
     accum_ = 0.0;
     state_ = AIMING;
@@ -117,6 +139,9 @@ std::string Pivot::StateToString(Pivot::State state){
     }
 }
 
+/**
+ * Core Shuffleboard prints
+*/
 void Pivot::CoreShuffleboardInit(){
     //Voltage Control (row 0)
     shuff_.add("volts", &volts_, {1,1,0,0}, true);

@@ -28,7 +28,7 @@ class Pivot : public Mechanism{
         Pivot(std::string name, bool enabled, bool shuffleboard);
 
         void Idle();
-        
+
         void SetAngle(double angle);
         void SetVoltage(double volts);
 
@@ -47,6 +47,7 @@ class Pivot : public Mechanism{
         State state_;
 
         TalonFX motor_;
+        TalonFX motorChild_;
         double volts_;
         double maxVolts_;
 

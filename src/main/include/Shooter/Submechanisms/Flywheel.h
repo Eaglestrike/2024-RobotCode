@@ -22,7 +22,7 @@ class Flywheel : public Mechanism{
         };
 
         //Constructor
-        Flywheel(std::string name, bool enabled = true, bool shuffleboard = false);
+        Flywheel(ShooterConstants::FlywheelConfig config, bool enabled = true, bool shuffleboard = false);
 
         //Controls
         void Idle();
