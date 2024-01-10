@@ -25,7 +25,7 @@ class Flywheel : public Mechanism{
         Flywheel(std::string name, bool enabled = true, bool shuffleboard = false);
 
         //Controls
-        void SetIdle();
+        void Idle();
         void SetTarget(double vel);
         void SetVoltage(double volts);
 

@@ -1,4 +1,4 @@
-#include "Shooter/Flywheel.h"
+#include "Shooter/Submechanisms/Flywheel.h"
 
 #include "iostream"
 
@@ -18,6 +18,43 @@ Flywheel::Flywheel(std::string name, bool enabled, bool shuffleboard):
     shuff_{name, shuffleboard}
 {
 
+}
+
+//Core Functions
+void Flywheel::CorePeriodic(){
+    double pos = 2*M_PI * motor_.GetPosition().GetValueAsDouble();
+    double vel = 2*M_PI * motor_.GetVelocity().GetValueAsDouble();
+    double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
+    currPose_ = {pos, vel, acc};
+};
+
+void Flywheel::CoreTeleopPeriodic(){
+    switch(state_){
+        case State::IDLE:
+            volts_ = 0.0;
+            break;
+        case State::RAMPING:
+            if(profile_.isFinished()){
+                state_ = State::AT_TARGET;
+            }
+            [[fallthrough]];
+        case State::AT_TARGET:
+        {
+            Poses::Pose1D targetPose = profile_.GetPose();
+            volts_ = (Utils::Sign(targetPose.vel) * feedforward_.ks) + (targetPose.vel * feedforward_.kv) + (targetPose.acc * feedforward_.ka);
+            break;
+        }
+        case State::JUST_VOLTAGE:
+            break; //Voltage already set
+        default:
+            volts_ = 0.0;
+    }
+    volts_ = std::clamp(volts_, -maxVolts_, maxVolts_);
+    motor_.SetVoltage(units::volt_t{volts_});
+};
+
+void Flywheel::Idle(){
+    state_ = State::IDLE;
 }
 
 /**
@@ -61,39 +98,6 @@ void Flywheel::SetFeedforward(double ks, double kv, double ka){
     feedforward_.ka = ka;
 }
 
-//Core Functions
-void Flywheel::CorePeriodic(){
-    double pos = 2*M_PI * motor_.GetPosition().GetValueAsDouble();
-    double vel = 2*M_PI * motor_.GetVelocity().GetValueAsDouble();
-    double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
-    currPose_ = {pos, vel, acc};
-};
-
-void Flywheel::CoreTeleopPeriodic(){
-    switch(state_){
-        case State::IDLE:
-            volts_ = 0.0;
-            break;
-        case State::RAMPING:
-            if(profile_.isFinished()){
-                state_ = State::AT_TARGET;
-            }
-            [[fallthrough]];
-        case State::AT_TARGET:
-        {
-            Poses::Pose1D targetPose = profile_.GetPose();
-            volts_ = (Utils::Sign(targetPose.vel) * feedforward_.ks) + (targetPose.vel * feedforward_.kv) + (targetPose.acc * feedforward_.ka);
-            break;
-        }
-        case State::JUST_VOLTAGE:
-            break; //Voltage already set
-        default:
-            volts_ = 0.0;
-    }
-    volts_ = std::clamp(volts_, -maxVolts_, maxVolts_);
-    motor_.SetVoltage(units::volt_t{volts_});
-};
-
 void Flywheel::CoreShuffleboardInit(){
     //Voltage Control (row 0)
     shuff_.add("volts", &volts_, {1,1,0,0}, true);
@@ -111,6 +115,7 @@ void Flywheel::CoreShuffleboardInit(){
     shuff_.add("pos", &currPose_.pos, {1,1,4,1}, false);
     shuff_.add("vel", &currPose_.vel, {1,1,5,1}, false);
     shuff_.add("acc", &currPose_.acc, {1,1,6,1}, false);
+    shuff_.add("volts", &volts_, {1,1,4,2}, false);
 
     //Velocity Control (row 2 and 3)
     shuff_.PutNumber("Vel Targ", 0.0, {1,1,0,2});

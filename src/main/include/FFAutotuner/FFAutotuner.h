@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TrapezoidalProfile.h"
+#include "Util/TrapezoidalProfile.h"
 #include "Util/Poses.h"
 
 #include "ShuffleboardSender/ShuffleboardSender.h"
