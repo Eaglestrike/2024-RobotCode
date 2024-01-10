@@ -1,6 +1,7 @@
 #pragma once
 
-#include <ctre/Phoenix.h>
+#include <ctre/phoenix6/CANcoder.hpp>
+#include <ctre/phoenix6/TalonFX.hpp>
 #include <frc/controller/PIDController.h>
 
 #include "Constants/DriveConstants.h"
@@ -8,6 +9,8 @@
 #include "Util/simplevectors.hpp"
 
 namespace vec = svector; //!< Alias to vector namespace
+using ctre::phoenix6::hardware::CANcoder;
+using ctre::phoenix6::hardware::TalonFX;
 
 /**
  * Interface with an individual swerve module
@@ -36,10 +39,11 @@ private:
 
   bool ShouldFlip(vec::Vector2D curAng, vec::Vector2D targetAng);
 
-  WPI_TalonFX m_driveMotor;
-  WPI_TalonFX m_angleMotor;
-  WPI_CANCoder m_encoder;
-  frc2::PIDController m_controller;
+  
+  TalonFX m_driveMotor;
+  TalonFX m_angleMotor;
+  CANcoder m_encoder;
+  frc::PIDController m_controller;
 
   bool m_flipped;
   bool m_driveInverted; // if the drive motor is inverted (at angle = 0, positive voltage = negative movement)

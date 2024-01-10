@@ -48,6 +48,6 @@ private:
 
   double m_curAngle;
   bool m_angCorrection;
-  frc2::PIDController m_angleCorrector;
+  frc::PIDController m_angleCorrector;
   double m_prevTime;
 };
