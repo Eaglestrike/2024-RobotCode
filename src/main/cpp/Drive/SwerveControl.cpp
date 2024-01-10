@@ -25,7 +25,9 @@ SwerveControl::SwerveControl(bool enabled, bool shuffleboard) :
   m_fl{SwerveConstants::FL_CONFIG, true, false},
   m_bl{SwerveConstants::BL_CONFIG, true, false},
   m_pfr{0}, m_pbr{0}, m_pfl{0}, m_pbl{0},
-  m_curAngle{0}, m_angCorrection{0}, m_prevTime{0}
+  m_curAngle{0}, m_angCorrection{0},
+  m_angleCorrector{SwerveConstants::ANG_CORRECT_P, SwerveConstants::ANG_CORRECT_I, SwerveConstants::ANG_CORRECT_D},
+  m_prevTime{0}
   {}
 
 
@@ -41,10 +43,10 @@ SwerveControl::SwerveControl(bool enabled, bool shuffleboard) :
 vec::Vector2D SwerveControl::GetRobotVelocity(double ang)
 {
   std::vector<vec::Vector2D> vectors;
-  for (auto module : m_modules)
-  {
-    vectors.push_back(module.get().GetVelocity());
-  }
+  vectors.push_back(m_fl.GetVelocity());
+  vectors.push_back(m_fr.GetVelocity());
+  vectors.push_back(m_bl.GetVelocity());
+  vectors.push_back(m_br.GetVelocity());
 
   auto avg = Utils::GetVecAverage(vectors);
   return vec::rotate(avg, ang); // rotate by navx ang
@@ -191,7 +193,7 @@ void SwerveControl::CoreInit(){
  */
 void SwerveControl::SetRobotVelocityTele(vec::Vector2D vel, double angVel, double ang, double angOfJoystick) {
   vec::Vector2D velAbs = vec::rotate(vel, angOfJoystick);
-  SetRobotVelocity(velAbs, angVel, ang, time);
+  SetRobotVelocity(vel, angVel, ang);
 }
 
 /**

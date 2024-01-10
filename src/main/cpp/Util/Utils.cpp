@@ -81,9 +81,9 @@ bool Utils::NearZero(const vec::Vector2D vec, const double tolerance)
 
 
 /**
- * Normalizes angle to (180, -180]
+ * Normalizes angle to (-pi, pi]
  * 
- * @returns normalized angle
+ * @returns normalized angle, in radians
 */
 double Utils::NormalizeAng(const double ang) {
   double ang2 = std::fmod(ang, M_PI * 2);
@@ -93,6 +93,21 @@ double Utils::NormalizeAng(const double ang) {
   }
 
   return ang2;
+}
+
+/**
+ * Normalizes angle to (-180, 180]
+ * 
+ * @returns Normalized angle, in degrees
+ */
+double Utils::NormalizeAngDeg(const double ang) {
+  double ang2 = std::fmod(ang, 360);
+  ang2 = std::fmod(ang + 360, 360);
+  if (ang2 > 180) {
+    ang2 -= 360;
+  }
+
+  return ang2; 
 }
 
 /**

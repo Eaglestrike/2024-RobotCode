@@ -7,12 +7,13 @@
 #define M_PI 3.141592653589793238462643383279502884197169399
 #endif
 
+#include <ctre/phoenix6/signals/SpnEnums.hpp>
 #include <frc/smartdashboard/SmartDashboard.h>
 
 #include "Constants/SwerveConstants.h"
 #include "Util/Utils.h"
 
-#include <frc/smartdashboard/SmartDashboard.h>
+using namespace ctre::phoenix6::signals;
 
 /**
  * Constructor
@@ -36,14 +37,14 @@ SwerveModule::SwerveModule(SwerveConstants::SwerveConfig config, bool enabled, b
       m_lock{false},
       m_position{config.position}
 {
-  m_encoder.ConfigAbsoluteSensorRange(Signed_PlusMinus180);
+  // m_encoder.ConfigAbsoluteSensorRange(Signed_PlusMinus180);
   // m_encoder.ConfigMagnetOffset(offset);
   m_controller.EnableContinuousInput(-M_PI, M_PI);
 
   // frc::SmartDashboard::PutNumber("Wheel Radius", SwerveConstants::WHEEL_RADIUS);
 
-  m_angleMotor.SetNeutralMode(NeutralMode::Brake);
-  m_driveMotor.SetNeutralMode(NeutralMode::Brake);
+  m_angleMotor.SetNeutralMode(NeutralModeValue::Brake);
+  m_driveMotor.SetNeutralMode(NeutralModeValue::Brake);
 
   SetPID(SwerveConstants::TURN_P, SwerveConstants::TURN_I, SwerveConstants::TURN_D);
 }
@@ -55,8 +56,7 @@ SwerveModule::SwerveModule(SwerveConstants::SwerveConfig config, bool enabled, b
  */
 vec::Vector2D SwerveModule::GetVelocity()
 {
-  //                                   (x ticks / 1 100ms) * (10 100ms / 1 s) * (2π motor radians / TALON_FX_COUNTS_PER_REV ticks) * (1 wheel radian / WHEEL_GEAR_RATIO motor radians) * (WHEEL_RADIUS m / 1 wheel radian)
-  double curMotorSpeed = m_driveMotor.GetSelectedSensorVelocity() * 10.0 * (2.0 * M_PI / SwerveConstants::TALON_FX_COUNTS_PER_REV) * (1 / SwerveConstants::WHEEL_GEAR_RATIO) * SwerveConstants::WHEEL_RADIUS;
+  double curMotorSpeed = m_driveMotor.GetVelocity().GetValueAsDouble() * (2 * M_PI) * (1 / SwerveConstants::WHEEL_GEAR_RATIO) * SwerveConstants::WHEEL_RADIUS;
   double curAng = GetCorrectedEncoderReading() * (M_PI / 180);
 
   auto resVec = vec::Vector2D{std::cos(curAng), std::sin(curAng)} * curMotorSpeed;
@@ -80,7 +80,7 @@ vec::Vector2D SwerveModule::getPosition(){
  */
 double SwerveModule::GetCorrectedEncoderReading()
 {
-  double val = m_encoder.GetAbsolutePosition() - m_offset;
+  double val = GetRawEncoderReading() - m_offset;
 
   if (m_encoderInverted) {
     val = -val;
@@ -95,7 +95,8 @@ double SwerveModule::GetCorrectedEncoderReading()
  * @returns Raw encoder reading
  */
 double SwerveModule::GetRawEncoderReading() {
-  double val = m_encoder.GetAbsolutePosition();
+  double val = m_encoder.GetAbsolutePosition().GetValue().convert<units::degrees>().value();
+  val = Utils::NormalizeAngDeg(val);
   return val;
 }
 
