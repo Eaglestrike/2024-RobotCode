@@ -1,19 +1,17 @@
 #pragma once
 
 #include <iostream>
-// #include <ctre/Phoenix.h>
-#include <rev/CANSparkMax.h>
 #include "ShuffleboardSender/ShuffleboardSender.h"
 #include "Util/Mechanism.h"
-#include "Constants/ClimbConstants.h"
-// #include "Controls.h"
-// #include "Constants.h"
-// #include "TrajectoryCalc.h"
-
-#include <frc/Solenoid.h>
+#include "Constants/MechanismConstants.h"
+#include <ctre/phoenix6/TalonFX.hpp>
+#include <frc/DutyCycleEncoder.h>
+// #include <frc/Solenoid.h>
 #include <numeric>
 
-class Climb :  public Mechanism{
+using ctre::phoenix6::hardware::TalonFX;
+
+class Climb : public Mechanism{
     public:
         enum Target {
             EXTENDED,
@@ -28,30 +26,31 @@ class Climb :  public Mechanism{
         };
 
     Climb();
-    void Periodic() override;
+    void CorePeriodic() override;
     void CoreShuffleboardPeriodic() override;
+    void PullUp();
+    void Stow ();
+    void Extend();
+    State GetState();
     void SetTarget(Target t);
 
     private:
-        ShuffleboardSender m_shuff{"climb", true};
+        ShuffleboardSender m_shuff {"Climb", true};
         void UpdatePos();
         bool AtTarget(double target);
-        rev::CANSparkMax m_motor{ClimbConstants::MOTOR_ID, rev::CANSparkMaxLowLevel::MotorType::kBrushless};
-        rev::SparkMaxRelativeEncoder m_relEncoder = m_motor.GetEncoder();
-
-        // frc::Solenoid pneumatic1_;
-        // frc::Solenoid pneumatic2_;
-        // frc::Solenoid brake_
-
-        double MAX_VOLTS; //= ClimbConstants::MAX_VOLTS;
-        double MIN_POS; //= ClimbConstants::MIN_POS;
-        double MAX_POS; //= ClimbConstants::MAX_POS;
-        double POS_TOLERANCE;
-        double CLIMB_VOLTS; //= ClimbConstants::CLIMB_VOLTS;
-        double HOLD_VOLTS; //= ClimbConstants::HOLD_VOLTS;
+        TalonFX m_master {Ids::MASTER_CLIMB_MOTOR}, m_slave {Ids::SLAVE_CLIMB_MOTOR};
+        frc::DutyCycleEncoder m_absEncoder{Ids::CLIMB_ABS_ENCODER};
+        //electronic solenoid brake
 
         double m_pos;
-
         Target m_targ = STOWED;
         State m_state = AT_TARGET;
+
+        //CONSTANTS:
+        double  MAX_VOLTS = 0.0, 
+                MIN_POS= 0.0, 
+                MAX_POS= 0.0, 
+                POS_TOLERANCE= 0.0, 
+                CLIMB_VOLTS= 0.0, 
+                HOLD_VOLTS= 0.0;
 };

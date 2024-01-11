@@ -2,7 +2,7 @@
 
 //maybe PID ff or some other fancier motor control
 
-void Climb::Periodic(){
+void Climb::CorePeriodic(){
     UpdatePos();
     double voltage = 0;
     if (m_state == MOVING){
@@ -26,11 +26,12 @@ void Climb::Periodic(){
     }
     else if (m_state == AT_TARGET && m_targ == CLIMB)
         voltage = HOLD_VOLTS;
-    m_motor.SetVoltage(units::volt_t(voltage));
+    m_master.SetVoltage(units::volt_t(voltage));
 }
 
 void Climb::UpdatePos(){
-    m_pos = m_relEncoder.GetPosition();
+    // m_pos = m_master.GetPosition().GetValueAsDouble();
+    m_pos = m_absEncoder.GetAbsolutePosition();
 }
 
 bool Climb::AtTarget(double target){
@@ -39,12 +40,27 @@ bool Climb::AtTarget(double target){
     else return false;
 }
 
+void Climb::Extend(){
+    SetTarget(EXTENDED);
+}
+
+void Climb::Stow(){
+    SetTarget(EXTENDED);
+}
+
+void Climb::PullUp(){
+    SetTarget(CLIMB);
+}
+
+Climb::State Climb::GetState(){
+    return m_state;
+}
+
 void Climb::SetTarget(Target t){
     if (t = m_targ) return;
     m_state = MOVING;
     m_targ = t;
 }
-
 
 void Climb::CoreShuffleboardPeriodic(){
     m_shuff.PutNumber("Cur pos", m_pos);
@@ -53,6 +69,6 @@ void Climb::CoreShuffleboardPeriodic(){
     m_shuff.add("Extended pos", &MAX_POS, true);
     m_shuff.add("Stowed pos", &MIN_POS, true);
     m_shuff.add("Extend stow volts", &MAX_VOLTS, true);
-    m_shuff.add("climb volts", &CLIMB_VOLTS, true);
-    m_shuff.add("hold volts", &HOLD_VOLTS, true);
+    m_shuff.add("Climb volts", &CLIMB_VOLTS, true);
+    m_shuff.add("Hold volts", &HOLD_VOLTS, true);
 }
