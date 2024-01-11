@@ -12,7 +12,7 @@ Flywheel::Flywheel(ShooterConstants::FlywheelConfig config, bool enabled, bool s
     motor_{config.id, ShooterConstants::SHOOTER_CANBUS},
     volts_{0.0},
     maxVolts_{ShooterConstants::FLYWHEEL_MAX_VOLTS},
-    state_{State::IDLE},
+    state_{State::STOP},
     profile_{ShooterConstants::FLYWHEEL_MAX_A},
     feedforward_{ShooterConstants::FLYWHEEL_FF},
     shuff_{config.name, shuffleboard}
@@ -30,7 +30,7 @@ void Flywheel::CorePeriodic(){
 
 void Flywheel::CoreTeleopPeriodic(){
     switch(state_){
-        case State::IDLE:
+        case State::STOP:
             volts_ = 0.0;
             break;
         case State::RAMPING:
@@ -53,8 +53,8 @@ void Flywheel::CoreTeleopPeriodic(){
     motor_.SetVoltage(units::volt_t{volts_});
 };
 
-void Flywheel::Idle(){
-    state_ = State::IDLE;
+void Flywheel::Stop(){
+    state_ = State::STOP;
 }
 
 /**
@@ -155,7 +155,7 @@ void Flywheel::CoreShuffleboardUpdate(){
 
 std::string Flywheel::StateToString(State state){
     switch(state){
-        case State::IDLE:           return "Idle";
+        case State::STOP:           return "Stop";
         case State::RAMPING:        return "Ramping";
         case State::AT_TARGET:      return "At Target";
         case State::JUST_VOLTAGE:   return "Voltage";

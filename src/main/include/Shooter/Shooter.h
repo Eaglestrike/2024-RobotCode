@@ -17,7 +17,7 @@ namespace vec = svector;
 class Shooter : public Mechanism{
     public:
         enum State{
-            IDLE,
+            STOP,
             PREPARING,
             PREPARED,
             STROLL //Set to low speed
@@ -25,9 +25,10 @@ class Shooter : public Mechanism{
 
         Shooter(std::string name, bool enabled, bool shuffleboard);
 
-        void Idle();
+        void Stop();
         void Stroll();
 
+        void SetUp(double vel, double spin, double ang);
         void Prepare(vec::Vector2D toSpeaker);
 
         bool CanShoot();
@@ -42,7 +43,6 @@ class Shooter : public Mechanism{
 
         State state_;
 
-        void SetUp(double vel, double spin, double pivot);
         Flywheel lflywheel_;
         Flywheel rflywheel_;
         Pivot pivot_;

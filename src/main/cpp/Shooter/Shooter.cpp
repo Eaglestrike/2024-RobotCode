@@ -2,7 +2,7 @@
 
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
-    state_{IDLE},
+    state_{STOP},
     lflywheel_{ShooterConstants::LEFT_FLYWHEEL, enabled, shuffleboard},
     rflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, shuffleboard},
     pivot_{"Pivot", enabled, shuffleboard},
@@ -32,7 +32,7 @@ void Shooter::CorePeriodic(){
 
 void Shooter::CoreTeleopPeriodic(){
     switch(state_){
-        case IDLE:
+        case STOP:
             break;
         case PREPARING:
             if(lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget()){
@@ -53,11 +53,11 @@ void Shooter::CoreTeleopPeriodic(){
 /**
  * Turns off (no voltage)
 */
-void Shooter::Idle(){
-    lflywheel_.Idle();
-    rflywheel_.Idle();
-    pivot_.Idle();
-    state_ = IDLE;
+void Shooter::Stop(){
+    lflywheel_.Stop();
+    rflywheel_.Stop();
+    pivot_.Stop();
+    state_ = STOP;
 }
 
 /**
@@ -68,7 +68,7 @@ void Shooter::Stroll(){
     // rflywheel_.SetTarget(strollSpeed_);
     lflywheel_.SetVoltage(strollSpeed_);
     rflywheel_.SetVoltage(strollSpeed_);
-    pivot_.Idle();
+    pivot_.Stop();
     state_ = STROLL;
 }
 
@@ -127,7 +127,7 @@ bool Shooter::CanShoot(){
 
 std::string Shooter::StateToString(State state){
     switch(state){
-        case IDLE: return "Idle";
+        case STOP: return "Stop";
         case PREPARING: return "Preparing";
         case PREPARED: return "Prepared";
         case STROLL: return "Stroll";

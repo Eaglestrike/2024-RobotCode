@@ -17,7 +17,7 @@ using ctre::phoenix6::controls::Follower;
 */
 Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     Mechanism(name, enabled, shuffleboard),
-    state_{IDLE},
+    state_{STOP},
     motor_{ShooterConstants::PIVOT_ID, ShooterConstants::SHOOTER_CANBUS},
     motorChild_{ShooterConstants::PIVOT_CHILD_ID, ShooterConstants::SHOOTER_CANBUS},
     volts_{0.0},
@@ -49,7 +49,7 @@ void Pivot::CorePeriodic(){
 
 void Pivot::CoreTeleopPeriodic(){
     switch(state_){
-        case IDLE:
+        case STOP:
             volts_ = 0.0;
             break;
         case AIMING:
@@ -79,8 +79,8 @@ void Pivot::CoreTeleopPeriodic(){
 /**
  * Sets to idle (no voltage)
 */
-void Pivot::Idle(){
-    state_ = IDLE;
+void Pivot::Stop(){
+    state_ = STOP;
 }
 
 /**
@@ -131,7 +131,7 @@ Poses::Pose1D Pivot::getPose(){
 */
 std::string Pivot::StateToString(Pivot::State state){
     switch(state){
-        case IDLE : return "Idle";
+        case STOP : return "Stop";
         case AIMING : return "AIMING";
         case AT_TARGET : return "AT_TARGET";
         case JUST_VOLTAGE : return "Voltage";

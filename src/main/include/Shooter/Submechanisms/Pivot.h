@@ -19,7 +19,7 @@ using ctre::phoenix6::hardware::TalonFX;
 class Pivot : public Mechanism{
     public:
         enum State{
-            IDLE,
+            STOP,
             AIMING,
             AT_TARGET,
             JUST_VOLTAGE
@@ -27,7 +27,7 @@ class Pivot : public Mechanism{
 
         Pivot(std::string name, bool enabled, bool shuffleboard);
 
-        void Idle();
+        void Stop();
 
         void SetAngle(double angle);
         void SetVoltage(double volts);

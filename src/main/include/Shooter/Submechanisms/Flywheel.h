@@ -15,7 +15,7 @@ using ctre::phoenix6::hardware::TalonFX;
 class Flywheel : public Mechanism{
     public:
         enum class State{
-            IDLE,
+            STOP,
             RAMPING,
             AT_TARGET,
             JUST_VOLTAGE
@@ -25,7 +25,7 @@ class Flywheel : public Mechanism{
         Flywheel(ShooterConstants::FlywheelConfig config, bool enabled = true, bool shuffleboard = false);
 
         //Controls
-        void Idle();
+        void Stop();
         void SetTarget(double vel);
         void SetVoltage(double volts);
 
