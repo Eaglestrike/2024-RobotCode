@@ -1,9 +1,15 @@
 #pragma once
 
+#define SHOOTER_AUTO_TUNE false
+
 #include <map>
 
 #include "Util/Mechanism.h"
 #include "Util/simplevectors.hpp"
+
+#if SHOOTER_AUTO_TUNE
+#include "FFAutotuner/FFAutotuner.h"
+#endif
 
 #include "ShuffleboardSender/ShuffleboardSender.h"
 
@@ -54,4 +60,10 @@ class Shooter : public Mechanism{
 
         std::string StateToString(State state);
         ShuffleboardSender shuff_;
+
+        #if SHOOTER_AUTO_TUNE
+        //Tuning will override any state
+        bool lflyTuning_, rflyTuning_, pivotTuning_;
+        FFAutotuner lflyTuner_, rflyTuner_, pivotTuner_;
+        #endif
 };

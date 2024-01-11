@@ -36,7 +36,7 @@ class Pivot : public Mechanism{
 
         bool AtTarget();
 
-        Poses::Pose1D getPose();
+        Poses::Pose1D GetPose();
 
     private:
         void CorePeriodic() override;

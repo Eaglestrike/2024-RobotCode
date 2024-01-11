@@ -10,6 +10,13 @@ Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     shootData_{ShooterConstants::SHOOT_DATA},
     kSpin_{ShooterConstants::K_SPIN},
     shuff_{name, shuffleboard}
+
+    #if SHOOTER_AUTO_TUNE
+    ,lflyTuning_{false}, rflyTuning_{false}, pivotTuning_{false},
+    lflyTuner_{"left flywheel tuner", FFAutotuner::SIMPLE},
+    rflyTuner_{"right flywheel tuner", FFAutotuner::SIMPLE}, 
+    pivotTuner_{"pivot tuner", FFAutotuner::ARM}
+    #endif
 {
 
 }
@@ -25,6 +32,12 @@ void Shooter::CoreInit(){
 }
 
 void Shooter::CorePeriodic(){
+    #if SHOOTER_AUTO_TUNE
+    rflyTuner_.ShuffleboardUpdate();
+    lflyTuner_.ShuffleboardUpdate();
+    pivotTuner_.ShuffleboardUpdate();
+    #endif
+
     lflywheel_.Periodic();
     rflywheel_.Periodic();
     pivot_.Periodic();
@@ -44,6 +57,21 @@ void Shooter::CoreTeleopPeriodic(){
         default:
             break;
     }
+
+    #if SHOOTER_AUTO_TUNE
+    if(lflyTuning_){
+        lflyTuner_.setPose(lflywheel_.GetPose());
+        lflywheel_.SetVoltage(lflyTuner_.getVoltage());
+    }
+    if(rflyTuning_){
+        rflyTuner_.setPose(rflywheel_.GetPose());
+        rflywheel_.SetVoltage(rflyTuner_.getVoltage());
+    }
+    if(pivotTuning_){
+        pivotTuner_.setPose(pivot_.GetPose());
+        pivot_.SetVoltage(pivotTuner_.getVoltage());
+    }
+    #endif
 
     lflywheel_.TeleopPeriodic();
     rflywheel_.TeleopPeriodic();
@@ -151,6 +179,12 @@ void Shooter::CoreShuffleboardInit(){
 
     //State (rightside)
     shuff_.PutString("State", StateToString(state_), {2,1,4,0});
+
+    #if SHOOTER_AUTO_TUNE
+    shuff_.add("Lfly Autotune", &lflyTuning_, {1,1,3,1}, true);
+    shuff_.add("Rfly Autotune", &rflyTuning_, {1,1,4,1}, true);
+    shuff_.add("Pivot Autotune", &pivotTuning_, {1,1,5,1}, true);
+    #endif
 
     //Setup or add to ShootData (row 2)
     shuff_.PutNumber("Vel", 0.0, {1,1,0,2});

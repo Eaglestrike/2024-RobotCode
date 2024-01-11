@@ -122,7 +122,7 @@ bool Pivot::AtTarget(){
 /**
  * Get Pose
 */
-Poses::Pose1D Pivot::getPose(){
+Poses::Pose1D Pivot::GetPose(){
     return currPose_;
 }
 
