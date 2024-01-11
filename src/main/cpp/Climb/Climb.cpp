@@ -41,7 +41,7 @@ bool Climb::AtTarget(double target){
 }
 
 Climb::Climb(){
-    m_slave.SetControl(Follower(Ids::MASTER_CLIMB_MOTOR, false));
+    // m_slave.SetControl(Follower(Ids::MASTER_CLIMB_MOTOR, false));
 }
 
 void Climb::Extend(){

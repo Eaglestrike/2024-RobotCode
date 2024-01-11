@@ -40,7 +40,7 @@ class Climb : public Mechanism{
         ShuffleboardSender m_shuff {"Climb", true};
         void UpdatePos();
         bool AtTarget(double target);
-        TalonFX m_master {Ids::MASTER_CLIMB_MOTOR}, m_slave {Ids::SLAVE_CLIMB_MOTOR};
+        TalonFX m_master {Ids::MASTER_CLIMB_MOTOR};//, m_slave {Ids::SLAVE_CLIMB_MOTOR};
         frc::DutyCycleEncoder m_absEncoder{Ids::CLIMB_ABS_ENCODER};
         //electronic solenoid brake
 
