@@ -7,9 +7,11 @@
 #include <ctre/phoenix6/TalonFX.hpp>
 #include <frc/DutyCycleEncoder.h>
 // #include <frc/Solenoid.h>
+#include <ctre/phoenix6/controls/Follower.hpp>
 #include <numeric>
 
 using ctre::phoenix6::hardware::TalonFX;
+using ctre::phoenix6::controls::Follower;
 
 class Climb : public Mechanism{
     public:

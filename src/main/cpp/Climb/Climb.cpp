@@ -40,6 +40,10 @@ bool Climb::AtTarget(double target){
     else return false;
 }
 
+Climb::Climb(){
+    m_slave.SetControl(Follower(Ids::MASTER_CLIMB_MOTOR, false));
+}
+
 void Climb::Extend(){
     SetTarget(EXTENDED);
 }
