@@ -7,10 +7,32 @@
 #include <fmt/core.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 
+#include "Controller/ControllerMap.h"
+
+using namespace Actions;
+
+Robot::Robot() :
+  m_swerveController{true, false},
+  m_client{"10.1.14.21", 5807, 500, 5000},
+  m_logger{"log", {}}
+  {
+  // navx
+  try
+  {
+    m_navx = new AHRS(frc::SerialPort::kMXP);
+  }
+  catch (const std::exception &e)
+  {
+    std::cerr << e.what() << std::endl;
+  }
+
+  m_logger.SetLogToConsole(true);
+}
+
 void Robot::RobotInit() {
-  m_chooser.SetDefaultOption(kAutoNameDefault, kAutoNameDefault);
-  m_chooser.AddOption(kAutoNameCustom, kAutoNameCustom);
-  frc::SmartDashboard::PutData("Auto Modes", &m_chooser);
+  ShuffleboardInit();
+
+  m_swerveController.Init();
 }
 
 /**
@@ -21,7 +43,11 @@ void Robot::RobotInit() {
  * <p> This runs after the mode specific periodic functions, but before
  * LiveWindow and SmartDashboard integrated updating.
  */
-void Robot::RobotPeriodic() {}
+void Robot::RobotPeriodic() {
+  ShuffleboardPeriodic();
+
+  m_logger.Periodic(Utils::GetCurTimeS());
+}
 
 /**
  * This autonomous (along with the chooser code above) shows how to select
@@ -34,30 +60,32 @@ void Robot::RobotPeriodic() {}
  * if-else structure below with additional strings. If using the SendableChooser
  * make sure to add them to the chooser code above as well.
  */
-void Robot::AutonomousInit() {
-  m_autoSelected = m_chooser.GetSelected();
-  // m_autoSelected = SmartDashboard::GetString("Auto Selector",
-  //     kAutoNameDefault);
-  fmt::print("Auto selected: {}\n", m_autoSelected);
+void Robot::AutonomousInit() {}
 
-  if (m_autoSelected == kAutoNameCustom) {
-    // Custom Auto goes here
-  } else {
-    // Default Auto goes here
-  }
+void Robot::AutonomousPeriodic() {}
+
+void Robot::TeleopInit() {
+  m_swerveController.SetAngCorrection(true);
+  m_swerveController.SetAutoMode(false);
 }
 
-void Robot::AutonomousPeriodic() {
-  if (m_autoSelected == kAutoNameCustom) {
-    // Custom Auto goes here
-  } else {
-    // Default Auto goes here
-  }
+void Robot::TeleopPeriodic() {
+  double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.1);
+  double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.1);
+
+  double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.1);
+
+  double mult = SwerveConstants::NORMAL_SWERVE_MULT;
+  double vx = std::clamp(lx, -1.0, 1.0) * mult;
+  double vy = std::clamp(ly, -1.0, 1.0) * mult;
+  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
+
+  vec::Vector2D setVel = {-vy, -vx};
+  double curYaw = m_navx->GetYaw();
+
+  m_swerveController.SetRobotVelocityTele(setVel, w, 0, 0);
+  m_swerveController.Periodic();
 }
-
-void Robot::TeleopInit() {}
-
-void Robot::TeleopPeriodic() {}
 
 void Robot::DisabledInit() {}
 
@@ -70,6 +98,26 @@ void Robot::TestPeriodic() {}
 void Robot::SimulationInit() {}
 
 void Robot::SimulationPeriodic() {}
+
+/**
+ * Shuffleboard Init
+*/
+void Robot::ShuffleboardInit() {
+  frc::SmartDashboard::PutBoolean("Logging", false);
+}
+
+/**
+ * Shuffleboard Periodic
+ */
+void Robot::ShuffleboardPeriodic() {
+  bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
+  if (isLogging && !m_prevIsLogging) {
+    m_logger.Enable();
+  } else if (!isLogging & m_prevIsLogging) {
+    m_logger.Disable();
+  }
+  m_prevIsLogging = isLogging;
+}
 
 #ifndef RUNNING_FRC_TESTS
 int main() {
