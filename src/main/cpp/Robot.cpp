@@ -19,7 +19,7 @@ Robot::Robot() :
   // navx
   try
   {
-    m_navx = new AHRS(frc::SerialPort::kUSB2);
+    m_navx = new AHRS(frc::SerialPort::kMXP);
   }
   catch (const std::exception &e)
   {
@@ -31,6 +31,8 @@ Robot::Robot() :
 
 void Robot::RobotInit() {
   ShuffleboardInit();
+
+  m_swerveController.Init();
 }
 
 /**
@@ -81,7 +83,8 @@ void Robot::TeleopPeriodic() {
   vec::Vector2D setVel = {-vy, -vx};
   double curYaw = m_navx->GetYaw();
 
-  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, 0);
+  m_swerveController.SetRobotVelocityTele(setVel, w, 0, 0);
+  m_swerveController.Periodic();
 }
 
 void Robot::DisabledInit() {}

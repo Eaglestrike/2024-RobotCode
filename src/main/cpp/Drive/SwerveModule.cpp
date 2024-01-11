@@ -81,6 +81,7 @@ vec::Vector2D SwerveModule::getPosition(){
 double SwerveModule::GetCorrectedEncoderReading()
 {
   double val = GetRawEncoderReading() - m_offset;
+  val = Utils::NormalizeAngDeg(val);
 
   if (m_encoderInverted) {
     val = -val;
@@ -243,11 +244,12 @@ void SwerveModule::CoreShuffleboardInit(){
 void SwerveModule::CoreShuffleboardPeriodic(){
   frc::SmartDashboard::PutNumber(name_ + " encoder", GetRawEncoderReading());
   frc::SmartDashboard::PutString(name_ + " velocity", GetVelocity().toString());
-}
 
-void SwerveModule::CoreShuffleboardUpdate(){
   double kP = frc::SmartDashboard::GetNumber("wheel kP", SwerveConstants::TURN_P);
   double kI = frc::SmartDashboard::GetNumber("wheel kI", SwerveConstants::TURN_I);
   double kD = frc::SmartDashboard::GetNumber("wheel kD", SwerveConstants::TURN_D);
   SetPID(kP, kI, kD);
+}
+
+void SwerveModule::CoreShuffleboardUpdate(){
 }

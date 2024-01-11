@@ -21,15 +21,15 @@ namespace SwerveConstants
   // meters
   const double CENTER_TO_EDGE = 0.368;
 
-  const std::size_t FR_DRIVE_ID = 14;
-  const std::size_t BR_DRIVE_ID = 11;
-  const std::size_t FL_DRIVE_ID = 21;
-  const std::size_t BL_DRIVE_ID = 17;
+  const std::size_t FR_DRIVE_ID = 11;
+  const std::size_t BR_DRIVE_ID = 17;
+  const std::size_t FL_DRIVE_ID = 14;
+  const std::size_t BL_DRIVE_ID = 21;
 
-  const std::size_t FR_TURN_ID = 13;
-  const std::size_t BR_TURN_ID = 12;
-  const std::size_t FL_TURN_ID = 15;
-  const std::size_t BL_TURN_ID = 18;
+  const std::size_t FR_TURN_ID = 12;
+  const std::size_t BR_TURN_ID = 18;
+  const std::size_t FL_TURN_ID = 13;
+  const std::size_t BL_TURN_ID = 15;
 
   const std::size_t FR_ENCODER_ID = 42;
   const std::size_t BR_ENCODER_ID = 10;
@@ -55,10 +55,10 @@ namespace SwerveConstants
   const bool BL_ANG_INVERTED = true;
 
   // encoder offset degrees, subtracted from reading
-  const double FR_OFFSET = -161.28; //18.72
-  const double BR_OFFSET = 6.50;
-  const double FL_OFFSET = 104.4;
-  const double BL_OFFSET = 108.95;
+  const double FR_OFFSET = -174.375+90; //18.72
+  const double BR_OFFSET = -83.496+90;
+  const double FL_OFFSET = 105.820;
+  const double BL_OFFSET = -168.926+180;
 
   const double TURN_P = 4.0;
   const double TURN_I = 0;

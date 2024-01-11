@@ -87,7 +87,7 @@ bool Utils::NearZero(const vec::Vector2D vec, const double tolerance)
 */
 double Utils::NormalizeAng(const double ang) {
   double ang2 = std::fmod(ang, M_PI * 2);
-  ang2 = std::fmod(ang + M_PI * 2, M_PI * 2);
+  ang2 = std::fmod(ang2 + M_PI * 2, M_PI * 2);
   if (ang2 > M_PI) {
     ang2 -= M_PI * 2;
   }
@@ -102,7 +102,7 @@ double Utils::NormalizeAng(const double ang) {
  */
 double Utils::NormalizeAngDeg(const double ang) {
   double ang2 = std::fmod(ang, 360);
-  ang2 = std::fmod(ang + 360, 360);
+  ang2 = std::fmod(ang2 + 360, 360);
   if (ang2 > 180) {
     ang2 -= 360;
   }

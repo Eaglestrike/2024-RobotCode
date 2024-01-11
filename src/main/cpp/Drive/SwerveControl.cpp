@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <iostream>
 #include <vector>
 
 #include <frc/smartdashboard/SmartDashboard.h>
@@ -179,6 +178,10 @@ void SwerveControl::Lock() {
  * Init function
 */
 void SwerveControl::CoreInit(){
+  m_fr.Init();
+  m_br.Init();
+  m_fl.Init();
+  m_bl.Init();
   ResetAngleCorrection();
 }
 

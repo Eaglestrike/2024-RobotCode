@@ -42,7 +42,7 @@ private:
   AHRS *m_navx;
 
   // Swerve
-  SwerveControl m_swerveController;
+  SwerveControl m_swerveController{true, false};
 
   // Jetson
   SocketClient m_client;
