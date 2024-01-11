@@ -35,6 +35,7 @@ class Climb :  public Mechanism{
     private:
         ShuffleboardSender m_shuff{"climb", true};
         void UpdatePos();
+        bool AtTarget(double target);
         rev::CANSparkMax m_motor{ClimbConstants::MOTOR_ID, rev::CANSparkMaxLowLevel::MotorType::kBrushless};
         rev::SparkMaxRelativeEncoder m_relEncoder = m_motor.GetEncoder();
 
@@ -45,9 +46,9 @@ class Climb :  public Mechanism{
         double MAX_VOLTS; //= ClimbConstants::MAX_VOLTS;
         double MIN_POS; //= ClimbConstants::MIN_POS;
         double MAX_POS; //= ClimbConstants::MAX_POS;
+        double POS_TOLERANCE;
         double CLIMB_VOLTS; //= ClimbConstants::CLIMB_VOLTS;
         double HOLD_VOLTS; //= ClimbConstants::HOLD_VOLTS;
-
 
         double m_pos;
 

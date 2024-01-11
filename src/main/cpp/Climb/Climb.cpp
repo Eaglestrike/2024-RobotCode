@@ -1,4 +1,6 @@
-#include "Climb.h"
+#include "Climb/Climb.h"
+
+//maybe PID ff or some other fancier motor control
 
 void Climb::Periodic(){
     UpdatePos();
@@ -19,7 +21,7 @@ void Climb::Periodic(){
                 targPos = MIN_POS;
                 break;
         }
-        if (m_pos == targPos)
+        if (AtTarget(targPos))
             m_state = AT_TARGET;
     }
     else if (m_state == AT_TARGET && m_targ == CLIMB)
@@ -29,6 +31,12 @@ void Climb::Periodic(){
 
 void Climb::UpdatePos(){
     m_pos = m_relEncoder.GetPosition();
+}
+
+bool Climb::AtTarget(double target){
+    if (std::abs(m_pos-target) <= POS_TOLERANCE)
+        return true;
+    else return false;
 }
 
 void Climb::SetTarget(Target t){
