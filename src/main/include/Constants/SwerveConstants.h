@@ -37,9 +37,9 @@ namespace SwerveConstants
   const std::size_t BL_ENCODER_ID = 8;
 
   // If positive drive motor does not move swerve module forward when angle is 0
-  const bool FR_DRIVE_INVERTED = false;
+  const bool FR_DRIVE_INVERTED = true;
   const bool BR_DRIVE_INVERTED = false;
-  const bool FL_DRIVE_INVERTED = false;
+  const bool FL_DRIVE_INVERTED = true;
   const bool BL_DRIVE_INVERTED = false;
 
   // if positive encoder != CCW movement
@@ -55,14 +55,14 @@ namespace SwerveConstants
   const bool BL_ANG_INVERTED = true;
 
   // encoder offset degrees, subtracted from reading
-  const double FR_OFFSET = -174.375+90; //18.72
-  const double BR_OFFSET = -83.496+90;
-  const double FL_OFFSET = 105.820;
-  const double BL_OFFSET = -168.926+180;
+  const double FR_OFFSET = 96.503; //18.72
+  const double BR_OFFSET = 4.53;
+  const double FL_OFFSET = -73.87;
+  const double BL_OFFSET = 9.3;
 
-  const double TURN_P = 4.0;
+  const double TURN_P = 6.8;
   const double TURN_I = 0;
-  const double TURN_D = 0.0;
+  const double TURN_D = 0.075;
 
   const double ANG_CORRECT_P = 5;
   const double ANG_CORRECT_I = 0;

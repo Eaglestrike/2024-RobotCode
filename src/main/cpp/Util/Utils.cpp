@@ -101,13 +101,9 @@ double Utils::NormalizeAng(const double ang) {
  * @returns Normalized angle, in degrees
  */
 double Utils::NormalizeAngDeg(const double ang) {
-  double ang2 = std::fmod(ang, 360);
-  ang2 = std::fmod(ang2 + 360, 360);
-  if (ang2 > 180) {
-    ang2 -= 360;
-  }
-
-  return ang2; 
+  double angRad = ang * (M_PI / 180.0);
+  angRad = NormalizeAng(angRad);
+  return angRad * (180.0 / M_PI); 
 }
 
 /**
