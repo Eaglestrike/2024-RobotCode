@@ -27,3 +27,16 @@ void Channel::CoreTeleopPeriodic() {
 
     m_channelMotor.SetVoltage(units::volt_t{setVolts});
 }
+
+void Channel::SetVoltage(){
+    m_voltReq = std::clamp(m_voltReq, -MAX_VOLTS, MAX_VOLTS);
+    m_channelMotor.SetVoltage(units::volt_t(m_voltReq));
+}
+
+void Channel::CoreShuffleboardInit(){
+    m_shuff.add("Voltage", &m_voltReq, true);
+}
+
+void Channel::CoreShuffleboardPeriodic(){
+    m_shuff.update(true);
+}

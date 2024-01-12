@@ -16,9 +16,6 @@ void Wrist::Zero() {
     m_wristMotor.SetPosition(units::turn_t(0.0));
 }
 
-double Wrist::GetRelPos() {
-    return -m_wristMotor.GetPosition().GetValueAsDouble()  * 2 * M_PI + m_absEncoderInit;
-}
 
 // absolute encoder pos in radians
 double Wrist::GetAbsEncoderPos() {
@@ -47,6 +44,7 @@ void Wrist::CoreTeleopPeriodic(){
         SetVoltage();
         return;
     } else if (m_DBGstate == AUTO_TUNER){
+        m_autoTuner.ShuffleboardUpdate();
         m_autoTuner.setPose({m_curPos, m_curVel, m_curAcc});
         double voltage = std::clamp(m_autoTuner.getVoltage(),-MAX_VOLTS, MAX_VOLTS);
         m_wristMotor.SetVoltage(units::volt_t(voltage));
@@ -75,6 +73,7 @@ void Wrist::CoreTeleopPeriodic(){
 }
 
 void Wrist::MoveTo(double newpos){
+    if (newpos == m_setPt) return;
     ChangeSetPt(newpos);
     MoveToSetPt();
 }
@@ -105,8 +104,8 @@ Wrist::MechState Wrist::GetState(){
 
 // need to check
 double Wrist::GetRelPos() {
-    // steps to rads basically bc 2048 steps for a falcon
-    return m_wristMotor.GetPosition().GetValueAsDouble() * 2 * M_PI;
+    // return m_wristMotor.GetPosition().GetValueAsDouble() * 2 * M_PI;
+    return m_wristMotor.GetPosition().GetValueAsDouble()  * 2 * M_PI + m_absEncoderInit;
 }
 
 //Updates the current position, velocity, and acceleration of the wrist

@@ -75,7 +75,7 @@ class Wrist: public Mechanism{
 
             double m_absEncoderInit;
 
-        //CONSTANTS
+        //"CONSTANTS"
         DBGstate m_DBGstate = DBGstate::NONE;
 
         double m_kp = 0.0, m_ki = 0.0, m_kd = 0.0;
@@ -91,7 +91,7 @@ class Wrist: public Mechanism{
         double MAX_VOLTS = 5.0;
         
         // will prob change
-        const double REL_CONV_FACTOR = 1 * (1.0 / 20.0) * (16.0 / 36.0) * (2 * M_PI) * (1.885 / 1.588);
+        double REL_CONV_FACTOR = 1 * (1.0 / 20.0) * (16.0 / 36.0) * (2 * M_PI) * (1.885 / 1.588);
         //for dbg
         double m_voltReq = 0.0;
 };

@@ -11,12 +11,7 @@ Rollers::RollerState Rollers::GetState() {
 }
 
 void Rollers::CoreTeleopPeriodic() {
-
     double setVolts = 0;
-    /* if (beam is broken){
-        m_state = RETAIN;
-    }
-    */
 
     switch (m_state) {
         case INTAKE:
@@ -37,4 +32,18 @@ void Rollers::CoreTeleopPeriodic() {
     }
 
     m_rollerMotor.SetVoltage(units::volt_t{setVolts});
+}
+
+
+void Rollers::SetVoltage(){
+    m_voltReq = std::clamp(m_voltReq, -MAX_VOLTS, MAX_VOLTS);
+    m_rollerMotor.SetVoltage(units::volt_t(m_voltReq));
+}
+
+void Rollers::CoreShuffleboardInit(){
+    m_shuff.add("Voltage", &m_voltReq, true);
+}
+
+void Rollers::CoreShuffleboardPeriodic(){
+    m_shuff.update(true);
 }

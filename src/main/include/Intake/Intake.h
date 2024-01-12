@@ -1,18 +1,35 @@
+#pragma once
 #include "Wrist.h"
 #include "Rollers.h"
+#include "Channel.h"
 
 class Intake: public Mechanism{
     public:
-        enum TargetState{
+        enum ActionState{
             STOW, 
             AMP_INTAKE, 
             PASSTHROUGH, 
             AMP_OUTTAKE,
+            FEED_TO_SHOOTER
+        };
+
+        enum GamePieceState{
+            NONE,
+            INTAKE,
+            CHANNEL
         };
         
-        void SetState(TargetState t);
+        void SetState(ActionState t);
+        void Stow();
+        void Passthrough();
+        void AmpOuttake();
+        void AmpIntake();
+        void FeedIntoShooter();
         void CorePeriodic() override;
         void CoreTeleopPeriodic() override;
+        bool HasGamePiece();
+        bool InChannel();
+        bool InIntake();
 
     private:
 
@@ -23,8 +40,9 @@ class Intake: public Mechanism{
 
         Rollers m_rollers{};
         Wrist m_wrist{};
-        TargetState m_targState = STOW;
-        double m_targWristPos = STOWED_POS;
+        Channel m_channel{};
+        ActionState m_actionState = STOW;
+        // double m_targWristPos = STOWED_POS;
 
         //could also put in vector w enum as key
         double STOWED_POS = 0.0,

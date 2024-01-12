@@ -1,6 +1,8 @@
+#pragma once
+
 namespace Ids{
-    int WRIST_MOTOR;
-    int ROLLER_MOTOR;
-    int CHANNEL_MOTOR;
-    int WRIST_ENCODER_CAN_ID; 
+    const int WRIST_MOTOR = 0;
+    const int ROLLER_MOTOR = 0;
+    const int CHANNEL_MOTOR = 0;
+    const int WRIST_ENCODER_CAN_ID = 0; 
 };
