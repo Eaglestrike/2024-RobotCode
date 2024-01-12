@@ -28,7 +28,7 @@ class Shooter : public Mechanism{
             PREPARED,
             STROLL //Set to low speed
         };
-
+  
         Shooter(std::string name, bool enabled, bool shuffleboard);
 
         void Stop();
