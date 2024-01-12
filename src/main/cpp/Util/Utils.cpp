@@ -185,3 +185,15 @@ double Utils::GetAngBetweenVec(const vec::Vector2D v1, const vec::Vector2D v2) {
  return std::acos(std::clamp(
       dot(v1, v2) / (magn(v1) * magn(v2)), -1.0, 1.0));
 }
+
+/**
+ * Multiplies components of vectors together and forms into new vector
+ * 
+ * @param v1 first vector
+ * @param v2 second vector
+ * 
+ * @returns <v1.x*v2.x, v1.y*v2.y>
+*/
+vec::Vector2D Utils::MultiplyComps(const vec::Vector2D v1, const vec::Vector2D v2) {
+  return {v1.x() * v2.x(), v1.y() * v2.y()};
+}
