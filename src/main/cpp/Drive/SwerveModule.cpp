@@ -236,18 +236,18 @@ bool SwerveModule::ShouldFlip(vec::Vector2D curVec, vec::Vector2D targetVec)
 }
 
 void SwerveModule::CoreShuffleboardInit(){
-  frc::SmartDashboard::PutNumber("wheel kP", SwerveConstants::TURN_P);
-  frc::SmartDashboard::PutNumber("wheel kI", SwerveConstants::TURN_I);
-  frc::SmartDashboard::PutNumber("wheel kD", SwerveConstants::TURN_D);
+  frc::SmartDashboard::PutNumber(name_ + " wheel kP", SwerveConstants::TURN_P);
+  frc::SmartDashboard::PutNumber(name_ + " wheel kI", SwerveConstants::TURN_I);
+  frc::SmartDashboard::PutNumber(name_ + " wheel kD", SwerveConstants::TURN_D);
 }
 
 void SwerveModule::CoreShuffleboardPeriodic(){
   frc::SmartDashboard::PutNumber(name_ + " encoder", GetRawEncoderReading());
   frc::SmartDashboard::PutString(name_ + " velocity", GetVelocity().toString());
 
-  double kP = frc::SmartDashboard::GetNumber("wheel kP", SwerveConstants::TURN_P);
-  double kI = frc::SmartDashboard::GetNumber("wheel kI", SwerveConstants::TURN_I);
-  double kD = frc::SmartDashboard::GetNumber("wheel kD", SwerveConstants::TURN_D);
+  double kP = frc::SmartDashboard::GetNumber(name_ + " wheel kP", SwerveConstants::TURN_P);
+  double kI = frc::SmartDashboard::GetNumber(name_ + " wheel kI", SwerveConstants::TURN_I);
+  double kD = frc::SmartDashboard::GetNumber(name_ + " wheel kD", SwerveConstants::TURN_D);
   SetPID(kP, kI, kD);
 }
 
