@@ -1,6 +1,7 @@
 #include "Util/PoseEstimator.h"
 
 #include <algorithm>
+#include <cmath>
 
 #include "Util/Utils.h"
 
@@ -116,8 +117,13 @@ vec::Vector2D PoseEstimator::PoseUpdate::Apply(const vec::Vector2D &lastPose, co
       if (q[i] == 0) {
         k[i] = 0;
       } else {
-        k[i] = q[i] / (q[i])
+        k[i] = q[i] / (q[i] + std::sqrt(q[i] * update.stdDev[i] * update.stdDev[i]));
       }
     }
+    vec::Vector2D deltaVision = update.pos - pose;
+    deltaVision = Utils::MultiplyComps(deltaVision, k);
+    pose += deltaVision;
   }
+
+  return pose;
 }
