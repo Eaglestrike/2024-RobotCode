@@ -127,3 +127,23 @@ vec::Vector2D PoseEstimator::PoseUpdate::Apply(const vec::Vector2D &lastPose, co
 
   return pose;
 }
+
+/**
+ * Sets cur pose
+ * 
+ * @param pose Pose
+*/
+void PoseEstimator::SetPos(const vec::Vector2D &pose) {
+  m_basePose = pose;
+  m_updates.clear();
+  Update();
+}
+
+/**
+ * Gets latest position
+ * 
+ * @returns Latest pos
+*/
+vec::Vector2D PoseEstimator::GetCurPos() const {
+  return m_curPose;
+}

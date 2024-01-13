@@ -27,10 +27,19 @@ Robot::Robot() :
   }
 
   m_logger.SetLogToConsole(true);
+
+  AddPeriodic([&](){
+    double angNavX = Utils::DegToRad(m_navx->GetAngle());
+    vec::Vector2D vel = m_swerveController.GetRobotVelocity(angNavX + m_odom.GetStartAng());
+    m_odom.UpdateEncoder(vel, angNavX);
+  }, 5_ms, 2_ms);
 }
 
 void Robot::RobotInit() {
   ShuffleboardInit();
+
+  m_navx->Reset();
+  m_odom.Reset();
 
   m_swerveController.Init();
 }
@@ -45,6 +54,11 @@ void Robot::RobotInit() {
  */
 void Robot::RobotPeriodic() {
   ShuffleboardPeriodic();
+
+  if (m_controller.getPressedOnce(ZERO_YAW)) {
+    m_navx->Reset();
+    m_odom.Reset();
+  }
 
   m_logger.Periodic(Utils::GetCurTimeS());
 }
@@ -110,13 +124,25 @@ void Robot::ShuffleboardInit() {
  * Shuffleboard Periodic
  */
 void Robot::ShuffleboardPeriodic() {
-  bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
-  if (isLogging && !m_prevIsLogging) {
-    m_logger.Enable();
-  } else if (!isLogging & m_prevIsLogging) {
-    m_logger.Disable();
+  // LOGGING
+  {
+    bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
+    if (isLogging && !m_prevIsLogging) {
+      m_logger.Enable();
+    } else if (!isLogging & m_prevIsLogging) {
+      m_logger.Disable();
+    }
+    m_prevIsLogging = isLogging;
   }
-  m_prevIsLogging = isLogging;
+
+  // ODOMETRY
+  {
+    double ang = m_odom.GetAng();
+    vec::Vector2D pos = m_odom.GetPos();
+
+    frc::SmartDashboard::PutNumber("Robot Angle", ang);
+    frc::SmartDashboard::PutString("Robot Position", pos.toString());
+  }
 }
 
 #ifndef RUNNING_FRC_TESTS

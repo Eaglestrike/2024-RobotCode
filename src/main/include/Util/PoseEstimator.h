@@ -31,6 +31,11 @@ public:
   void UpdateDrivebase(const double &timestamp, const vec::Vector2D &deltaPos);
   void UpdateCams(const double &timestamp, const vec::Vector2D &camPos, const vec::Vector2D &stdDevs);
 
+  void SetPos(const vec::Vector2D &pose);
+  void SetQ(const vec::Vector2D &q);
+
+  vec::Vector2D GetCurPos() const;
+
 private:
   vec::Vector2D m_q;
   vec::Vector2D m_basePose;
