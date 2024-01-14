@@ -13,6 +13,7 @@
 #include "Controller/Controller.h"
 #include "Drive/SwerveControl.h"
 #include "Util/Logger.h"
+#include "Util/Odometry.h"
 #include "Util/SocketClient.h"
 
 class Robot : public frc::TimedRobot {
@@ -46,6 +47,9 @@ private:
 
   // Jetson
   SocketClient m_client;
+  
+  // Odometry
+  Odometry m_odom;
 
   // Logger
   FRCLogger m_logger;

@@ -19,6 +19,7 @@ SwerveControl::SwerveControl(bool enabled, bool shuffleboard) :
   Mechanism("Swerve Control", enabled, shuffleboard),
   m_kS{SwerveConstants::kS}, m_kV{SwerveConstants::kV}, m_kA{SwerveConstants::kA},
   m_autoEnabled{0},
+  m_angCorrectorInverted{SwerveConstants::ANG_CORRECT_INVERTED},
   m_fr{SwerveConstants::FR_CONFIG, true, false},
   m_br{SwerveConstants::BR_CONFIG, true, false},
   m_fl{SwerveConstants::FL_CONFIG, true, false},
@@ -27,8 +28,24 @@ SwerveControl::SwerveControl(bool enabled, bool shuffleboard) :
   m_curAngle{0}, m_angCorrection{0},
   m_angleCorrector{SwerveConstants::ANG_CORRECT_P, SwerveConstants::ANG_CORRECT_I, SwerveConstants::ANG_CORRECT_D},
   m_prevTime{0}
-  {}
+{
+  m_angleCorrector.EnableContinuousInput(-M_PI, M_PI);
 
+  ResetFF();
+
+  SetAngleCorrectionPID(SwerveConstants::ANG_CORRECT_P, SwerveConstants::ANG_CORRECT_I, SwerveConstants::ANG_CORRECT_D);
+}
+
+/**
+ * Resets previous speeds for acceleration feed forward
+ */
+void SwerveControl::ResetFF()
+{
+  m_pfr = 0;
+  m_pbr = 0;
+  m_pfl = 0;
+  m_pbl = 0;
+}
 
 /**
  * Gets robot velocity by averaging the velocities of the modules
@@ -93,7 +110,7 @@ void SwerveControl::SetRobotVelocity(vec::Vector2D vel, double angVel, double an
   {
     // if not turning, correct robot so that it doesnt turn
     angVel = m_angleCorrector.Calculate(ang, m_curAngle);
-    // frc::SmartDashboard::PutNumber("pidout", angVel);
+    angVel = m_angCorrectorInverted ? -angVel : angVel;
     angVel = std::clamp(angVel, -SwerveConstants::MAX_VOLTS, SwerveConstants::MAX_VOLTS);
   }
 

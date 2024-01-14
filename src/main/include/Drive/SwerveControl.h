@@ -23,6 +23,7 @@ public:
 
   void SetAutoMode(bool enabled);
   void SetFFConstants(double kS, double kV, double kA);
+  void ResetFF();
   void ResetAngleCorrection(double startAng = 0);
   void SetAngleCorrectionPID(double kP, double kI, double kD);
   void SetRobotVelocity(vec::Vector2D vel, double angVel, double ang);
@@ -41,6 +42,7 @@ private:
 
   double m_kS, m_kV, m_kA;
   bool m_autoEnabled;
+  bool m_angCorrectorInverted;
 
   // Swerve Modules
   SwerveModule m_fr, m_br, m_fl, m_bl;

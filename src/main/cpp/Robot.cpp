@@ -19,7 +19,7 @@ Robot::Robot() :
   // navx
   try
   {
-    m_navx = new AHRS(frc::SerialPort::kMXP);
+    m_navx = new AHRS(frc::SerialPort::kUSB2);
   }
   catch (const std::exception &e)
   {
@@ -27,10 +27,23 @@ Robot::Robot() :
   }
 
   m_logger.SetLogToConsole(true);
+
+  AddPeriodic([&](){
+    double curAng = m_navx->GetAngle();
+    if (!SwerveConstants::NAVX_UPSIDE_DOWN) {
+      curAng = -curAng;
+    }
+    double angNavX = Utils::DegToRad(curAng);
+    vec::Vector2D vel = m_swerveController.GetRobotVelocity(angNavX + m_odom.GetStartAng());
+    m_odom.UpdateEncoder(vel, angNavX);
+  }, 5_ms, 2_ms);
 }
 
 void Robot::RobotInit() {
   ShuffleboardInit();
+
+  m_navx->Reset();
+  m_odom.Reset();
 
   m_swerveController.Init();
 }
@@ -45,6 +58,11 @@ void Robot::RobotInit() {
  */
 void Robot::RobotPeriodic() {
   ShuffleboardPeriodic();
+
+  if (m_controller.getPressedOnce(ZERO_YAW)) {
+    m_navx->Reset();
+    m_odom.Reset();
+  }
 
   m_logger.Periodic(Utils::GetCurTimeS());
 }
@@ -81,9 +99,11 @@ void Robot::TeleopPeriodic() {
   double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
 
   vec::Vector2D setVel = {-vy, -vx};
-  double curYaw = m_navx->GetYaw();
+  double curYaw = m_odom.GetAngNorm();
 
-  m_swerveController.SetRobotVelocityTele(setVel, w, 0, 0);
+  // frc::SmartDashboard::PutNumber("cur yaw", curYaw);
+
+  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, 0);
   m_swerveController.Periodic();
 }
 
@@ -110,13 +130,25 @@ void Robot::ShuffleboardInit() {
  * Shuffleboard Periodic
  */
 void Robot::ShuffleboardPeriodic() {
-  bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
-  if (isLogging && !m_prevIsLogging) {
-    m_logger.Enable();
-  } else if (!isLogging & m_prevIsLogging) {
-    m_logger.Disable();
+  // LOGGING
+  {
+    bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
+    if (isLogging && !m_prevIsLogging) {
+      m_logger.Enable();
+    } else if (!isLogging & m_prevIsLogging) {
+      m_logger.Disable();
+    }
+    m_prevIsLogging = isLogging;
   }
-  m_prevIsLogging = isLogging;
+
+  // ODOMETRY
+  {
+    double ang = m_odom.GetAng();
+    vec::Vector2D pos = m_odom.GetPos();
+
+    frc::SmartDashboard::PutNumber("Robot Angle", ang);
+    frc::SmartDashboard::PutString("Robot Position", pos.toString());
+  }
 }
 
 #ifndef RUNNING_FRC_TESTS
