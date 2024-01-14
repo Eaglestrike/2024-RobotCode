@@ -14,8 +14,8 @@ Odometry::Odometry() :
  * Sets starting configuration, then resets position.
  * 
  * @param pos Position
- * @param ang Angle
- * @param joystickAng Joystick angle
+ * @param ang Angle, in radians
+ * @param joystickAng Joystick angle, in radians
 */
 void Odometry::SetStartingConfig(const vec::Vector2D &pos, const double &ang, const double &joystickAng) {
   m_startPos = pos;
@@ -49,18 +49,27 @@ vec::Vector2D Odometry::GetPos() const {
 }
 
 /**
- * Gets current angle
+ * Gets current angle, in radians
  * 
- * @returns Current angle
+ * @returns Current angle, in radians
 */
 double Odometry::GetAng() const {
   return m_curAng;
 }
 
 /**
- * Gets joystick angle
+ * Gets normalized ang from -pi to pi
  * 
- * @returns joystick angle
+ * @returns Normalized Angle
+*/
+double Odometry::GetAngNorm() const {
+  return Utils::NormalizeAng(GetAng());
+}
+
+/**
+ * Gets joystick angle, in radians
+ * 
+ * @returns joystick angle, in radians
 */
 double Odometry::GetJoystickAng() const {
   return m_joystickAng;
@@ -88,7 +97,7 @@ double Odometry::GetStartAng() const {
  * Updates encoder
  * 
  * @param vel Velocity
- * @param angNavXAbs navX absolute angle
+ * @param angNavXAbs navX absolute angle, in radians
 */
 void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs) {
   double curTime = Utils::GetCurTimeS();

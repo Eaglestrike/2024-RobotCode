@@ -41,8 +41,6 @@ SwerveModule::SwerveModule(SwerveConstants::SwerveConfig config, bool enabled, b
   // m_encoder.ConfigMagnetOffset(offset);
   m_controller.EnableContinuousInput(-M_PI, M_PI);
 
-  // frc::SmartDashboard::PutNumber("Wheel Radius", SwerveConstants::WHEEL_RADIUS);
-
   m_angleMotor.SetNeutralMode(NeutralModeValue::Brake);
   m_driveMotor.SetNeutralMode(NeutralModeValue::Brake);
 

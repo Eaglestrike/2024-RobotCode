@@ -19,7 +19,7 @@ Robot::Robot() :
   // navx
   try
   {
-    m_navx = new AHRS(frc::SerialPort::kMXP);
+    m_navx = new AHRS(frc::SerialPort::kUSB2);
   }
   catch (const std::exception &e)
   {
@@ -29,7 +29,11 @@ Robot::Robot() :
   m_logger.SetLogToConsole(true);
 
   AddPeriodic([&](){
-    double angNavX = Utils::DegToRad(m_navx->GetAngle());
+    double curAng = m_navx->GetAngle();
+    if (!SwerveConstants::NAVX_UPSIDE_DOWN) {
+      curAng = -curAng;
+    }
+    double angNavX = Utils::DegToRad(curAng);
     vec::Vector2D vel = m_swerveController.GetRobotVelocity(angNavX + m_odom.GetStartAng());
     m_odom.UpdateEncoder(vel, angNavX);
   }, 5_ms, 2_ms);
@@ -95,9 +99,11 @@ void Robot::TeleopPeriodic() {
   double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
 
   vec::Vector2D setVel = {-vy, -vx};
-  double curYaw = m_navx->GetYaw();
+  double curYaw = m_odom.GetAngNorm();
 
-  m_swerveController.SetRobotVelocityTele(setVel, w, 0, 0);
+  // frc::SmartDashboard::PutNumber("cur yaw", curYaw);
+
+  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, 0);
   m_swerveController.Periodic();
 }
 
