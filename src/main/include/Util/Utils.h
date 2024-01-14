@@ -24,6 +24,7 @@ namespace Utils {
   bool NearZero(const vec::Vector2D vec, const double tolerance = NEAR_ZERO_TOLERANCE);
 
   double NormalizeAng(const double ang);
+  double NormalizeAngDeg(const double ang);
 
   std::size_t GetCurTimeMs();
   double GetCurTimeS();
