@@ -15,7 +15,7 @@ Robot::Robot() :
   m_swerveController{true, false},
   m_client{"10.1.14.21", 5807, 500, 5000},
   m_isSecondTag{false},
-  m_logger{"log", {}}
+  m_logger{"log", {"camX", "camY"}}
   {
   // navx
   try
@@ -53,6 +53,8 @@ Robot::Robot() :
       if (tagId != 0 && m_isSecondTag) {
         frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
         m_odom.UpdateCams({x, y}, tagId, uniqueId, age);
+        m_logger.LogNum("camX", y); // on cameras, x is y and y is x
+        m_logger.LogNum("camY", x);
       }
 
       m_isSecondTag = true;
