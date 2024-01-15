@@ -19,6 +19,8 @@ public:
 
   vec::Vector2D GetPos() const;
   double GetAng() const;
+  vec::Vector2D GetVel() const;
+  double GetAngVel() const;
   double GetAngNorm() const;
   double GetJoystickAng() const;
 
