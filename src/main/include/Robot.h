@@ -6,11 +6,19 @@
 
 #include <string>
 
+#include <AHRS.h>
 #include <frc/TimedRobot.h>
 #include <frc/smartdashboard/SendableChooser.h>
 
+#include "Controller/Controller.h"
+#include "Drive/SwerveControl.h"
+#include "Util/Logger.h"
+#include "Util/Odometry.h"
+#include "Util/SocketClient.h"
+
 class Robot : public frc::TimedRobot {
- public:
+public:
+  Robot();
   void RobotInit() override;
   void RobotPeriodic() override;
   void AutonomousInit() override;
@@ -24,9 +32,26 @@ class Robot : public frc::TimedRobot {
   void SimulationInit() override;
   void SimulationPeriodic() override;
 
- private:
-  frc::SendableChooser<std::string> m_chooser;
-  const std::string kAutoNameDefault = "Default";
-  const std::string kAutoNameCustom = "My Auto";
-  std::string m_autoSelected;
+private: 
+  void ShuffleboardInit();
+  void ShuffleboardPeriodic();
+
+  // Controller
+  Controller m_controller;
+
+  // navX
+  AHRS *m_navx;
+
+  // Swerve
+  SwerveControl m_swerveController{true, false};
+
+  // Jetson
+  SocketClient m_client;
+  
+  // Odometry
+  Odometry m_odom;
+
+  // Logger
+  FRCLogger m_logger;
+  bool m_prevIsLogging;
 };

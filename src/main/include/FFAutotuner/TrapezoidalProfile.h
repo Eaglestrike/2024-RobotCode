@@ -1,6 +1,6 @@
 #pragma once
 
-#include <frc/timer.h>
+#include <frc/Timer.h>
 
 #include "Util/Poses.h"
 
