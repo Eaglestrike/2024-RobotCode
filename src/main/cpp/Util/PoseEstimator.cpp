@@ -6,6 +6,11 @@
 #include "Util/Utils.h"
 
 /**
+ * Max time before rejecting cameras
+*/
+const double PoseEstimator::MAX_HISTORY_TIME = 0.3;
+
+/**
  * Constructor
  * 
  * @param stdDevs system standard deviation in x and y directions

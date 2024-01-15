@@ -31,6 +31,8 @@ namespace Utils {
 
   double DegToRad(const double deg);
   double RadToDeg(const double rad);
+  double InToM(const double in);
+  vec::Vector2D InToM(const vec::Vector2D in);
 
   vec::Vector2D GetUnitVecDir(const double ang);
   vec::Vector2D GetProjection(const vec::Vector2D v, const vec::Vector2D w);

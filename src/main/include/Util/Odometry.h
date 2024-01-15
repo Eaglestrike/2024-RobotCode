@@ -26,7 +26,7 @@ public:
   double GetStartAng() const;
 
   void UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs);
-  void UpdateCams(const vec::Vector2D &relPos, const int &tagId, const unsigned long long &uniqueId);
+  void UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age);
 
 private:
   void Update(const double &deltaT, const double &prevAng);
@@ -35,7 +35,9 @@ private:
   double m_curAng, m_startAng, m_angVel;
   double m_joystickAng;
 
-  double m_prevTime;
+  double m_prevDriveTime;
 
   PoseEstimator m_estimator;
+  long long m_uniqueId;
+  double m_prevCamTime; 
 };

@@ -1,5 +1,8 @@
 #include "Util/Odometry.h"
 
+#include <frc/smartdashboard/SmartDashboard.h>
+
+#include "Constants/FieldConstants.h"
 #include "Constants/OdometryConstants.h"
 #include "Util/Utils.h"
 
@@ -8,7 +11,8 @@
 */
 Odometry::Odometry() :
   m_curAng{0}, m_startAng{0}, m_angVel{0}, m_joystickAng{0}, 
-  m_estimator{OdometryConstants::SYS_STD_DEV}, m_prevTime{Utils::GetCurTimeS()} {}
+  m_estimator{OdometryConstants::SYS_STD_DEV}, m_prevDriveTime{Utils::GetCurTimeS()},
+  m_uniqueId{-1000} {}
 
 /**
  * Sets starting configuration, then resets position.
@@ -101,7 +105,7 @@ double Odometry::GetStartAng() const {
 */
 void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs) {
   double curTime = Utils::GetCurTimeS();
-  double deltaT = curTime - m_prevTime;
+  double deltaT = curTime - m_prevDriveTime;
 
   vec::Vector2D deltaPos = vel * deltaT;
   m_estimator.UpdateDrivebase(curTime, deltaPos);
@@ -110,7 +114,7 @@ void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs)
   m_curAng = angNavXAbs + m_startAng; 
   Update(deltaT, prevAng);
 
-  m_prevTime = curTime;
+  m_prevDriveTime = curTime;
 }
 
 /**
@@ -124,4 +128,60 @@ void Odometry::Update(const double &deltaT, const double &prevAng) {
   m_curPos = m_estimator.GetCurPos();
   m_vel = (m_curPos - prevPos) / deltaT;
   m_angVel = (m_curAng - prevAng) / deltaT;
+}
+
+/**
+ * Updates cams for apriltags
+ * 
+ * @param relPos position of tags relative to bobot
+ * @param tagId Tag ID
+ * @param uniqueId Unique ID to prevent repeat measurements
+ * @param age Age of cameras, ms
+*/
+void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age) {
+  frc::SmartDashboard::PutBoolean("Cams Up", m_prevCamTime < PoseEstimator::MAX_HISTORY_TIME);
+
+  // filter out repeats
+  if (uniqueId == m_uniqueId) {
+    return;
+  }
+  m_uniqueId = uniqueId;
+
+  // rotate relative cam pos to absolute
+  double angNavX = GetAng();
+  vec::Vector2D vecRot = rotate(relPos, angNavX - M_PI / 2);
+  vec::Vector2D tagPos;
+
+  // filter out bad IDs
+  if (tagId < 1 || tagId > 16) {
+    return;
+  }
+
+  // add tag position to get absolute robot position
+  tagPos = FieldConstants::TAGS[tagId - 1];
+  tagPos = Utils::InToM(tagPos);
+  vec::Vector2D robotPosCams = tagPos - vecRot;
+
+  // reject if apriltag pos is too far away
+  vec::Vector2D odomPos = GetPos();
+  if (magn(odomPos - robotPosCams) > OdometryConstants::AT_REJECT) {
+    return;
+  }
+
+  // check if outside field
+  double margin = Utils::InToM(FieldConstants::FIELD_MARGIN);
+  double fWidth = Utils::InToM(FieldConstants::FIELD_WIDTH);
+  double fHeight = Utils::InToM(FieldConstants::FIELD_HEIGHT);
+  if (robotPosCams.x() < -margin || robotPosCams.x() > fWidth + margin
+   || robotPosCams.y() < -margin || robotPosCams.y() > fHeight + margin) {
+    return;
+  }
+
+  // update cams on pose estimator
+  double curTime = Utils::GetCurTimeS();
+  double stdDev = OdometryConstants::CAM_STD_DEV_COEF * magn(robotPosCams) * magn(robotPosCams);
+  m_estimator.UpdateCams(curTime - age / 1000.0, robotPosCams, {stdDev, stdDev});
+
+  // update prev cam time
+  m_prevCamTime = Utils::GetCurTimeS();
 }
