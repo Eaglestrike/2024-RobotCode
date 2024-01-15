@@ -4,6 +4,8 @@
 #include <sstream>
 #include <vector>
 
+#include <frc/Filesystem.h>
+
 /**
  * Constructor
  * 
@@ -12,7 +14,7 @@
  * @note If file doesn't exist, GetSpline() returns empty spline object
 */
 AutoPathReader::AutoPathReader(const std::string name)
-: m_name{name}, m_splinePos{1000}, m_splineAng{1000} {
+: m_name{frc::filesystem::GetDeployDirectory() + name}, m_splinePos{1000}, m_splineAng{1000} {
   std::ifstream fin{name};
   if (!fin.is_open()) {
     return;
