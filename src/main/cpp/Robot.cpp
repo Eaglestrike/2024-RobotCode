@@ -14,6 +14,7 @@ using namespace Actions;
 Robot::Robot() :
   m_swerveController{true, false},
   m_client{"10.1.14.21", 5807, 500, 5000},
+  m_isSecondTag{false},
   m_logger{"log", {}}
   {
   // navx
@@ -29,6 +30,7 @@ Robot::Robot() :
   m_logger.SetLogToConsole(true);
 
   AddPeriodic([&](){
+    // update drivebase odometry
     double curAng = m_navx->GetAngle();
     if (!SwerveConstants::NAVX_UPSIDE_DOWN) {
       curAng = -curAng;
@@ -36,6 +38,27 @@ Robot::Robot() :
     double angNavX = Utils::DegToRad(curAng);
     vec::Vector2D vel = m_swerveController.GetRobotVelocity(angNavX + m_odom.GetStartAng());
     m_odom.UpdateEncoder(vel, angNavX);
+
+    // update camera odometry
+    std::vector<double> camData = m_client.GetData();
+    if (m_client.HasConn() && !m_client.IsStale()) {
+      // int camId = static_cast<int>(camData[0]);
+      int tagId = static_cast<int>(camData[1]);
+      double x = camData[2];
+      double y = camData[3];
+      // double angZ = camData[4];
+      long long age = static_cast<long long>(camData[5]);
+      unsigned long long uniqueId = static_cast<unsigned long long>(camData[6]);
+
+      if (tagId != 0 && m_isSecondTag) {
+        frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
+        m_odom.UpdateCams({x, y}, tagId, uniqueId, age);
+      }
+
+      m_isSecondTag = true;
+    } else {
+      m_isSecondTag = false;
+    }
   }, 5_ms, 2_ms);
 }
 

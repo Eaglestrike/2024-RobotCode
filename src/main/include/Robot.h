@@ -45,8 +45,9 @@ private:
   // Swerve
   SwerveControl m_swerveController{true, false};
 
-  // Jetson
+  // Vision
   SocketClient m_client;
+  bool m_isSecondTag;
   
   // Odometry
   Odometry m_odom;
