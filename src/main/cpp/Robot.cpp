@@ -62,6 +62,8 @@ void Robot::RobotPeriodic() {
   if (m_controller.getPressedOnce(ZERO_YAW)) {
     m_navx->Reset();
     m_odom.Reset();
+    m_swerveController.ResetAngleCorrection(m_odom.GetAng());
+    m_swerveController.ResetFF();
   }
 
   m_logger.Periodic(Utils::GetCurTimeS());
@@ -100,10 +102,9 @@ void Robot::TeleopPeriodic() {
 
   vec::Vector2D setVel = {-vy, -vx};
   double curYaw = m_odom.GetAngNorm();
+  double curJoystickAng = m_odom.GetJoystickAng();
 
-  // frc::SmartDashboard::PutNumber("cur yaw", curYaw);
-
-  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, 0);
+  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   m_swerveController.Periodic();
 }
 

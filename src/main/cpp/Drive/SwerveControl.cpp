@@ -213,7 +213,7 @@ void SwerveControl::CoreInit(){
  */
 void SwerveControl::SetRobotVelocityTele(vec::Vector2D vel, double angVel, double ang, double angOfJoystick) {
   vec::Vector2D velAbs = vec::rotate(vel, angOfJoystick);
-  SetRobotVelocity(vel, angVel, ang);
+  SetRobotVelocity(velAbs, angVel, ang);
 }
 
 /**
