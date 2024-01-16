@@ -7,6 +7,7 @@
 #include <fmt/core.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 
+#include "Constants/AutoConstants.h"
 #include "Controller/ControllerMap.h"
 
 using namespace Actions;
@@ -14,7 +15,9 @@ using namespace Actions;
 Robot::Robot() :
   m_swerveController{true, false},
   m_client{"10.1.14.21", 5807, 500, 5000},
-  m_logger{"log", {}}
+  m_logger{"log", {}},
+  m_prevIsLogging{false},
+  m_autoPath{m_swerveController, m_odom}
   {
   // navx
   try
@@ -43,6 +46,7 @@ void Robot::RobotInit() {
   ShuffleboardInit();
 
   m_navx->Reset();
+  m_odom.SetStartingConfig({1.47, -5.76}, 3.14, 0);
   m_odom.Reset();
 
   m_swerveController.Init();
@@ -88,9 +92,17 @@ void Robot::RobotPeriodic() {
 void Robot::AutonomousInit() {
   // m_swerveController.SetAngCorrection(false);
   m_swerveController.SetAutoMode(true);
+  
+
+  m_autoPath.Start();
 }
 
-void Robot::AutonomousPeriodic() {}
+void Robot::AutonomousPeriodic() {
+  frc::SmartDashboard::PutNumber("percent done", m_autoPath.GetProgress() * 100);
+
+  m_autoPath.Periodic();
+  m_swerveController.Periodic();
+}
 
 void Robot::TeleopInit() {
   m_swerveController.SetAngCorrection(true);
@@ -118,7 +130,14 @@ void Robot::TeleopPeriodic() {
 
 void Robot::DisabledInit() {}
 
-void Robot::DisabledPeriodic() {}
+void Robot::DisabledPeriodic() {
+  // AUTO
+  {
+    std::string selected = m_chooser.GetSelected();
+    selected += ".csv";
+    m_autoPath.SetAutoPath(selected);
+  }
+}
 
 void Robot::TestInit() {}
 
@@ -155,6 +174,12 @@ void Robot::SimulationPeriodic() {}
 */
 void Robot::ShuffleboardInit() {
   frc::SmartDashboard::PutBoolean("Logging", false);
+
+  m_chooser.SetDefaultOption(AutoConstants::DEPLOY_FILES[0], AutoConstants::DEPLOY_FILES[0]);
+  for (std::string fname : AutoConstants::DEPLOY_FILES) {
+    m_chooser.AddOption(fname, fname);
+  }
+  frc::SmartDashboard::PutData("Auto Spline Chooser", &m_chooser);
 }
 
 /**
@@ -180,7 +205,6 @@ void Robot::ShuffleboardPeriodic() {
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
   }
-
 
 }
 

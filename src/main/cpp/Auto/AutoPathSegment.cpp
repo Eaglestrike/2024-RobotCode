@@ -90,6 +90,7 @@ void AutoPathSegment::Periodic() {
   // set velocity to swerve
   const vec::Vector2D setVel = curVel + correctVel;
   const double setAngVel = curAngVel + correctAngVel;
+
   m_swerve.SetRobotVelocity(setVel, setAngVel, curAng);
 }
 

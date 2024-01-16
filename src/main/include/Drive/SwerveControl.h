@@ -52,4 +52,5 @@ private:
   bool m_angCorrection;
   frc::PIDController m_angleCorrector;
   double m_prevTime;
+  double m_deltaT;
 };

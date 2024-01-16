@@ -4,7 +4,7 @@
 
 #pragma once
 
-#define SWERVE_AUTOTUNING true
+#define SWERVE_AUTOTUNING false
 
 #include <string>
 
@@ -17,12 +17,13 @@
 #include "FFAutotuner/FFAutotuner.h"
 
 #include "Controller/Controller.h"
-
 #include "Drive/SwerveControl.h"
-
 #include "Util/Logger.h"
 #include "Util/Odometry.h"
 #include "Util/SocketClient.h"
+
+// FOR DEBUG ONLY
+#include "Auto/AutoPathSegment.h"
 
 class Robot : public frc::TimedRobot {
 public:
@@ -67,4 +68,8 @@ private:
   // Logger
   FRCLogger m_logger;
   bool m_prevIsLogging;
+
+  // DEBUG ONLY
+  AutoPathSegment m_autoPath;
+  frc::SendableChooser<std::string> m_chooser;
 };
