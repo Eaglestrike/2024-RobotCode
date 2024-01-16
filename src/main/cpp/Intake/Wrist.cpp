@@ -8,7 +8,7 @@ Wrist::Wrist(){
     if (m_DBGstate != NONE || m_DBGstate != AUTO_TUNER){
         m_shuff.enable();
     }
-    // m_wristMotor.SetIdleMode(rev::CANSparkMax::IdleMode::kBrake);
+    m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
 }
 
 void Wrist::Zero() {
@@ -32,9 +32,8 @@ void Wrist::CorePeriodic(){
     UpdatePose();
 }
 
-// teleop periodic runs on state machine
-void Wrist::CoreTeleopPeriodic(){
-    if (m_DBGstate == TUNE_FFPID){
+void Wrist::CoreShuffleboardPeriodic(){
+      if (m_DBGstate == TUNE_FFPID){
         m_shuff.update(true);
     } else if (m_DBGstate == POS_READER){
         m_shuff.update(false);
@@ -50,6 +49,12 @@ void Wrist::CoreTeleopPeriodic(){
         m_wristMotor.SetVoltage(units::volt_t(voltage));
         return;
     }
+}
+
+// teleop periodic runs on state machine
+void Wrist::CoreTeleopPeriodic(){
+    if (m_DBGstate != TUNE_FFPID)
+        return;
     
     double wristVolts = 0;
 

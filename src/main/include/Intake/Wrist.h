@@ -32,13 +32,11 @@ class Wrist: public Mechanism{
         void ManualPeriodic(double wristVolts);
         void CoreTeleopPeriodic() override;
         void CorePeriodic() override; 
-        // void CoreShuffleboardPeriodic() override;
+        void CoreShuffleboardPeriodic() override;
         void CoreShuffleboardInit() override;
         void MoveTo(double newPos);
         void Kill();
-        // for debugging
         MechState GetState();
-        // TargetState GetTargetState();
     private:
         void MoveToSetPt();
         void ChangeSetPt(double newPos); //pos should be in radians, w 0 as extended and parallel to ground
@@ -46,7 +44,6 @@ class Wrist: public Mechanism{
         void UpdateTargetPose();
         double FFPIDCalculate();
         void CalcSpeedDecreasePos();
-        // void SetSetpoint(double setpt);
         bool AtSetpoint();
         void ResetPID();
         std::string DBGToString();
@@ -62,7 +59,6 @@ class Wrist: public Mechanism{
 
         //MEMBER VARS
             //state vars
-            //TargetState m_targState = TargetState::STOWED;
             MechState m_state = MechState::AT_TARGET;
          
             //profile vars
