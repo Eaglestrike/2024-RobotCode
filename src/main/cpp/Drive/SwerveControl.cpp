@@ -96,7 +96,6 @@ void SwerveControl::SetAngleCorrectionPID(double kP, double kI, double kD)
  * @param vel Velocity to set
  * @param angVel Angular velocity, + is counterclockwise, - is clockwise
  * @param ang Current navX angle, in radians
- * @param time Time between readings
  */
 void SwerveControl::SetRobotVelocity(vec::Vector2D vel, double angVel, double ang)
 {

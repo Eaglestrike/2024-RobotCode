@@ -67,6 +67,11 @@ void Robot::RobotPeriodic() {
   }
 
   m_logger.Periodic(Utils::GetCurTimeS());
+
+  #if SWERVE_AUTOTUNING
+  m_swerveXTuner.ShuffleboardUpdate();
+  m_swerveYTuner.ShuffleboardUpdate();
+  #endif
 }
 
 /**
@@ -117,7 +122,29 @@ void Robot::DisabledPeriodic() {}
 
 void Robot::TestInit() {}
 
-void Robot::TestPeriodic() {}
+void Robot::TestPeriodic() {
+  double curAng = m_navx->GetAngle();
+  if (!SwerveConstants::NAVX_UPSIDE_DOWN) {
+    curAng = -curAng;
+  }
+
+  double angNavX = Utils::DegToRad(curAng);
+
+  vec::Vector2D pos = m_odom.GetPos();
+  vec::Vector2D vel = m_swerveController.GetRobotVelocity(angNavX + m_odom.GetStartAng());
+
+  #if SWERVE_AUTOTUNING
+  m_swerveXTuner.setPose({pos.x(), vel.x(), 0.0});
+  m_swerveYTuner.setPose({pos.y(), vel.y(), 0.0});
+
+  double xVolts = m_swerveXTuner.getVoltage();
+  double yVolts = m_swerveYTuner.getVoltage();
+
+  m_swerveController.SetRobotVelocity({xVolts, yVolts}, 0.0, angNavX);
+  #endif
+
+  m_swerveController.Periodic();
+}
 
 void Robot::SimulationInit() {}
 
@@ -153,6 +180,8 @@ void Robot::ShuffleboardPeriodic() {
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
   }
+
+
 }
 
 #ifndef RUNNING_FRC_TESTS
