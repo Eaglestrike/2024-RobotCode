@@ -67,7 +67,6 @@ void AutoPathSegment::SetAngPID(double kP, double kI, double kD) {
 void AutoPathSegment::Periodic() {
   // get relative time
   double curTimeRel = Utils::GetCurTimeS() - m_startTime;
-  const bool outOfBounds = curTimeRel < 0 || curTimeRel > m_posSpline.getHighestTime();
   curTimeRel = curTimeRel < 0 ? 0 : (curTimeRel > m_posSpline.getHighestTime() ? m_posSpline.getHighestTime() : curTimeRel);
 
   // get current expected position
