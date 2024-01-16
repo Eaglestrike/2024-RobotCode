@@ -19,7 +19,7 @@ class Intake: public Mechanism{
             CHANNEL
         };
         
-        void SetState(ActionState t);
+        void SetState(ActionState newAction);
         void Stow();
         void Passthrough();
         void AmpOuttake();

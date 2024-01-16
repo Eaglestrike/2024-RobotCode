@@ -6,7 +6,7 @@ Wrist::Wrist(){
     UpdatePose();
     m_setPt = m_curPos;
     if (m_DBGstate != NONE || m_DBGstate != AUTO_TUNER){
-        m_shuff = *(new ShuffleboardSender("Wrist", true));
+        m_shuff.enable();
     }
     // m_wristMotor.SetIdleMode(rev::CANSparkMax::IdleMode::kBrake);
 }

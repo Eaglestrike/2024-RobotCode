@@ -3,11 +3,13 @@
 void Intake::CorePeriodic(){
     m_rollers.Periodic();
     m_wrist.Periodic();
+    m_channel.Periodic();
 }
 
 void Intake::CoreTeleopPeriodic(){
     m_rollers.TeleopPeriodic();
     m_wrist.TeleopPeriodic();
+    m_channel.TeleopPeriodic();
     
     switch(m_actionState){
         case AMP_INTAKE:
@@ -33,13 +35,13 @@ void Intake::CoreTeleopPeriodic(){
 }
 
 
-void Intake::SetState(ActionState t){
-    if (t == m_actionState) return;
-    m_actionState = t;
+void Intake::SetState(ActionState newAction){
+    if (newAction == m_actionState) return;
+    m_actionState = newAction;
     
     double newWristPos;
 
-    switch(t){
+    switch(newAction){
         case STOW:
             newWristPos = STOWED_POS;
             m_rollers.SetState(Rollers::STOP);
