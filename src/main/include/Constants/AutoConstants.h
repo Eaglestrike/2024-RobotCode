@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "Util/Utils.h"
+
 namespace AutoConstants {
   const std::vector<std::string> DEPLOY_FILES = {
     "4pieceswooo",
@@ -33,4 +35,8 @@ namespace AutoConstants {
   const double ANG_P = 0;
   const double ANG_I = 0;
   const double ANG_D = 0;
+
+  // tolerance for being at target, in m and degrees
+  const double POS_TOL = 0.1;
+  const double ANG_TOL = Utils::DegToRad(5);
 }

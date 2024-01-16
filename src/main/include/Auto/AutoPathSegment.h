@@ -8,6 +8,9 @@
 
 namespace hm = hermite;
 
+/**
+ * Auto Path segment for drivebase
+*/
 class AutoPathSegment {
 public: 
   AutoPathSegment(SwerveControl &swerve, Odometry &odom);
@@ -21,7 +24,10 @@ public:
   void SetAngPID(double kP, double kI, double kD);
 
   double GetProgress() const;
-  bool IsDone() const;
+  bool IsDoneHermite() const;
+  bool AtPosTarget() const;
+  bool AtAngTarget() const;
+  bool AtTarget() const;
 private:
   double GetAbsProgress() const;
 
