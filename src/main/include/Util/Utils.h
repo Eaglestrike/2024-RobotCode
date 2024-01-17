@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "simplevectors.hpp"
-#include "Util/UtilConstants.h"
 
 namespace vec = svector; //!< vector namespace alias
 

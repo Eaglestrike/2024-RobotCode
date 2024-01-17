@@ -53,6 +53,24 @@ vec::Vector2D Odometry::GetPos() const {
 }
 
 /**
+ * Gets velocity
+ * 
+ * @returns current velocity
+*/
+vec::Vector2D Odometry::GetVel() const {
+  return m_vel;
+}
+
+/**
+ * Gets ang vel
+ * 
+ * @returns angular velocity
+*/
+double Odometry::GetAngVel() const {
+  return m_angVel;
+}
+
+/**
  * Gets current angle, in radians
  * 
  * @returns Current angle, in radians
