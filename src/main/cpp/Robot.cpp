@@ -14,7 +14,7 @@ using namespace Actions;
 
 Robot::Robot() :
   m_swerveController{true, false},
-  m_client{"10.1.14.21", 5807, 500, 5000},
+  m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_logger{"log", {"camX", "camY"}},
   m_prevIsLogging{false},
