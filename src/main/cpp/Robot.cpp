@@ -46,7 +46,7 @@ void Robot::RobotInit() {
   ShuffleboardInit();
 
   m_navx->Reset();
-  m_odom.SetStartingConfig({1.47, -5.76}, 3.14, 0);
+  // m_odom.SetStartingConfig({1.47, -5.76}, 3.14, 0);
   m_odom.Reset();
 
   m_swerveController.Init();
@@ -110,12 +110,15 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-  double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.1);
-  double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.1);
+  double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
+  double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
 
-  double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.1);
+  double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
 
   double mult = SwerveConstants::NORMAL_SWERVE_MULT;
+  if (m_controller.getPressed(SLOW_MODE)) {
+    mult = SwerveConstants::SLOW_SWERVE_MULT;
+  }
   double vx = std::clamp(lx, -1.0, 1.0) * mult;
   double vy = std::clamp(ly, -1.0, 1.0) * mult;
   double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;

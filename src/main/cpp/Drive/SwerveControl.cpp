@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <limits>
 #include <vector>
 
 #include <frc/smartdashboard/SmartDashboard.h>
@@ -28,9 +29,11 @@ SwerveControl::SwerveControl(bool enabled, bool shuffleboard) :
   m_curAngle{0}, m_angCorrection{0},
   m_angleCorrector{SwerveConstants::ANG_CORRECT_P, SwerveConstants::ANG_CORRECT_I, SwerveConstants::ANG_CORRECT_D},
   m_prevTime{0},
-  m_deltaT{0.02}
+  m_deltaT{0.02},
+  m_speedNoAngCorrect{SwerveConstants::SPEED_NO_ANG_CORRECT}
 {
   m_angleCorrector.EnableContinuousInput(-M_PI, M_PI);
+  m_angleCorrector.SetTolerance(SwerveConstants::ANG_CORRECT_TOL, std::numeric_limits<double>::infinity());
 
   ResetFF();
 
@@ -106,7 +109,7 @@ void SwerveControl::SetRobotVelocity(vec::Vector2D vel, double angVel, double an
     m_curAngle = ang;
   }
 
-  if (!Utils::NearZero(vel) && Utils::NearZero(angVel) && m_angCorrection)
+  if (!Utils::NearZero(vel) && Utils::NearZero(angVel) && m_angCorrection && magn(vel) > m_speedNoAngCorrect)
   {
     // if not turning, correct robot so that it doesnt turn
     angVel = m_angleCorrector.Calculate(ang, m_curAngle);
@@ -233,6 +236,11 @@ void SwerveControl::CoreShuffleboardInit(){
   frc::SmartDashboard::PutNumber("ang correct kP", SwerveConstants::ANG_CORRECT_P);
   frc::SmartDashboard::PutNumber("ang correct kI", SwerveConstants::ANG_CORRECT_I);
   frc::SmartDashboard::PutNumber("ang correct kD", SwerveConstants::ANG_CORRECT_D);
+  frc::SmartDashboard::PutNumber("Speed No Ang Correct", SwerveConstants::SPEED_NO_ANG_CORRECT);
+}
+
+void SwerveControl::CoreShuffleboardPeriodic() {
+  m_speedNoAngCorrect = frc::SmartDashboard::GetNumber("Speed No Ang Correct", SwerveConstants::SPEED_NO_ANG_CORRECT);
 }
 
 /**

@@ -36,6 +36,7 @@ private:
   void CorePeriodic() override;
 
   void CoreShuffleboardInit() override;
+  void CoreShuffleboardPeriodic() override;
   void CoreShuffleboardUpdate() override;
 
   void SetModuleVelocity(SwerveModule &module, double &prevSpeed, vec::Vector2D vel, double angVel, double ang);
@@ -53,4 +54,5 @@ private:
   frc::PIDController m_angleCorrector;
   double m_prevTime;
   double m_deltaT;
+  double m_speedNoAngCorrect;
 };

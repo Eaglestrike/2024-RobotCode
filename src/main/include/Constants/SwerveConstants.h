@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "Util/simplevectors.hpp"
+#include "Util/Utils.h"
+
 namespace vec = svector;
 
 namespace SwerveConstants
@@ -69,6 +71,8 @@ namespace SwerveConstants
   const double ANG_CORRECT_P = 5;
   const double ANG_CORRECT_I = 0;
   const double ANG_CORRECT_D = 0.5;
+  const double ANG_CORRECT_TOL = Utils::DegToRad(5);
+  const double SPEED_NO_ANG_CORRECT = 0.25;
   const bool ANG_CORRECT_INVERTED = false;
 
   // whether navx is upside down or not
@@ -78,26 +82,6 @@ namespace SwerveConstants
   const double kS = 0.1833;
   const double kV = 1.455;
   const double kA = 0.1410;
-
-  const double TRANS_POS_ERR_TOLERANCE = 0.025;
-  const double TRANS_VEL_ERR_TOLERANCE = 100;
-
-  const double ANG_POS_ERR_TOLERANCE = 0.025;
-  const double ANG_VEL_ERR_TOLERANCE = 100;
-
-  const double UNREASONABLE_ANG_SPEED = 62.4828; // rad/s
-
-  const double TRANS_KP = 1.0;
-  const double TRANS_KI = 0;
-  const double TRANS_KD = 0.07;
-  const double TRANS_MAXSP = 3;
-  const double TRANS_MAXACC = 2.5;
-
-  const double ANG_KP = 6;
-  const double ANG_KI = 0;
-  const double ANG_KD = 0.5;
-  const double ANG_MAXSP = 1.5;
-  const double ANG_MAXACC = 1.5;
 
   const double NORMAL_SWERVE_MULT = 12.0;
   const double SLOW_SWERVE_MULT = 3.0;
