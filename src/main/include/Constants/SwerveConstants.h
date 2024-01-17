@@ -71,7 +71,7 @@ namespace SwerveConstants
   const double ANG_CORRECT_P = 5;
   const double ANG_CORRECT_I = 0;
   const double ANG_CORRECT_D = 0.5;
-  const double ANG_CORRECT_TOL = Utils::DegToRad(5);
+  const double ANG_CORRECT_TOL = Utils::DegToRad(3.5);
   const double SPEED_NO_ANG_CORRECT = 0.25;
   const bool ANG_CORRECT_INVERTED = false;
 
