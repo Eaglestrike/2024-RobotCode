@@ -17,7 +17,7 @@ Robot::Robot() :
   m_client{"10.1.14.21", 5807, 500, 5000},
   m_logger{"log", {}},
   m_prevIsLogging{false},
-  m_autoPath{m_swerveController, m_odom}
+  m_autoPath{true, m_swerveController, m_odom}
   {
   // navx
   try
@@ -44,9 +44,10 @@ Robot::Robot() :
 
 void Robot::RobotInit() {
   ShuffleboardInit();
+  m_autoPath.ShuffleboardInit();
 
   m_navx->Reset();
-  // m_odom.SetStartingConfig({1.47, -5.76}, 3.14, 0);
+  m_odom.SetStartingConfig({0, 0}, M_PI, 0);
   m_odom.Reset();
 
   m_swerveController.Init();
@@ -62,6 +63,7 @@ void Robot::RobotInit() {
  */
 void Robot::RobotPeriodic() {
   ShuffleboardPeriodic();
+  m_autoPath.ShuffleboardPeriodic();
 
   if (m_controller.getPressedOnce(ZERO_YAW)) {
     m_navx->Reset();
@@ -90,7 +92,7 @@ void Robot::RobotPeriodic() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
-  // m_swerveController.SetAngCorrection(false);
+  m_swerveController.SetAngCorrection(true);
   m_swerveController.SetAutoMode(true);
   
 
@@ -208,7 +210,6 @@ void Robot::ShuffleboardPeriodic() {
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
   }
-
 }
 
 #ifndef RUNNING_FRC_TESTS

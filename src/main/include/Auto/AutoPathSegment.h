@@ -13,7 +13,10 @@ namespace hm = hermite;
 */
 class AutoPathSegment {
 public: 
-  AutoPathSegment(SwerveControl &swerve, Odometry &odom);
+  AutoPathSegment(bool shuffleboard, SwerveControl &swerve, Odometry &odom);
+
+  void ShuffleboardInit();
+  void ShuffleboardPeriodic();
 
   void Start();
   void Periodic();
@@ -22,6 +25,8 @@ public:
   void SetAutoPath(const std::string path);
   void SetDrivePID(double kP, double kI, double kD);
   void SetAngPID(double kP, double kI, double kD);
+  void SetDriveTol(double tol);
+  void SetAngTol(double tol);
 
   double GetProgress() const;
   bool IsDoneHermite() const;
@@ -30,6 +35,8 @@ public:
   bool AtTarget() const;
 private:
   double GetAbsProgress() const;
+
+  bool m_shuffleboard;
 
   hm::Hermite<2> m_posSpline;
   hm::Hermite<1> m_angSpline;

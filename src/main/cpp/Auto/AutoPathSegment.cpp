@@ -2,6 +2,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
+
+#include <frc/smartdashboard/SmartDashboard.h>
 
 #include "Constants/AutoConstants.h"
 #include "Util/AutoPathReader.h"
@@ -13,12 +16,16 @@
  * @param swerve Swerve object
  * @param odom Odometry object
 */
-AutoPathSegment::AutoPathSegment(SwerveControl &swerve, Odometry &odom)
-  : m_posSpline{1000}, m_angSpline{1000}, m_swerve{swerve}, m_odom{odom}, m_startTime{0},
+AutoPathSegment::AutoPathSegment(bool shuffleboard, SwerveControl &swerve, Odometry &odom)
+  : m_shuffleboard{shuffleboard},
+  m_posSpline{1000}, m_angSpline{1000}, m_swerve{swerve}, m_odom{odom}, m_startTime{0},
   m_hasStarted{false},
   m_posCorrect{AutoConstants::DRIVE_P, AutoConstants::DRIVE_I, AutoConstants::DRIVE_D},
   m_angCorrect{AutoConstants::ANG_P, AutoConstants::ANG_I, AutoConstants::ANG_D}
-  {}
+{
+  m_posCorrect.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
+  m_angCorrect.SetTolerance(AutoConstants::ANG_TOL, std::numeric_limits<double>::infinity());
+}
 
 /**
  * Sets auto path
@@ -37,6 +44,8 @@ void AutoPathSegment::SetAutoPath(const std::string path) {
 void AutoPathSegment::Start() {
   m_startTime = Utils::GetCurTimeS();
   m_hasStarted = true;
+  m_posCorrect.Reset();
+  m_angCorrect.Reset();
 }
 
 /**
@@ -62,6 +71,24 @@ void AutoPathSegment::SetAngPID(double kP, double kI, double kD) {
 }
 
 /**
+ * Sets drive tol
+ * 
+ * @param tol The tol, in m
+*/
+void AutoPathSegment::SetDriveTol(double tol) {
+  m_posCorrect.SetTolerance(tol, std::numeric_limits<double>::infinity());
+}
+
+/**
+ * Sets ang tol
+ * 
+ * @param tol The tol, in rad
+*/
+void AutoPathSegment::SetAngTol(double tol) {
+  m_angCorrect.SetTolerance(tol, std::numeric_limits<double>::infinity());
+}
+
+/**
  * Periodic
 */
 void AutoPathSegment::Periodic() {
@@ -71,11 +98,11 @@ void AutoPathSegment::Periodic() {
 
   // get current expected position
   const vec::Vector2D curExpectedPos = m_posSpline(curTimeRel);
-  const double curExpectedAng = 0; // only relying on feedback for ang
+  const double curExpectedAng = m_angSpline(curTimeRel)[0];
 
   // get feed forward velocity 
   const vec::Vector2D curVel = m_posSpline.getVel(curTimeRel);
-  const double curAngVel = m_angSpline.getVel(curTimeRel)[0];
+  const double curAngVel = 0; // only relying on feedback for ang
 
   // get current pos
   const vec::Vector2D curPos = m_odom.GetPos();
@@ -87,9 +114,23 @@ void AutoPathSegment::Periodic() {
   const double correctAngVel = m_angCorrect.Calculate(curAng, curExpectedAng);
   const vec::Vector2D correctVel = {correctVelX, correctVelY};
 
+  if (m_shuffleboard) {
+    frc::SmartDashboard::PutNumber("error x", curExpectedPos.x() - curPos.x());
+    frc::SmartDashboard::PutNumber("error y", curExpectedPos.y() - curPos.y());
+    frc::SmartDashboard::PutNumber("error ang", curExpectedAng - curAng);
+  }
+
   // set velocity to swerve
-  const vec::Vector2D setVel = curVel + correctVel;
-  const double setAngVel = curAngVel + correctAngVel;
+  vec::Vector2D setVel = curVel + correctVel;
+  double setAngVel = curAngVel + correctAngVel;
+
+  if (AtPosTarget()) {
+    setVel = {0, 0};
+  }
+
+  if (AtAngTarget()) {
+    setAngVel = 0;
+  }
 
   m_swerve.SetRobotVelocity(setVel, setAngVel, curAng);
 }
@@ -138,7 +179,7 @@ bool AutoPathSegment::AtPosTarget() const {
   const vec::Vector2D curPos = m_odom.GetPos();
   const vec::Vector2D targPos = m_posSpline(m_posSpline.getHighestTime());
 
-  return magn(targPos - curPos) < AutoConstants::POS_TOL;
+  return magn(targPos - curPos) < m_posCorrect.GetPositionTolerance();
 }
 
 /**
@@ -156,7 +197,7 @@ bool AutoPathSegment::AtAngTarget() const {
   const bool curAng = m_odom.GetAng();
   const bool targAng = m_angSpline(m_angSpline.getHighestTime())[0];
 
-  return std::abs(targAng - curAng) < AutoConstants::ANG_TOL;
+  return std::abs(targAng - curAng) < m_angCorrect.GetPositionTolerance();
 }
 
 /**
@@ -182,4 +223,44 @@ double AutoPathSegment::GetAbsProgress() const {
   double curRelTime = Utils::GetCurTimeS() - m_startTime;
 
   return curRelTime / endTime;
+}
+
+void AutoPathSegment::ShuffleboardInit() {
+  if (!m_shuffleboard) {
+    return;
+  }
+
+  frc::SmartDashboard::PutNumber("trans kP", AutoConstants::DRIVE_P);
+  frc::SmartDashboard::PutNumber("trans kI", AutoConstants::DRIVE_I);
+  frc::SmartDashboard::PutNumber("trans kD", AutoConstants::DRIVE_D);
+
+  frc::SmartDashboard::PutNumber("turn kP", AutoConstants::ANG_P);
+  frc::SmartDashboard::PutNumber("turn kI", AutoConstants::ANG_I);
+  frc::SmartDashboard::PutNumber("turn kD", AutoConstants::ANG_D);
+
+  frc::SmartDashboard::PutNumber("pos tol", AutoConstants::POS_TOL);
+  frc::SmartDashboard::PutNumber("ang tol", AutoConstants::ANG_TOL);
+}
+
+void AutoPathSegment::ShuffleboardPeriodic() {
+  if (!m_shuffleboard) {
+    return;
+  }
+
+  double kP = frc::SmartDashboard::GetNumber("trans kP", AutoConstants::DRIVE_P);
+  double kI = frc::SmartDashboard::GetNumber("trans kI", AutoConstants::DRIVE_I);
+  double kD = frc::SmartDashboard::GetNumber("trans kD", AutoConstants::DRIVE_D);
+
+  SetDrivePID(kP, kI, kD);
+
+  double wkP =  frc::SmartDashboard::GetNumber("turn kP", AutoConstants::ANG_P);
+  double wkI =  frc::SmartDashboard::GetNumber("turn kI", AutoConstants::ANG_I);
+  double wkD =  frc::SmartDashboard::GetNumber("turn kD", AutoConstants::ANG_D);
+
+  SetAngPID(wkP, wkI, wkD);
+
+  double pTol = frc::SmartDashboard::GetNumber("pos tol", AutoConstants::POS_TOL);
+  SetDriveTol(pTol);
+  double aTol = frc::SmartDashboard::GetNumber("ang tol", AutoConstants::ANG_TOL);
+  SetAngTol(aTol);
 }
