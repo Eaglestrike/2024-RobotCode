@@ -47,7 +47,6 @@ void Robot::RobotInit() {
   m_autoPath.ShuffleboardInit();
 
   m_navx->Reset();
-  m_odom.SetStartingConfig({0, 0}, -M_PI, 0);
   m_odom.Reset();
 
   m_swerveController.Init();
