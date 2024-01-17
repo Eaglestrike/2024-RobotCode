@@ -23,7 +23,8 @@ namespace AutoConstants {
     "Blue_RightScore_to_MidIntake",
     "Blue_RightScore_to_RightIntake",
     "odometryTest",
-    "odometryTestCurve"
+    "odometryTestCurve",
+    "hehe"
   };
 
   // Translational PID after FF
