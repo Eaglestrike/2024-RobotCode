@@ -92,7 +92,7 @@ void Robot::RobotPeriodic() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
-  m_swerveController.SetAngCorrection(true);
+  m_swerveController.SetAngCorrection(false);
   m_swerveController.SetAutoMode(true);
   
 

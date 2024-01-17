@@ -34,8 +34,8 @@ namespace AutoConstants {
 
   // Angular velocity PID after FF
   // TODO change
-  const double ANG_P = 5;
-  const double ANG_I = 0.1;
+  const double ANG_P = 3;
+  const double ANG_I = 0.6;
   const double ANG_D = 0;
 
   // tolerance for being at target, in m and degrees

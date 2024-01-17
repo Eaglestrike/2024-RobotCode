@@ -194,8 +194,8 @@ bool AutoPathSegment::AtAngTarget() const {
     return false;
   }
 
-  const bool curAng = m_odom.GetAng();
-  const bool targAng = m_angSpline(m_angSpline.getHighestTime())[0];
+  const double curAng = m_odom.GetAng();
+  const double targAng = m_angSpline(m_angSpline.getHighestTime())[0];
 
   return std::abs(targAng - curAng) < m_angCorrect.GetPositionTolerance();
 }
@@ -263,4 +263,6 @@ void AutoPathSegment::ShuffleboardPeriodic() {
   SetDriveTol(pTol);
   double aTol = frc::SmartDashboard::GetNumber("ang tol", AutoConstants::ANG_TOL);
   SetAngTol(aTol);
+
+  frc::SmartDashboard::PutBoolean("At Target", AtTarget());
 }
