@@ -180,7 +180,9 @@ void Robot::SimulationPeriodic() {}
 void Robot::ShuffleboardInit() {
   frc::SmartDashboard::PutBoolean("Logging", false);
 
-  m_chooser.SetDefaultOption(AutoConstants::DEPLOY_FILES[0], AutoConstants::DEPLOY_FILES[0]);
+  if (AutoConstants::DEPLOY_FILES.size() > 0) {
+    m_chooser.SetDefaultOption(AutoConstants::DEPLOY_FILES[0], AutoConstants::DEPLOY_FILES[0]);
+  }
   for (std::string fname : AutoConstants::DEPLOY_FILES) {
     m_chooser.AddOption(fname, fname);
   }

@@ -7,6 +7,7 @@
 
 namespace AutoConstants {
   const std::vector<std::string> DEPLOY_FILES = {
+    "hehe",
     "4pieceswooo",
     "Blue_LeftIntake_to_LeftScore",
     "Blue_LeftIntake_to_MidScore",
@@ -23,8 +24,7 @@ namespace AutoConstants {
     "Blue_RightScore_to_MidIntake",
     "Blue_RightScore_to_RightIntake",
     "odometryTest",
-    "odometryTestCurve",
-    "hehe"
+    "odometryTestCurve"
   };
 
   // Translational PID after FF
