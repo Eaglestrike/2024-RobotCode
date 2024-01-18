@@ -17,23 +17,25 @@ class Rollers : public Mechanism{
             OUTTAKE
         };
 
-        Rollers(bool enabled, bool dbg);
+        Rollers(bool enabled, bool shuffleboard);
         void SetState(RollerState r);
         RollerState GetState();
         void CoreTeleopPeriodic() override;
         void CoreShuffleboardInit() override;
         void CoreShuffleboardPeriodic() override;
 
+        void SetVoltage();
+        void StopRollers();
+
 private:
-  void SetVoltage();
   RollerState m_state{STOP};
-  TalonFX m_rollerMotor{Ids::ROLLER_MOTOR};
-  ShuffleboardSender m_shuff {"Rollers", false};
+  TalonFX m_rollerMotor{Ids::ROLLER_MOTOR, "rio"};
+  ShuffleboardSender m_shuff{"Rollers", false};
 
   //Constants
-  double MAX_VOLTS = 0.0;
+  double MAX_VOLTS = 12.0;
   double KEEP_VOLTS = 0.0;
-  double IN_VOLTS = 0.0;
+  double IN_VOLTS = 3.0;
   double OUT_VOLTS =0.0;
 
   //for dbg
