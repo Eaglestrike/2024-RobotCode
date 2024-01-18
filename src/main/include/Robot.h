@@ -61,4 +61,7 @@ private:
   // Logger
   FRCLogger m_logger;
   bool m_prevIsLogging;
+
+  // Rollers
+  Rollers m_rollers;
 };
