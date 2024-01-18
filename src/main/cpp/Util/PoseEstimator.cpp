@@ -145,6 +145,15 @@ void PoseEstimator::SetPos(const vec::Vector2D &pose) {
 }
 
 /**
+ * Sets Standard Deviation value
+ * 
+ * @param stdDev std dev value
+*/
+void PoseEstimator::SetQ(const vec::Vector2D &stdDev) {
+  m_q = Utils::MultiplyComps(stdDev, stdDev);
+}
+
+/**
  * Gets latest position
  * 
  * @returns Latest pos

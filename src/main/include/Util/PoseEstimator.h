@@ -34,7 +34,7 @@ public:
   void UpdateCams(const double &timestamp, const vec::Vector2D &camPos, const vec::Vector2D &stdDevs);
 
   void SetPos(const vec::Vector2D &pose);
-  void SetQ(const vec::Vector2D &q);
+  void SetQ(const vec::Vector2D &stdDev);
 
   vec::Vector2D GetCurPos() const;
 

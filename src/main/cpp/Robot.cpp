@@ -18,6 +18,7 @@ Robot::Robot() :
   m_swerveController{true, false},
   m_client{"10.1.14.52", 5590, 300, 5000},
   m_isSecondTag{false},
+  m_odom{true},
   m_logger{"log", {"dist", "camX", "camY"}},
   m_prevIsLogging{false},
   m_autoPath{false, m_swerveController, m_odom}
@@ -77,6 +78,7 @@ Robot::Robot() :
 void Robot::RobotInit() {
   ShuffleboardInit();
   m_autoPath.ShuffleboardInit();
+  m_odom.ShuffleboardInit();
 
   m_navx->Reset();
   m_odom.Reset();
@@ -97,6 +99,7 @@ void Robot::RobotInit() {
 void Robot::RobotPeriodic() {
   ShuffleboardPeriodic();
   m_autoPath.ShuffleboardPeriodic();
+  m_odom.ShuffleboardPeriodic();
 
   if (m_controller.getPressedOnce(ZERO_YAW)) {
     m_navx->Reset();

@@ -11,8 +11,8 @@
 /**
  * Constructor
 */
-Odometry::Odometry() :
-  m_curAng{0}, m_startAng{0}, m_angVel{0}, m_joystickAng{0}, 
+Odometry::Odometry(const bool &shuffleboard) :
+  m_shuffleboard{shuffleboard}, m_curAng{0}, m_startAng{0}, m_angVel{0}, m_joystickAng{0}, 
   m_prevDriveTime{Utils::GetCurTimeS()}, m_estimator{OdometryConstants::SYS_STD_DEV},
   m_uniqueId{-1000}, m_prevCamTime{-1000} {}
 
@@ -204,4 +204,24 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
 
   // update prev cam time
   m_prevCamTime = curTime;
+}
+
+void Odometry::ShuffleboardInit() {
+  if (!m_shuffleboard) {
+    return;
+  }
+
+  frc::SmartDashboard::PutNumber("Pos stddev", OdometryConstants::SYS_STD_DEV.x());
+}
+
+/**
+ * Shuffleboard update, for debug
+*/
+void Odometry::ShuffleboardPeriodic() {
+  if (!m_shuffleboard) {
+    return;
+  }
+
+  double stdDev = frc::SmartDashboard::GetNumber("Pos stddev", OdometryConstants::SYS_STD_DEV.x());
+  m_estimator.SetQ({stdDev, stdDev});
 }

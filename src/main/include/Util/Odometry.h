@@ -12,7 +12,7 @@ public:
     double ang; // absolute, can wrap around (less than -pi or greater than pi)
   };
 
-  Odometry();
+  Odometry(const bool &shuffleboard);
 
   void SetStartingConfig(const vec::Vector2D &pos, const double &ang, const double &joystickAng);
   void Reset();
@@ -30,8 +30,13 @@ public:
   void UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs);
   void UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age);
 
+  void ShuffleboardInit();
+  void ShuffleboardPeriodic();
+
 private:
   void Update(const double &deltaT, const double &prevAng);
+
+  bool m_shuffleboard;
 
   vec::Vector2D m_curPos, m_startPos, m_vel;
   double m_curAng, m_startAng, m_angVel;
