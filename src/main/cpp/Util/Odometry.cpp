@@ -224,4 +224,9 @@ void Odometry::ShuffleboardPeriodic() {
 
   double stdDev = frc::SmartDashboard::GetNumber("Pos stddev", OdometryConstants::SYS_STD_DEV.x());
   m_estimator.SetQ({stdDev, stdDev});
+
+  vec::Vector2D pos = GetPos();
+  double ang = GetAng();
+  m_field.SetRobotPose(frc::Pose2d{units::meter_t{x(pos)}, units::meter_t{y(pos)}, units::radian_t{ang}});
+  frc::SmartDashboard::PutData("Field", &m_field);
 }

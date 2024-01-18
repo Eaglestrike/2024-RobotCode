@@ -1,5 +1,7 @@
 #pragma once
 
+#include <frc/smartdashboard/Field2d.h>
+
 #include "Util/PoseEstimator.h"
 #include "Util/simplevectors.hpp"
 
@@ -47,4 +49,6 @@ private:
   PoseEstimator m_estimator;
   long long m_uniqueId;
   double m_prevCamTime; 
+
+  frc::Field2d m_field;
 };
