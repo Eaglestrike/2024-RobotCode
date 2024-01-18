@@ -4,15 +4,32 @@
 
 #pragma once
 
+#define SWERVE_AUTOTUNING false
+
 #include <string>
 
+#include <AHRS.h>
 #include <frc/TimedRobot.h>
 #include <frc/smartdashboard/SendableChooser.h>
+
+#include "ShuffleboardSender/ShuffleboardSender.h"
+
+#include "FFAutotuner/FFAutotuner.h"
+
+#include "Controller/Controller.h"
+#include "Drive/SwerveControl.h"
+#include "Util/Logger.h"
+#include "Util/Odometry.h"
+#include "Util/SocketClient.h"
+
+// FOR DEBUG ONLY
+#include "Auto/AutoPathSegment.h"
 
 #include "Shooter/Shooter.h"
 
 class Robot : public frc::TimedRobot {
- public:
+public:
+  Robot();
   void RobotInit() override;
   void RobotPeriodic() override;
   void AutonomousInit() override;
@@ -26,11 +43,37 @@ class Robot : public frc::TimedRobot {
   void SimulationInit() override;
   void SimulationPeriodic() override;
 
- private:
+private: 
+  void ShuffleboardInit();
+  void ShuffleboardPeriodic();
+
+  // Controller
+  Controller m_controller;
+
+  // navX
+  AHRS *m_navx;
+
+  // Swerve
+  SwerveControl m_swerveController{true, false};
+
+  #if SWERVE_AUTOTUNING
+  FFAutotuner m_swerveXTuner{"Swerve X", FFAutotuner::SIMPLE}; //0.1833, 1.455, 0.1410
+  FFAutotuner m_swerveYTuner{"Swerve Y", FFAutotuner::SIMPLE}; //0.1711, 1.384, 0.1398
+  #endif
+
+  // Jetson
+  SocketClient m_client;
+  
+  // Odometry
+  Odometry m_odom;
+
+  // Logger
+  FRCLogger m_logger;
+  bool m_prevIsLogging;
+
+  // DEBUG ONLY
+  AutoPathSegment m_autoPath;
   frc::SendableChooser<std::string> m_chooser;
-  const std::string kAutoNameDefault = "Default";
-  const std::string kAutoNameCustom = "My Auto";
-  std::string m_autoSelected;
 
   Shooter shooter_{"Shooter", true, true};
 };

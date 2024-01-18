@@ -12,33 +12,14 @@ namespace Actions{
         SWERVE_ROTATION,
         ZERO_DRIVE_PID,
         ZERO_YAW,
-        CONE,
-        SCORE_LOW,
-        SCORE_MID,
-        SCORE_HIGH,
-        STOW,
-        SET_MANUAL,
-        SET_MOVING,
-        HP,
-        GROUND,
-        INTAKE,
-        OUTTAKE,
-        MANUAL1,
-        MANUAL2,
-        ELEVATOR_H,
-        INTAKE_ANG,
-        AUTO_LINEUP,
-        SLOW,
-        GROUND_INTAKE,
-        LOCK_WHEELS,
+        SLOW_MODE,
         ACTION_COUNT //Just the number of actions, as it is at the end of a enum
     };
 
     //Different enum for POV actions because logic is different
     enum POVAction{
         NO_POV_ACTION = -1,
-        INTAKE_FLANGE,
-        CUBE_INTAKE,
+        TEMP,
         ACTION_COUNT_POV //Just the number of actions, as it is at the end of a enum
     };
 }
@@ -58,29 +39,29 @@ namespace ControllerMapData{
     const std::vector<ControlMapElement> ButtonMap = {
         {{LJOY, X_AXIS},        SWERVE_STRAFEX},
         {{LJOY, Y_AXIS},        SWERVE_STRAFEY},
-        {{LJOY, TRIGGER},       AUTO_LINEUP},
-        {{LJOY, B_4},           OUTTAKE},
-        {{LJOY, B_2},           LOCK_WHEELS},
-        {{RJOY, B_3},           INTAKE},
+        {{LJOY, TRIGGER},       NONE},
+        {{LJOY, B_4},           NONE},
+        {{LJOY, B_2},           NONE},
+        {{RJOY, B_3},           NONE},
         {{RJOY, X_AXIS},        SWERVE_ROTATION},
         {{RJOY, Y_AXIS},        NONE},
         {{RJOY, TRIGGER},       NONE},
-        {{RJOY, B_2},           SLOW},
+        {{RJOY, B_2},           SLOW_MODE},
 
         {XBOX_LJOY_X,           NONE},
-        {XBOX_LJOY_Y,           ELEVATOR_H}, 
+        {XBOX_LJOY_Y,           NONE}, 
         {XBOX_RJOY_X,           NONE},
-        {XBOX_RJOY_Y,           INTAKE_ANG},
-        {XBOX_A_BUTTON ,        STOW},
-        {XBOX_B_BUTTON ,        SCORE_MID},
-        {XBOX_X_BUTTON ,        SCORE_LOW},
-        {XBOX_Y_BUTTON ,        SCORE_HIGH},
-        {XBOX_L_BUMPER ,        GROUND_INTAKE},
-        {XBOX_LTRIGGER ,        MANUAL1},
-        {XBOX_R_BUMPER ,        HP},
+        {XBOX_RJOY_Y,           NONE},
+        {XBOX_A_BUTTON ,        NONE},
+        {XBOX_B_BUTTON ,        NONE},
+        {XBOX_X_BUTTON ,        NONE},
+        {XBOX_Y_BUTTON ,        NONE},
+        {XBOX_L_BUMPER ,        NONE},
+        {XBOX_LTRIGGER ,        NONE},
+        {XBOX_R_BUMPER ,        NONE},
         {{XBOX, B_7} ,          ZERO_DRIVE_PID},
         {{XBOX, B_8} ,          ZERO_YAW},
-        {XBOX_RTRIGGER ,        MANUAL2}
+        {XBOX_RTRIGGER ,        NONE}
     };
 
     //Allows for maps of buttons to values, such as the index of the buttonboard
@@ -140,6 +121,5 @@ namespace ControllerMapData{
     };
 
     const std::vector<POVMapElement> POVMap = {
-        {XBOX_POV, POV_LEFT, INTAKE_FLANGE},
     };
 };

@@ -81,18 +81,29 @@ bool Utils::NearZero(const vec::Vector2D vec, const double tolerance)
 
 
 /**
- * Normalizes angle to (180, -180]
+ * Normalizes angle to (-pi, pi]
  * 
- * @returns normalized angle
+ * @returns normalized angle, in radians
 */
 double Utils::NormalizeAng(const double ang) {
   double ang2 = std::fmod(ang, M_PI * 2);
-  ang2 = std::fmod(ang + M_PI * 2, M_PI * 2);
+  ang2 = std::fmod(ang2 + M_PI * 2, M_PI * 2);
   if (ang2 > M_PI) {
     ang2 -= M_PI * 2;
   }
 
   return ang2;
+}
+
+/**
+ * Normalizes angle to (-180, 180]
+ * 
+ * @returns Normalized angle, in degrees
+ */
+double Utils::NormalizeAngDeg(const double ang) {
+  double angRad = ang * (M_PI / 180.0);
+  angRad = NormalizeAng(angRad);
+  return angRad * (180.0 / M_PI); 
 }
 
 /**
@@ -175,6 +186,17 @@ double Utils::GetAngBetweenVec(const vec::Vector2D v1, const vec::Vector2D v2) {
       dot(v1, v2) / (magn(v1) * magn(v2)), -1.0, 1.0));
 }
 
+/**
+ * Multiplies components of vectors together and forms into new vector
+ * 
+ * @param v1 first vector
+ * @param v2 second vector
+ * 
+ * @returns <v1.x*v2.x, v1.y*v2.y>
+*/
+vec::Vector2D Utils::MultiplyComps(const vec::Vector2D v1, const vec::Vector2D v2) {
+  return {v1.x() * v2.x(), v1.y() * v2.y()};
+}
 
 /**
  * Gets the sign of a value

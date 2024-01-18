@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "simplevectors.hpp"
-#include "Util/UtilConstants.h"
 
 namespace vec = svector; //!< vector namespace alias
 
@@ -24,6 +23,7 @@ namespace Utils {
   bool NearZero(const vec::Vector2D vec, const double tolerance = NEAR_ZERO_TOLERANCE);
 
   double NormalizeAng(const double ang);
+  double NormalizeAngDeg(const double ang);
 
   std::size_t GetCurTimeMs();
   double GetCurTimeS();
@@ -34,6 +34,7 @@ namespace Utils {
   vec::Vector2D GetUnitVecDir(const double ang);
   vec::Vector2D GetProjection(const vec::Vector2D v, const vec::Vector2D w);
   double GetAngBetweenVec(const vec::Vector2D v1, const vec::Vector2D v2);
+  vec::Vector2D MultiplyComps(const vec::Vector2D v1, const vec::Vector2D v2);
 
   double Sign(double x);
 };
