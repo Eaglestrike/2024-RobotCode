@@ -5,8 +5,9 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 
 Rollers::Rollers(bool enabled, bool shuffleboard)
-    : Mechanism{"Rollers", enabled, shuffleboard}
-    {}
+    : Mechanism{"Rollers", enabled, shuffleboard} {
+    m_rollerMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
+}
 
 void Rollers::SetState(RollerState r) {
     m_state = r;
@@ -14,12 +15,6 @@ void Rollers::SetState(RollerState r) {
 
 Rollers::RollerState Rollers::GetState() {
     return m_state;
-}
-
-
-Rollers::Rollers(bool enabled, bool dbg){
-    Mechanism("Rollers", enabled, dbg);
-    m_rollerMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
 }
 
 void Rollers::CoreTeleopPeriodic() {
