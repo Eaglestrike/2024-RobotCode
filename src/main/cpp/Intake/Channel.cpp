@@ -10,6 +10,11 @@ Channel::ChannelState Channel::GetState() {
     return m_state;
 }
 
+Channel::Channel(bool enabled, bool dbg){
+    Mechanism("Channel", enabled, dbg);
+    m_channelMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
+}
+
 void Channel::CoreTeleopPeriodic() {
     double setVolts = 0;
 

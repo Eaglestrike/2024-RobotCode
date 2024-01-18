@@ -31,7 +31,10 @@ Robot::Robot() :
 
 void Robot::RobotInit() {
   ShuffleboardInit();
-
+  m_wrist.Init();
+  m_channel.Init();
+  m_rollers.Init();
+  m_intake.Init();
   m_swerveController.Init();
 }
 
@@ -45,7 +48,10 @@ void Robot::RobotInit() {
  */
 void Robot::RobotPeriodic() {
   ShuffleboardPeriodic();
-
+  m_wrist.Periodic();
+  m_channel.Periodic();
+  m_rollers.Periodic();
+  m_intake.Periodic();
   m_logger.Periodic(Utils::GetCurTimeS());
 }
 
@@ -70,6 +76,10 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
+  m_wrist.TeleopPeriodic();
+  m_channel.TeleopPeriodic();
+  m_rollers.TeleopPeriodic();
+  m_intake.TeleopPeriodic();
   double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.1);
   double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.1);
 

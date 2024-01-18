@@ -10,6 +10,12 @@ Rollers::RollerState Rollers::GetState() {
     return m_state;
 }
 
+
+Rollers::Rollers(bool enabled, bool dbg){
+    Mechanism("Rollers", enabled, dbg);
+    m_rollerMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
+}
+
 void Rollers::CoreTeleopPeriodic() {
     double setVolts = 0;
 

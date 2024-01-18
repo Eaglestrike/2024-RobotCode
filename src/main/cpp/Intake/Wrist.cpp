@@ -2,12 +2,13 @@
 #include <iostream>
 
 //constructor j sets motor to brake mode
-Wrist::Wrist(){
+Wrist::Wrist(bool enabled, bool dbg){
     UpdatePose();
     m_setPt = m_curPos;
     if (m_DBGstate != NONE || m_DBGstate != AUTO_TUNER){
         m_shuff.enable();
     }
+    Mechanism("Wrist", enabled, dbg);
     m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
 }
 

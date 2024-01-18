@@ -17,7 +17,7 @@ class Rollers : public Mechanism{
             OUTTAKE
         };
 
-        Rollers() = default;
+        Rollers(bool enabled, bool dbg);
         void SetState(RollerState r);
         RollerState GetState();
         void CoreTeleopPeriodic() override;

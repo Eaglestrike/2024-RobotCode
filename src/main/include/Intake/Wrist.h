@@ -12,7 +12,7 @@ using ctre::phoenix6::hardware::TalonFX;
 
 class Wrist: public Mechanism{
     public:
-        Wrist();
+        Wrist(bool enabled, bool dbg);
 
         enum MechState{
             MOVING,

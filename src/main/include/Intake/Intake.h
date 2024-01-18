@@ -5,6 +5,7 @@
 
 class Intake: public Mechanism{
     public:
+        Intake(bool enable, bool dbg);
         enum ActionState{
             STOW, 
             AMP_INTAKE, 
@@ -38,11 +39,10 @@ class Intake: public Mechanism{
             STATE_TESTER, // lowk thats j teleop
         };
 
-        Rollers m_rollers{};
-        Wrist m_wrist{};
-        Channel m_channel{};
+        Rollers m_rollers{true, false};
+        Wrist m_wrist{true, false};
+        Channel m_channel{true, false};
         ActionState m_actionState = STOW;
-        // double m_targWristPos = STOWED_POS;
 
         //could also put in vector w enum as key
         double STOWED_POS = 0.0,

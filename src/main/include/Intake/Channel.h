@@ -15,7 +15,7 @@ class Channel : public Mechanism{
             RETAIN,
         };
 
-        Channel() = default;
+        Channel(bool enabled, bool dbg);
         void SetState(ChannelState c);
         ChannelState GetState();
         void CoreTeleopPeriodic() override;

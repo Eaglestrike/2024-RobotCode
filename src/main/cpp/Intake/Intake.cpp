@@ -1,5 +1,8 @@
 #include "Intake/Intake.h"
 
+Intake::Intake(bool enabled, bool dbg){
+    Mechanism("intake",enabled, dbg);
+}
 void Intake::CorePeriodic(){
     m_rollers.Periodic();
     m_wrist.Periodic();
