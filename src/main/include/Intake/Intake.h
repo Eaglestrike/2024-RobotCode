@@ -38,7 +38,7 @@ class Intake: public Mechanism{
             STATE_TESTER, // lowk thats j teleop
         };
 
-        Rollers m_rollers{};
+        Rollers m_rollers{true, false};
         Wrist m_wrist{};
         Channel m_channel{};
         ActionState m_actionState = STOW;
