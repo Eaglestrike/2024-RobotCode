@@ -15,6 +15,9 @@
 #include "Util/Logger.h"
 #include "Util/SocketClient.h"
 
+// TEST
+#include "Intake/Rollers.h"
+
 class Robot : public frc::TimedRobot {
 public:
   Robot();
@@ -50,4 +53,7 @@ private:
   // Logger
   FRCLogger m_logger;
   bool m_prevIsLogging;
+
+  // Rollers
+  Rollers m_rollers;
 };

@@ -14,12 +14,13 @@ using namespace Actions;
 Robot::Robot() :
   m_swerveController{true, false},
   m_client{"10.1.14.21", 5807, 500, 5000},
-  m_logger{"log", {}}
+  m_logger{"log", {}},
+  m_rollers{true, true}
   {
   // navx
   try
   {
-    m_navx = new AHRS(frc::SerialPort::kMXP);
+    m_navx = new AHRS(frc::SerialPort::kUSB2);
   }
   catch (const std::exception &e)
   {
@@ -33,6 +34,7 @@ void Robot::RobotInit() {
   ShuffleboardInit();
 
   m_swerveController.Init();
+  m_rollers.Init();
 }
 
 /**
@@ -47,6 +49,7 @@ void Robot::RobotPeriodic() {
   ShuffleboardPeriodic();
 
   m_logger.Periodic(Utils::GetCurTimeS());
+  m_rollers.Periodic();
 }
 
 /**
@@ -70,21 +73,27 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-  double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.1);
-  double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.1);
+  // double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.1);
+  // double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.1);
 
-  double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.1);
+  // double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.1);
 
-  double mult = SwerveConstants::NORMAL_SWERVE_MULT;
-  double vx = std::clamp(lx, -1.0, 1.0) * mult;
-  double vy = std::clamp(ly, -1.0, 1.0) * mult;
-  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
+  // double mult = SwerveConstants::NORMAL_SWERVE_MULT;
+  // double vx = std::clamp(lx, -1.0, 1.0) * mult;
+  // double vy = std::clamp(ly, -1.0, 1.0) * mult;
+  // double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
 
-  vec::Vector2D setVel = {-vy, -vx};
-  double curYaw = m_navx->GetYaw();
+  // vec::Vector2D setVel = {-vy, -vx};
+  // double curYaw = m_navx->GetYaw();
 
-  m_swerveController.SetRobotVelocityTele(setVel, w, 0, 0);
-  m_swerveController.Periodic();
+  // m_swerveController.SetRobotVelocityTele(setVel, w, 0, 0);
+  // m_swerveController.Periodic();
+
+  if (m_controller.getPressed(DEBUG_INTAKE)) {
+    m_rollers.SetVoltage();
+  } else {
+    m_rollers.StopRollers();
+  }
 }
 
 void Robot::DisabledInit() {}
