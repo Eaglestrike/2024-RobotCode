@@ -13,7 +13,7 @@
 using ctre::phoenix6::hardware::TalonFX;
 using ctre::phoenix6::controls::Follower;
 
-class Climb : public Mechanism{
+class RachetClimb : public Mechanism{
     public:
         enum Target {
             EXTENDED,
@@ -24,10 +24,10 @@ class Climb : public Mechanism{
         enum State{
             MOVING,
             AT_TARGET,
-            WINDING
+            WINDING //TODO
         };
 
-    Climb();
+    RachetClimb();
     void CorePeriodic() override;
     void CoreTeleopPeriodic() override;
     void CoreShuffleboardPeriodic() override;
@@ -39,11 +39,12 @@ class Climb : public Mechanism{
     void SetTarget(Target t);
 
     private:
-        ShuffleboardSender m_shuff {"Climb", true};
+        ShuffleboardSender m_shuff {"rachet climb", true};
         void UpdatePos();
         bool AtTarget(double target);
         TalonFX m_master {Ids::MASTER_CLIMB_MOTOR};//, m_slave {Ids::SLAVE_CLIMB_MOTOR};
         frc::DutyCycleEncoder m_absEncoder{Ids::CLIMB_ABS_ENCODER};
+//      electronic solenoid
 
         double m_pos;
         Target m_targ = STOWED;
@@ -52,7 +53,6 @@ class Climb : public Mechanism{
         struct StateInfo{
             double TARG_POS;
             double MOVE_VOLTS;
-            double RETAIN_VOLTS;
         };
 
         //CONSTANTS:
@@ -60,13 +60,12 @@ class Climb : public Mechanism{
                 MIN_POS= 0.0, 
                 MAX_POS= 0.0, 
                 POS_TOLERANCE= 0.0;
+
+        double STILL_VOLTS = 0.0 ;
         StateInfo CLIMB_INFO =  {MIN_POS, 
-                            0.0, //climb volts
-                            0.0}; // hang volts (might be zero or stowed retain volts if using static hooks)
-        StateInfo STOW_INFO =    {MIN_POS,
-                            0.0, // stow/ravel volts 
-                            0.0}; // retain volts
+                                0.0}; 
+        StateInfo STOW_INFO =    {MIN_POS, 
+                                0.0}; // retain volts
         StateInfo EXTENDED_INFO = {MAX_POS,
-                             0.0, // extend/unravel volts 
-                             0.0}; // prob 0
+                                    0.0}; // prob 0
 };

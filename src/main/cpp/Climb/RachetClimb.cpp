@@ -1,84 +1,89 @@
-#include "Climb/Climb.h"
+#include "Climb/RachetClimb.h"
 
-void Climb::CorePeriodic(){
+void RachetClimb::CorePeriodic(){
     UpdatePos();
 }
 
-void Climb::CoreTeleopPeriodic(){
+void RachetClimb::CoreTeleopPeriodic(){
     StateInfo info;
-    double targPos;
     switch (m_targ){
         case STOWED:
             info = STOW_INFO;
-            targPos = MIN_POS;
             break;
         case EXTENDED:
             info = EXTENDED_INFO;
-            targPos = MAX_POS;
             break;
         case CLIMB:
             info = CLIMB_INFO;
-            targPos = MIN_POS;
             break;
     }
 
     double voltage = 0.0;
-    if (m_state == AT_TARGET){
-        voltage = info.RETAIN_VOLTS;
-    } else if (m_state == MOVING){
-        voltage = info.MOVE_VOLTS;
-    }
-    voltage = std::clamp(voltage, -MAX_VOLTS, MAX_VOLTS);
 
-    if (AtTarget(targPos))
-        m_state = AT_TARGET;
-   
+    switch(m_state){
+        case MOVING:
+            voltage = info.MOVE_VOLTS;
+            if (AtTarget(info.TARG_POS)){
+                m_state = AT_TARGET;
+            }
+            break;
+        case AT_TARGET:
+            //break on
+            break;
+        case WINDING:
+            break;
+    }
+
+    voltage = std::clamp(voltage, -MAX_VOLTS, MAX_VOLTS);
+ 
     m_master.SetVoltage(units::volt_t(voltage));
 }
 
-void Climb::UpdatePos(){
+void RachetClimb::UpdatePos(){
     m_pos = m_absEncoder.GetAbsolutePosition();
 }
 
-bool Climb::AtTarget(double target){
+bool RachetClimb::AtTarget(double target){
     if (std::abs(m_pos-target) <= POS_TOLERANCE)
         return true;
     return false;
 }
 
-Climb::Climb(){
+RachetClimb::RachetClimb(){
     m_master.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
     // m_slave.SetControl(Follower(Ids::MASTER_CLIMB_MOTOR, false));
 }
 
-void Climb::Extend(){
+void RachetClimb::Extend(){
     SetTarget(EXTENDED);
 }
 
-void Climb::Stow(){
-    SetTarget(EXTENDED);
+void RachetClimb::Stow(){
+    SetTarget(STOWED);
 }
 
-void Climb::PullUp(){
+void RachetClimb::PullUp(){
     SetTarget(CLIMB);
 }
 
-Climb::State Climb::GetState(){
+RachetClimb::State RachetClimb::GetState(){
     return m_state;
 }
 
-void Climb::SetTarget(Target t){
+void RachetClimb::SetTarget(Target t){
     if (t = m_targ) return;
     m_state = MOVING;
+    //brake off
     m_targ = t;
 }
 
-void Climb::ManualPeriodic(double voltage){
+// should put break on here also 
+void RachetClimb::ManualPeriodic(double voltage){
     voltage = std::clamp(voltage, -MAX_VOLTS, MAX_VOLTS);
     m_master.SetVoltage(units::volt_t(voltage));
 }
 
-void Climb::CoreShuffleboardPeriodic(){
+void RachetClimb::CoreShuffleboardPeriodic(){
     m_shuff.PutNumber("cur pos", m_pos);
     m_shuff.PutNumber("targ state", m_targ);
     m_shuff.PutNumber("state", m_state);
@@ -90,13 +95,10 @@ void Climb::CoreShuffleboardPeriodic(){
 
     m_shuff.add("climb pos", &CLIMB_INFO.TARG_POS, true);
     m_shuff.add("climb volts", &CLIMB_INFO.MOVE_VOLTS, true);
-    m_shuff.add("hang volts", &CLIMB_INFO.RETAIN_VOLTS, true);
 
     m_shuff.add("stow pos", &STOW_INFO.TARG_POS, true);
     m_shuff.add("stow volts", &STOW_INFO.MOVE_VOLTS, true);
-    m_shuff.add("retain volts", &STOW_INFO.RETAIN_VOLTS, true);
 
     m_shuff.add("extend pos", &EXTENDED_INFO.TARG_POS, true);
     m_shuff.add("extend volts", &EXTENDED_INFO.MOVE_VOLTS, true);
-    m_shuff.add("keep extended volts", &EXTENDED_INFO.RETAIN_VOLTS, true);
 }
