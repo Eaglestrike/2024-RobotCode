@@ -1,5 +1,7 @@
 #include "Util/Odometry.h"
 
+#include <iostream>
+
 #include <frc/smartdashboard/SmartDashboard.h>
 
 #include "Constants/FieldConstants.h"
@@ -11,8 +13,8 @@
 */
 Odometry::Odometry() :
   m_curAng{0}, m_startAng{0}, m_angVel{0}, m_joystickAng{0}, 
-  m_estimator{OdometryConstants::SYS_STD_DEV}, m_prevDriveTime{Utils::GetCurTimeS()},
-  m_uniqueId{-1000} {}
+  m_prevDriveTime{Utils::GetCurTimeS()}, m_estimator{OdometryConstants::SYS_STD_DEV},
+  m_uniqueId{-1000}, m_prevCamTime{-1000} {}
 
 /**
  * Sets starting configuration, then resets position.
@@ -157,7 +159,8 @@ void Odometry::Update(const double &deltaT, const double &prevAng) {
  * @param age Age of cameras, ms
 */
 void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age) {
-  frc::SmartDashboard::PutBoolean("Cams Up", m_prevCamTime < PoseEstimator::MAX_HISTORY_TIME);
+  double curTime = Utils::GetCurTimeS();
+  frc::SmartDashboard::PutBoolean("Tag Detected", curTime - m_prevCamTime < PoseEstimator::MAX_HISTORY_TIME);
 
   // filter out repeats
   if (uniqueId == m_uniqueId) {
@@ -196,10 +199,9 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   }
 
   // update cams on pose estimator
-  double curTime = Utils::GetCurTimeS();
   double stdDev = OdometryConstants::CAM_STD_DEV_COEF * magn(robotPosCams) * magn(robotPosCams);
   m_estimator.UpdateCams(curTime - age / 1000.0, robotPosCams, {stdDev, stdDev});
 
   // update prev cam time
-  m_prevCamTime = Utils::GetCurTimeS();
+  m_prevCamTime = curTime;
 }

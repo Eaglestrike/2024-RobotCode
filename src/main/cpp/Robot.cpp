@@ -4,6 +4,8 @@
 
 #include "Robot.h"
 
+#include <iostream>
+
 #include <fmt/core.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 
@@ -14,11 +16,11 @@ using namespace Actions;
 
 Robot::Robot() :
   m_swerveController{true, false},
-  m_client{"stadlerpi.local", 5590, 500, 5000},
+  m_client{"10.1.14.52", 5590, 300, 5000},
   m_isSecondTag{false},
-  m_logger{"log", {"camX", "camY"}},
+  m_logger{"log", {"dist", "camX", "camY"}},
   m_prevIsLogging{false},
-  m_autoPath{true, m_swerveController, m_odom}
+  m_autoPath{false, m_swerveController, m_odom}
   {
   // navx
   try
@@ -53,11 +55,16 @@ Robot::Robot() :
       long long age = static_cast<long long>(camData[5]);
       unsigned long long uniqueId = static_cast<unsigned long long>(camData[6]);
 
+      // std::cout << "unique id: " << uniqueId << std::endl;
+
       if (tagId != 0 && m_isSecondTag) {
         frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
         m_odom.UpdateCams({x, y}, tagId, uniqueId, age);
         m_logger.LogNum("camX", y); // on cameras, x is y and y is x
         m_logger.LogNum("camY", x);
+
+        double dist = frc::SmartDashboard::GetNumber("Robot Distance", 0);
+        m_logger.LogNum("dist", dist);
       }
 
       m_isSecondTag = true;
@@ -73,7 +80,9 @@ void Robot::RobotInit() {
 
   m_navx->Reset();
   m_odom.Reset();
+  m_odom.SetStartingConfig({1.9, 5}, M_PI, 0);
 
+  m_client.Init();
   m_swerveController.Init();
 }
 
@@ -211,6 +220,8 @@ void Robot::ShuffleboardInit() {
     m_chooser.AddOption(fname, fname);
   }
   frc::SmartDashboard::PutData("Auto Spline Chooser", &m_chooser);
+
+  frc::SmartDashboard::PutNumber("Robot Distance", 0);
 }
 
 /**
@@ -232,6 +243,9 @@ void Robot::ShuffleboardPeriodic() {
   {
     double ang = m_odom.GetAng();
     vec::Vector2D pos = m_odom.GetPos();
+
+    frc::SmartDashboard::PutBoolean("Cams Connected", m_client.HasConn());
+    frc::SmartDashboard::PutBoolean("Cams Stale", m_client.IsStale());
 
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
