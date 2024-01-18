@@ -1,6 +1,9 @@
 #include "Intake/Intake.h"
 
-Intake::Intake(bool enabled, bool dbg){
+Intake::Intake(bool enabled, bool dbg):
+    m_rollers{enabled, false},
+    m_channel{enabled, false},
+    m_wrist{enabled, false}{
     Mechanism("intake",enabled, dbg);
 }
 void Intake::CorePeriodic(){

@@ -39,9 +39,9 @@ class Intake: public Mechanism{
             STATE_TESTER, // lowk thats j teleop
         };
 
-        Rollers m_rollers{true, false};
-        Wrist m_wrist{true, false};
-        Channel m_channel{true, false};
+        Rollers m_rollers;
+        Wrist m_wrist;
+        Channel m_channel;
         ActionState m_actionState = STOW;
 
         //could also put in vector w enum as key
