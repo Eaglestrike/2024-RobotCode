@@ -2,6 +2,12 @@
 
 #include "Util/Utils.h"
 
+#include <frc/smartdashboard/SmartDashboard.h>
+
+Rollers::Rollers(bool enabled, bool shuffleboard)
+    : Mechanism{"Rollers", enabled, shuffleboard}
+    {}
+
 void Rollers::SetState(RollerState r) {
     m_state = r;
 }
@@ -40,10 +46,17 @@ void Rollers::SetVoltage(){
     m_rollerMotor.SetVoltage(units::volt_t(m_voltReq));
 }
 
+void Rollers::StopRollers() {
+    m_rollerMotor.SetVoltage(units::volt_t(0));
+
+}
+
 void Rollers::CoreShuffleboardInit(){
-    m_shuff.add("Voltage", &m_voltReq, true);
+    // m_shuff.add("Voltage", &m_voltReq, true);
+    frc::SmartDashboard::PutNumber("Roller Voltage", 0);
 }
 
 void Rollers::CoreShuffleboardPeriodic(){
-    m_shuff.update(true);
+    // m_shuff.update(true);
+    m_voltReq = frc::SmartDashboard::GetNumber("Roller Voltage", 0);
 }
