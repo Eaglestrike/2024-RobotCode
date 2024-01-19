@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Util/simplevectors.hpp"
+#include "Util/Utils.h"
 
 namespace vec = svector;
 
@@ -44,4 +45,7 @@ namespace OdometryConstants {
   // camera std dev coefficient (0 stddev if 0 m from camera, increases quadratically with distance)
   // TODO need to change
   const double CAM_STD_DEV_COEF = 1.71e-4;
+
+  // angular speed above which we use swerve angle, in degrees / sec
+  const double USE_SWERVE_ANG = Utils::DegToRad(10);
 }

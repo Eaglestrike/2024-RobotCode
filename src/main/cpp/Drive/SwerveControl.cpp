@@ -1,6 +1,7 @@
 #include "Drive/SwerveControl.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <limits>
 #include <vector>
@@ -81,7 +82,7 @@ vec::Vector2D SwerveControl::GetRobotVelocity(double ang)
  */
 double SwerveControl::GetRobotAngularVel()
 {
-  const double r = SwerveConstants::CENTER_TO_EDGE*sqrt(2.0);
+  const double r = SwerveConstants::CENTER_TO_EDGE*std::sqrt(2.0);
   double angVel = 0.0;
   angVel += m_fl.GetVelocity().dot(vec::Vector2D{-1,1}.normalize());
   angVel += m_fr.GetVelocity().dot(vec::Vector2D{1,1}.normalize());

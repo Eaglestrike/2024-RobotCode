@@ -46,7 +46,8 @@ Robot::Robot() :
     double angNavX = Utils::DegToRad(curAng);
     double yawNavX = Utils::DegToRad(curYaw);
     vec::Vector2D vel = m_swerveController.GetRobotVelocity(angNavX + m_odom.GetStartAng());
-    m_odom.UpdateEncoder(vel, angNavX, yawNavX);
+    double angVel = m_swerveController.GetRobotAngularVel();
+    m_odom.UpdateEncoder(vel, angNavX, yawNavX, angVel);
 
     // update camera odometry
     std::vector<double> camData = m_client.GetData();
@@ -104,7 +105,6 @@ void Robot::RobotPeriodic() {
   m_odom.ShuffleboardPeriodic();
 
   if (m_controller.getPressedOnce(ZERO_YAW)) {
-    m_wheelAng = M_PI;
     m_navx->Reset();
     m_navx->ZeroYaw();
     m_odom.Reset();
@@ -232,15 +232,15 @@ void Robot::ShuffleboardInit() {
 
     frc::SmartDashboard::PutNumber("Robot Distance", 0);
 
-    double navXAngVel = m_odom.GetAngVel();
-    double wheelAngVel = m_swerveController.GetRobotAngularVel();
+    // double navXAngVel = m_odom.GetAngVel();
+    // double wheelAngVel = m_swerveController.GetRobotAngularVel();
 
     // frc::SmartDashboard::PutNumber("navX Ang Vel", navXAngVel);
     // frc::SmartDashboard::PutNumber("wheel Ang Vel", m_swerveController.GetRobotAngularVel());
     // frc::SmartDashboard::PutNumber("diff Ang Vel", navXAngVel - wheelAngVel);
 
-    frc::SmartDashboard::PutNumber("wheel ang", m_wheelAng);
-    frc::SmartDashboard::PutNumber("error ang", 0);
+    // frc::SmartDashboard::PutNumber("wheel ang", m_wheelAng);
+    // frc::SmartDashboard::PutNumber("error ang", 0);
   }
 }
 
@@ -273,16 +273,16 @@ void Robot::ShuffleboardPeriodic() {
 
   // DEBUG
   {
-    double navXAngVel = m_odom.GetAngVel();
-    double wheelAngVel = m_swerveController.GetRobotAngularVel();
+    // double navXAngVel = m_odom.GetAngVel();
+    // double wheelAngVel = m_swerveController.GetRobotAngularVel();
 
-    m_wheelAng += wheelAngVel * 0.02;
+    // m_wheelAng += wheelAngVel * 0.02;
 
     // frc::SmartDashboard::PutNumber("navX Ang Vel", navXAngVel);
     // frc::SmartDashboard::PutNumber("wheel Ang Vel", m_swerveController.GetRobotAngularVel());
     // frc::SmartDashboard::PutNumber("diff Ang Vel", navXAngVel - wheelAngVel);
-    frc::SmartDashboard::PutNumber("wheel ang", m_wheelAng);
-    frc::SmartDashboard::PutNumber("error ang", m_odom.GetAng() - m_wheelAng);
+    // frc::SmartDashboard::PutNumber("wheel ang", m_wheelAng);
+    // frc::SmartDashboard::PutNumber("error ang", m_odom.GetAng() - m_wheelAng);
   }
 }
 

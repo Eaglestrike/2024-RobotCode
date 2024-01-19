@@ -1,5 +1,6 @@
 #include "Util/Odometry.h"
 
+#include <cmath>
 #include <iostream>
 
 #include <frc/smartdashboard/SmartDashboard.h>
@@ -124,8 +125,9 @@ double Odometry::GetStartAng() const {
  * @param vel Velocity
  * @param angNavXAbs navX absolute angle, in radians
  * @param navXYaw navX getYaw() value
+ * @param swerveAngVel swerve angular velocity
 */
-void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs, const double &navXYaw) {
+void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs, const double &navXYaw, const double &swerveAngVel) {
   double curTime = Utils::GetCurTimeS();
   double deltaT = curTime - m_prevDriveTime;
 
@@ -136,7 +138,12 @@ void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs,
   m_curAng = angNavXAbs + m_startAng; 
   Update(deltaT, prevAng);
 
-  m_curYaw = Utils::NormalizeAng(navXYaw + m_startAng);
+  if (std::abs(swerveAngVel) >= OdometryConstants::USE_SWERVE_ANG) {
+    m_curYaw += swerveAngVel * deltaT;
+    m_curYaw = Utils::NormalizeAng(m_curYaw);
+  } else {
+    m_curYaw = Utils::NormalizeAng(navXYaw + m_startAng);
+  }
   m_prevDriveTime = curTime;
 }
 
