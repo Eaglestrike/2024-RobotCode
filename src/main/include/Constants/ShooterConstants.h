@@ -1,6 +1,9 @@
 #pragma once
 
 #include <map>
+#include "Util/simplevectors.hpp"
+
+namespace vec = svector;
 
 namespace ShooterConstants{
     struct PID {
@@ -89,7 +92,21 @@ namespace ShooterConstants{
         //{0.0, {0.0, 0.0}}
     };
 
-    const double K_SPIN = 0.0;
+    const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
-    const double STROLL_SPEED = 0.0;
+    const double STROLL_SPEED = 0.0; //Voltage of strolling
+
+    //Kinematics calc (Field Data + robot stats)
+    const vec::Vector2D RED_SPEAKER = {17.0, 5.74};
+    const vec::Vector2D BLUE_SPEAKER = {0.0, 5.74};
+
+    const double SPEAKER_MIN = 1.98; //height; m
+    const double SPEAKER_MAX = 2.11;
+    const double SPEAKER_CENTER = (SPEAKER_MIN + SPEAKER_MAX)/2.0;
+    const double SPEAKER_HEIGHT = SPEAKER_MAX - SPEAKER_MIN;
+    const double SPEAKER_WIDTH = 1.05;
+
+    const double SHOOTER_HEIGHT = 0.0;
+
+    const vec::Vector2D ABSOLUTE_MISS = {10000000.0, 10000000.0}; //Forward kinematic miss
 }

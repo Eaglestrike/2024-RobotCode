@@ -51,7 +51,7 @@ void Robot::RobotInit() {
 
   m_swerveController.Init();
 
-  shooter_.Init();
+  m_shooter.Init();
 }
 
 /**
@@ -63,8 +63,6 @@ void Robot::RobotInit() {
  * LiveWindow and SmartDashboard integrated updating.
  */
 void Robot::RobotPeriodic() {
-  shooter_.Periodic();
-
   ShuffleboardPeriodic();
   m_autoPath.ShuffleboardPeriodic();
 
@@ -74,6 +72,9 @@ void Robot::RobotPeriodic() {
     m_swerveController.ResetAngleCorrection(m_odom.GetAng());
     m_swerveController.ResetFF();
   }
+
+  m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng());
+  m_shooter.Periodic();
 
   m_logger.Periodic(Utils::GetCurTimeS());
 

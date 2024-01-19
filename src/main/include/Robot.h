@@ -67,6 +67,9 @@ private:
   // Odometry
   Odometry m_odom;
 
+  // Shooter
+  Shooter m_shooter{"Shooter", true, true};
+
   // Logger
   FRCLogger m_logger;
   bool m_prevIsLogging;
@@ -74,6 +77,4 @@ private:
   // DEBUG ONLY
   AutoPathSegment m_autoPath;
   frc::SendableChooser<std::string> m_chooser;
-
-  Shooter shooter_{"Shooter", true, true};
 };
