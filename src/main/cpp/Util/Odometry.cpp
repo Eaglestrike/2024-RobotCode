@@ -171,7 +171,8 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
 
   // rotate relative cam pos to absolute
   double angNavX = GetAngNorm();
-  vec::Vector2D vecRot = rotate(relPos, angNavX - M_PI / 2);
+  const vec::Vector2D axisRelPos = {relPos.y(), -relPos.x()};
+  vec::Vector2D vecRot = rotate(axisRelPos, angNavX);
   vec::Vector2D tagPos;
 
   // filter out bad IDs
@@ -204,9 +205,10 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
 
   if (m_shuffleboard) {
     frc::SmartDashboard::PutString("Raw Cam Pos", relPos.toString());
+    frc::SmartDashboard::PutString("Robot To Tag", vecRot.toString());
   }
 
-  // update cams on pose estimator
+  // update cams n pose estimator
   double stdDev = OdometryConstants::CAM_STD_DEV_COEF * magn(robotPosCams) * magn(robotPosCams);
   m_estimator.UpdateCams(curTime - age / 1000.0, robotPosCams, {0, 0});
   m_camPos = robotPosCams;
