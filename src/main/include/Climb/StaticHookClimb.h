@@ -24,8 +24,7 @@ class StaticHookClimb : public Mechanism{
         enum State{
             MOVING,
             WAITING,
-            DONE,
-            WINDING //TODO
+            DONE
         };
 
     StaticHookClimb();

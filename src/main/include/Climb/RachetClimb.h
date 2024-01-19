@@ -23,15 +23,14 @@ class RachetClimb : public Mechanism{
 
         enum State{
             MOVING,
-            AT_TARGET,
-            WINDING //TODO
+            AT_TARGET
         };
 
     RachetClimb();
     void CorePeriodic() override;
     void CoreTeleopPeriodic() override;
     void CoreShuffleboardPeriodic() override;
-    void ManualPeriodic(double voltage);
+    void ManualPeriodic(double voltage); // use for winding
     void PullUp();
     void Stow ();
     void Extend();
