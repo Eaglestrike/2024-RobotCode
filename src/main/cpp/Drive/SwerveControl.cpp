@@ -73,6 +73,25 @@ vec::Vector2D SwerveControl::GetRobotVelocity(double ang)
 }
 
 /**
+ * Gets robot angular velocity by taking the dot product with the tangent to the circle
+ *
+ * @note Assumes modules have 
+ *
+ * @returns Robot angular velocity
+ */
+double SwerveControl::GetRobotAngularVel()
+{
+  const double r = SwerveConstants::CENTER_TO_EDGE*sqrt(2.0);
+  double angVel = 0.0;
+  angVel += m_fl.GetVelocity().dot(vec::Vector2D{-1,1}.normalize());
+  angVel += m_fr.GetVelocity().dot(vec::Vector2D{1,1}.normalize());
+  angVel += m_bl.GetVelocity().dot(vec::Vector2D{-1,-1}.normalize());
+  angVel += m_fl.GetVelocity().dot(vec::Vector2D{1,-1}.normalize());
+  angVel /= r;
+  return angVel;
+}
+
+/**
  * Resets angle correction angle to a certain angle
  *
  * @note Always call this after calling navx::ZeroYaw()
