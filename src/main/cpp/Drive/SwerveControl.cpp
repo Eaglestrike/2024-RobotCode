@@ -86,8 +86,8 @@ double SwerveControl::GetRobotAngularVel()
   angVel += m_fl.GetVelocity().dot(vec::Vector2D{-1,1}.normalize());
   angVel += m_fr.GetVelocity().dot(vec::Vector2D{1,1}.normalize());
   angVel += m_bl.GetVelocity().dot(vec::Vector2D{-1,-1}.normalize());
-  angVel += m_fl.GetVelocity().dot(vec::Vector2D{1,-1}.normalize());
-  angVel /= r;
+  angVel += m_br.GetVelocity().dot(vec::Vector2D{1,-1}.normalize());
+  angVel /= r*4.0;
   return angVel;
 }
 

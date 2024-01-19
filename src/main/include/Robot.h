@@ -74,4 +74,5 @@ private:
   // DEBUG ONLY
   AutoPathSegment m_autoPath;
   frc::SendableChooser<std::string> m_chooser;
+  double m_wheelAng = 0;
 };

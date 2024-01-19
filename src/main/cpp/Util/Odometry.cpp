@@ -12,7 +12,8 @@
  * Constructor
 */
 Odometry::Odometry(const bool &shuffleboard) :
-  m_shuffleboard{shuffleboard}, m_curAng{0}, m_startAng{0}, m_angVel{0}, m_joystickAng{0}, 
+  m_shuffleboard{shuffleboard}, m_curAng{0}, m_startAng{0}, m_angVel{0},
+  m_curYaw{0}, m_joystickAng{0}, 
   m_prevDriveTime{Utils::GetCurTimeS()}, m_estimator{OdometryConstants::SYS_STD_DEV},
   m_uniqueId{-1000}, m_prevCamTime{-1000} {}
 
@@ -122,8 +123,9 @@ double Odometry::GetStartAng() const {
  * 
  * @param vel Velocity
  * @param angNavXAbs navX absolute angle, in radians
+ * @param navXYaw navX getYaw() value
 */
-void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs) {
+void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs, const double &navXYaw) {
   double curTime = Utils::GetCurTimeS();
   double deltaT = curTime - m_prevDriveTime;
 
@@ -134,6 +136,7 @@ void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs)
   m_curAng = angNavXAbs + m_startAng; 
   Update(deltaT, prevAng);
 
+  m_curYaw = Utils::NormalizeAng(navXYaw + m_startAng);
   m_prevDriveTime = curTime;
 }
 
@@ -170,7 +173,8 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   m_uniqueId = uniqueId;
 
   // rotate relative cam pos to absolute
-  double angNavX = GetAngNorm();
+  double angNavX = m_curYaw;
+
   const vec::Vector2D axisRelPos = {relPos.y(), -relPos.x()};
   vec::Vector2D vecRot = rotate(axisRelPos, angNavX);
   vec::Vector2D tagPos;

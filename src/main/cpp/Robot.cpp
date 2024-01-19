@@ -38,12 +38,15 @@ Robot::Robot() :
   AddPeriodic([&](){
     // update drivebase odometry
     double curAng = m_navx->GetAngle();
+    double curYaw = m_navx->GetYaw();
     if (!SwerveConstants::NAVX_UPSIDE_DOWN) {
       curAng = -curAng;
+      curYaw = -curYaw;
     }
     double angNavX = Utils::DegToRad(curAng);
+    double yawNavX = Utils::DegToRad(curYaw);
     vec::Vector2D vel = m_swerveController.GetRobotVelocity(angNavX + m_odom.GetStartAng());
-    m_odom.UpdateEncoder(vel, angNavX);
+    m_odom.UpdateEncoder(vel, angNavX, yawNavX);
 
     // update camera odometry
     std::vector<double> camData = m_client.GetData();
@@ -79,6 +82,7 @@ void Robot::RobotInit() {
   m_odom.ShuffleboardInit();
 
   m_navx->Reset();
+  m_navx->ZeroYaw();
   m_odom.Reset();
   m_odom.SetStartingConfig({1.9, 5}, M_PI, 0);
 
@@ -100,7 +104,9 @@ void Robot::RobotPeriodic() {
   m_odom.ShuffleboardPeriodic();
 
   if (m_controller.getPressedOnce(ZERO_YAW)) {
+    m_wheelAng = M_PI;
     m_navx->Reset();
+    m_navx->ZeroYaw();
     m_odom.Reset();
     m_swerveController.ResetAngleCorrection(m_odom.GetAng());
     m_swerveController.ResetFF();
@@ -214,15 +220,28 @@ void Robot::SimulationPeriodic() {}
 void Robot::ShuffleboardInit() {
   frc::SmartDashboard::PutBoolean("Logging", false);
 
-  if (AutoConstants::DEPLOY_FILES.size() > 0) {
-    m_chooser.SetDefaultOption(AutoConstants::DEPLOY_FILES[0], AutoConstants::DEPLOY_FILES[0]);
-  }
-  for (std::string fname : AutoConstants::DEPLOY_FILES) {
-    m_chooser.AddOption(fname, fname);
-  }
-  frc::SmartDashboard::PutData("Auto Spline Chooser", &m_chooser);
+  // DEBUG
+  {
+    if (AutoConstants::DEPLOY_FILES.size() > 0) {
+      m_chooser.SetDefaultOption(AutoConstants::DEPLOY_FILES[0], AutoConstants::DEPLOY_FILES[0]);
+    }
+    for (std::string fname : AutoConstants::DEPLOY_FILES) {
+      m_chooser.AddOption(fname, fname);
+    }
+    frc::SmartDashboard::PutData("Auto Spline Chooser", &m_chooser);
 
-  frc::SmartDashboard::PutNumber("Robot Distance", 0);
+    frc::SmartDashboard::PutNumber("Robot Distance", 0);
+
+    double navXAngVel = m_odom.GetAngVel();
+    double wheelAngVel = m_swerveController.GetRobotAngularVel();
+
+    // frc::SmartDashboard::PutNumber("navX Ang Vel", navXAngVel);
+    // frc::SmartDashboard::PutNumber("wheel Ang Vel", m_swerveController.GetRobotAngularVel());
+    // frc::SmartDashboard::PutNumber("diff Ang Vel", navXAngVel - wheelAngVel);
+
+    frc::SmartDashboard::PutNumber("wheel ang", m_wheelAng);
+    frc::SmartDashboard::PutNumber("error ang", 0);
+  }
 }
 
 /**
@@ -250,6 +269,20 @@ void Robot::ShuffleboardPeriodic() {
 
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
+  }
+
+  // DEBUG
+  {
+    double navXAngVel = m_odom.GetAngVel();
+    double wheelAngVel = m_swerveController.GetRobotAngularVel();
+
+    m_wheelAng += wheelAngVel * 0.02;
+
+    // frc::SmartDashboard::PutNumber("navX Ang Vel", navXAngVel);
+    // frc::SmartDashboard::PutNumber("wheel Ang Vel", m_swerveController.GetRobotAngularVel());
+    // frc::SmartDashboard::PutNumber("diff Ang Vel", navXAngVel - wheelAngVel);
+    frc::SmartDashboard::PutNumber("wheel ang", m_wheelAng);
+    frc::SmartDashboard::PutNumber("error ang", m_odom.GetAng() - m_wheelAng);
   }
 }
 

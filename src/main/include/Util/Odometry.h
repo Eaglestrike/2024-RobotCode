@@ -32,7 +32,7 @@ public:
   vec::Vector2D GetStartPos() const;
   double GetStartAng() const;
 
-  void UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs);
+  void UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs, const double &navXYaw);
   void UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age);
 
   void ShuffleboardInit();
@@ -45,6 +45,7 @@ private:
 
   vec::Vector2D m_curPos, m_startPos, m_vel;
   double m_curAng, m_startAng, m_angVel;
+  double m_curYaw;
   double m_joystickAng;
 
   double m_prevDriveTime;
