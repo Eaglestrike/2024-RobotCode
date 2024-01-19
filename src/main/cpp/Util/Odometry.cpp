@@ -164,17 +164,19 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
 
   // filter out repeats
   if (uniqueId == m_uniqueId) {
+    // std::cout << "too old" << std::endl;
     return;
   }
   m_uniqueId = uniqueId;
 
   // rotate relative cam pos to absolute
-  double angNavX = GetAng();
+  double angNavX = GetAngNorm();
   vec::Vector2D vecRot = rotate(relPos, angNavX - M_PI / 2);
   vec::Vector2D tagPos;
 
   // filter out bad IDs
   if (tagId < 1 || tagId > 16) {
+    // std::cout << "bad ID" << std::endl;
     return;
   }
 
@@ -184,23 +186,30 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   vec::Vector2D robotPosCams = tagPos - vecRot;
 
   // reject if apriltag pos is too far away
-  vec::Vector2D odomPos = GetPos();
-  if (magn(odomPos - robotPosCams) > OdometryConstants::AT_REJECT) {
-    return;
-  }
+  // vec::Vector2D odomPos = GetPos();
+  // if (magn(odomPos - robotPosCams) > OdometryConstants::AT_REJECT) {
+  //   // std::cout << "too faar" << std::endl;
+  //   return;
+  // }
 
   // check if outside field
-  double margin = Utils::InToM(FieldConstants::FIELD_MARGIN);
-  double fWidth = Utils::InToM(FieldConstants::FIELD_WIDTH);
-  double fHeight = Utils::InToM(FieldConstants::FIELD_HEIGHT);
-  if (robotPosCams.x() < -margin || robotPosCams.x() > fWidth + margin
-   || robotPosCams.y() < -margin || robotPosCams.y() > fHeight + margin) {
-    return;
+  // double margin = Utils::InToM(FieldConstants::FIELD_MARGIN);
+  // double fWidth = Utils::InToM(FieldConstants::FIELD_WIDTH);
+  // double fHeight = Utils::InToM(FieldConstants::FIELD_HEIGHT);
+  // if (robotPosCams.x() < -margin || robotPosCams.x() > fWidth + margin
+  //  || robotPosCams.y() < -margin || robotPosCams.y() > fHeight + margin) {
+  //   // std::cout << "outside field" << std::endl;
+  //   return;
+  // }
+
+  if (m_shuffleboard) {
+    frc::SmartDashboard::PutString("Raw Cam Pos", relPos.toString());
   }
 
   // update cams on pose estimator
   double stdDev = OdometryConstants::CAM_STD_DEV_COEF * magn(robotPosCams) * magn(robotPosCams);
-  m_estimator.UpdateCams(curTime - age / 1000.0, robotPosCams, {stdDev, stdDev});
+  m_estimator.UpdateCams(curTime - age / 1000.0, robotPosCams, {0, 0});
+  m_camPos = robotPosCams;
 
   // update prev cam time
   m_prevCamTime = curTime;
@@ -225,8 +234,9 @@ void Odometry::ShuffleboardPeriodic() {
   double stdDev = frc::SmartDashboard::GetNumber("Pos stddev", OdometryConstants::SYS_STD_DEV.x());
   m_estimator.SetQ({stdDev, stdDev});
 
-  vec::Vector2D pos = GetPos();
+  vec::Vector2D pos = m_camPos;
   double ang = GetAng();
   m_field.SetRobotPose(frc::Pose2d{units::meter_t{x(pos)}, units::meter_t{y(pos)}, units::radian_t{ang}});
   frc::SmartDashboard::PutData("Field", &m_field);
+  frc::SmartDashboard::PutString("Robot Pos From Cam", m_camPos.toString());
 }

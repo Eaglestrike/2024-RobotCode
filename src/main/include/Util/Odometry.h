@@ -53,5 +53,7 @@ private:
   long long m_uniqueId;
   double m_prevCamTime; 
 
+  // debug stuff
+  vec::Vector2D m_camPos; // only used for shuffleboard prints for now
   frc::Field2d m_field;
 };
