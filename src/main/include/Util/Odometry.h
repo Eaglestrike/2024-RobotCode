@@ -7,6 +7,9 @@
 
 namespace vec = svector;
 
+/**
+ * Odometry class for localization
+*/
 class Odometry {
 public:
   struct XYAng {

@@ -54,9 +54,7 @@ Robot::Robot() :
       double y = camData[3];
       // double angZ = camData[4];
       long long age = static_cast<long long>(camData[5]);
-      unsigned long long uniqueId = static_cast<unsigned long long>(camData[6]);
-
-      // std::cout << "unique id: " << uniqueId << std::endl;
+      long long uniqueId = static_cast<long long>(camData[6]);
 
       if (tagId != 0 && m_isSecondTag) {
         frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
