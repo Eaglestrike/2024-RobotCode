@@ -18,7 +18,9 @@
 */
 AutoPathSegment::AutoPathSegment(bool shuffleboard, SwerveControl &swerve, Odometry &odom)
   : m_shuffleboard{shuffleboard},
-  m_posSpline{1000}, m_angSpline{1000}, m_swerve{swerve}, m_odom{odom}, m_startTime{0},
+  m_spline{.pos{1000}, .ang{1000}},
+  m_swerve{swerve}, m_odom{odom},
+  m_startTime{0},
   m_hasStarted{false},
   m_posCorrect{AutoConstants::DRIVE_P, AutoConstants::DRIVE_I, AutoConstants::DRIVE_D},
   m_angCorrect{AutoConstants::ANG_P, AutoConstants::ANG_I, AutoConstants::ANG_D}
@@ -28,14 +30,30 @@ AutoPathSegment::AutoPathSegment(bool shuffleboard, SwerveControl &swerve, Odome
 }
 
 /**
+ * Loads auto path
+ * 
+ * @param path Filename of auto path 
+*/
+void AutoPathSegment::LoadAutoPath(const std::string path) {
+  AutoPathReader reader{path};
+  m_loadedSplines[path] = {.pos = reader.GetSplinePos(),
+                          .ang = reader.GetSplineAng()};
+}
+
+/**
  * Sets auto path
  * 
  * @param path Filename of auto path 
 */
 void AutoPathSegment::SetAutoPath(const std::string path) {
-  AutoPathReader reader{path};
-  m_posSpline = reader.GetSplinePos();
-  m_angSpline = reader.GetSplineAng();
+  if(m_loadedSplines.find(path) != m_loadedSplines.end()){
+    m_spline = m_loadedSplines[path];
+    return;
+  }
+  else{
+    LoadAutoPath(path);
+    SetAutoPath(path);
+  }
 }
 
 /**
@@ -94,15 +112,15 @@ void AutoPathSegment::SetAngTol(double tol) {
 void AutoPathSegment::Periodic() {
   // get relative time
   double curTimeRel = Utils::GetCurTimeS() - m_startTime;
-  curTimeRel = curTimeRel < 0 ? 0 : (curTimeRel > m_posSpline.getHighestTime() ? m_posSpline.getHighestTime() : curTimeRel);
+  curTimeRel = curTimeRel < 0 ? 0 : (curTimeRel > m_spline.pos.getHighestTime() ? m_spline.pos.getHighestTime() : curTimeRel);
 
   // get current expected position
-  const vec::Vector2D curExpectedPos = m_posSpline(curTimeRel);
-  const double curExpectedAng = m_angSpline(curTimeRel)[0];
+  const vec::Vector2D curExpectedPos = m_spline.pos(curTimeRel);
+  const double curExpectedAng = m_spline.ang(curTimeRel)[0];
 
   // get feed forward velocity 
-  const vec::Vector2D curVel = m_posSpline.getVel(curTimeRel);
-  const double curAngVel = m_angSpline.getVel(curTimeRel)[0]; // only feedback -> set to 0
+  const vec::Vector2D curVel = m_spline.pos.getVel(curTimeRel);
+  const double curAngVel = m_spline.ang.getVel(curTimeRel)[0]; // only feedback -> set to 0
 
   // get current pos
   const vec::Vector2D curPos = m_odom.GetPos();
@@ -177,7 +195,7 @@ bool AutoPathSegment::AtPosTarget() const {
   }
 
   const vec::Vector2D curPos = m_odom.GetPos();
-  const vec::Vector2D targPos = m_posSpline(m_posSpline.getHighestTime());
+  const vec::Vector2D targPos = m_spline.pos(m_spline.pos.getHighestTime());
 
   return magn(targPos - curPos) < m_posCorrect.GetPositionTolerance();
 }
@@ -195,7 +213,7 @@ bool AutoPathSegment::AtAngTarget() const {
   }
 
   const double curAng = m_odom.GetAng();
-  const double targAng = m_angSpline(m_angSpline.getHighestTime())[0];
+  const double targAng = m_spline.ang(m_spline.ang.getHighestTime())[0];
 
   return std::abs(targAng - curAng) < m_angCorrect.GetPositionTolerance();
 }
@@ -219,7 +237,7 @@ bool AutoPathSegment::AtTarget() const {
  * @returns Abs progress
 */
 double AutoPathSegment::GetAbsProgress() const {
-  double endTime = m_posSpline.getHighestTime();
+  double endTime = m_spline.pos.getHighestTime();
   double curRelTime = Utils::GetCurTimeS() - m_startTime;
 
   return curRelTime / endTime;

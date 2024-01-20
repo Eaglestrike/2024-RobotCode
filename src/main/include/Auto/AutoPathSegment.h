@@ -22,6 +22,7 @@ public:
   void Periodic();
   void Stop();
 
+  void LoadAutoPath(const std::string path);
   void SetAutoPath(const std::string path);
   void SetDrivePID(double kP, double kI, double kD);
   void SetAngPID(double kP, double kI, double kD);
@@ -38,8 +39,12 @@ private:
 
   bool m_shuffleboard;
 
-  hm::Hermite<2> m_posSpline;
-  hm::Hermite<1> m_angSpline;
+  struct SwerveSpline{
+    hm::Hermite<2> pos;
+    hm::Hermite<1> ang;
+  } m_spline;
+
+  std::map<std::string, SwerveSpline> m_loadedSplines;
 
   SwerveControl &m_swerve;
   Odometry &m_odom;

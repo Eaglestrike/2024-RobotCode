@@ -42,4 +42,35 @@ namespace AutoConstants {
   // tolerance for being at target, in m and degrees
   const double POS_TOL = 0.08;
   const double ANG_TOL = Utils::DegToRad(5);
+
+  enum AutoType{
+    AT_START,
+    BEFORE_END,
+    AFTER
+  };
+
+  enum AutoAction{
+    DRIVE,
+    SHOOT,
+    INTAKE,
+    WAIT_INTAKE,
+    STOW
+  };
+
+  /**
+   * Paths will be arrays of auto elements
+  */
+  struct AutoElement{
+    AutoAction action;
+    AutoType type;
+    std::string data = ""; //String to select files or other data
+  };
+
+  const std::vector<AutoElement> TEST = {
+    {DRIVE, AFTER, "testIntake"},
+    {INTAKE, BEFORE_END},
+    {DRIVE, AFTER, "zero"},
+    {STOW, AT_START},
+    {SHOOT, AFTER}
+  };
 }
