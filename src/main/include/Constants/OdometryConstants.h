@@ -47,5 +47,8 @@ namespace OdometryConstants {
   const double CAM_STD_DEV_COEF = 1.71e-4;
 
   // angular speed above which we use swerve angle, in degrees / sec
-  const double USE_SWERVE_ANG = Utils::DegToRad(10);
+  const double USE_SWERVE_ANG_VEL = Utils::DegToRad(0);
+
+  // offset from caams, in s
+  const double CAM_TIME_OFFSET = 0.18;
 }

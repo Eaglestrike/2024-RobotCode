@@ -43,6 +43,7 @@ void Odometry::Reset() {
   m_vel = {0, 0};
   m_curAng = m_startAng;
   m_angVel = 0;
+  m_curYaw = Utils::NormalizeAng(m_startAng);
 
   m_estimator.SetPos(m_curPos);
 }
@@ -55,6 +56,16 @@ void Odometry::Reset() {
 vec::Vector2D Odometry::GetPos() const {
   return m_curPos;
 }
+
+/**
+ * Gets cam position
+ * 
+ * @returns cam pos
+*/
+vec::Vector2D Odometry::GetCamPos() const {
+  return m_camPos;
+}
+
 
 /**
  * Gets velocity
@@ -81,6 +92,15 @@ double Odometry::GetAngVel() const {
 */
 double Odometry::GetAng() const {
   return m_curAng;
+}
+
+/**
+ * Gets yaw, which combines navX and drivebase angle data
+ * 
+ * @returns Current yaw, in radians, from -180 to 180
+*/
+double Odometry::GetYaw() const {
+  return m_curYaw;
 }
 
 /**
@@ -138,7 +158,7 @@ void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs,
   m_curAng = angNavXAbs + m_startAng; 
   Update(deltaT, prevAng);
 
-  if (std::abs(swerveAngVel) >= OdometryConstants::USE_SWERVE_ANG) {
+  if (std::abs(swerveAngVel) >= OdometryConstants::USE_SWERVE_ANG_VEL) {
     m_curYaw += swerveAngVel * deltaT;
     m_curYaw = Utils::NormalizeAng(m_curYaw);
   } else {
@@ -221,7 +241,7 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
 
   // update cams n pose estimator
   double stdDev = OdometryConstants::CAM_STD_DEV_COEF * magn(robotPosCams) * magn(robotPosCams);
-  m_estimator.UpdateCams(curTime - age / 1000.0, robotPosCams, {0, 0});
+  // m_estimator.UpdateCams(curTime - age / 1000.0, robotPosCams, {0, 0});
   m_camPos = robotPosCams;
 
   // update prev cam time
@@ -248,8 +268,9 @@ void Odometry::ShuffleboardPeriodic() {
   m_estimator.SetQ({stdDev, stdDev});
 
   vec::Vector2D pos = m_camPos;
-  double ang = GetAng();
+  double ang = GetYaw();
   m_field.SetRobotPose(frc::Pose2d{units::meter_t{x(pos)}, units::meter_t{y(pos)}, units::radian_t{ang}});
   frc::SmartDashboard::PutData("Field", &m_field);
   frc::SmartDashboard::PutString("Robot Pos From Cam", m_camPos.toString());
+  frc::SmartDashboard::PutNumber("Cur Yaw", m_curYaw);
 }

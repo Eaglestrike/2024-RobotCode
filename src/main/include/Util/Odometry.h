@@ -23,7 +23,9 @@ public:
   void Reset();
 
   vec::Vector2D GetPos() const;
+  vec::Vector2D GetCamPos() const;
   double GetAng() const;
+  double GetYaw() const;
   vec::Vector2D GetVel() const;
   double GetAngVel() const;
   double GetAngNorm() const;
