@@ -35,6 +35,9 @@ AutoPathSegment::AutoPathSegment(bool shuffleboard, SwerveControl &swerve, Odome
  * @param path Filename of auto path 
 */
 void AutoPathSegment::LoadAutoPath(const std::string path) {
+  if(m_loadedSplines.find(path) != m_loadedSplines.end()){
+    return;
+  }
   AutoPathReader reader{path};
   m_loadedSplines[path] = {.pos = reader.GetSplinePos(),
                           .ang = reader.GetSplineAng()};

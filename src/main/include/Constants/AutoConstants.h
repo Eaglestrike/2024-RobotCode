@@ -66,7 +66,8 @@ namespace AutoConstants {
     std::string data = ""; //String to select files or other data
   };
 
-  const std::vector<AutoElement> TEST = {
+  using AutoPath = std::vector<AutoElement>;
+  const AutoPath TEST = {
     {DRIVE, AFTER, "testIntake"},
     {INTAKE, BEFORE_END},
     {DRIVE, AFTER, "zero"},
