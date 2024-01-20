@@ -34,8 +34,10 @@ void Intake::CoreTeleopPeriodic(){
                 m_wrist.Coast();
             else if (m_wrist.GetState() == Wrist::COAST){    
                 /* if (beambreak2){
-                    m_wrist.MoveTo(STOWED_POS);
-                    m_rollers.SetState(Rollers::STOP);
+                    if (!keepIntakeDown) {
+                        m_wrist.MoveTo(STOWED_POS);
+                        m_rollers.SetState(Rollers::STOP);
+                    }
                     m_channel.SetState(Channel::RETAIN)
                     m_actionState = NONE
                 }*/ 
@@ -50,7 +52,6 @@ void Intake::CoreTeleopPeriodic(){
             break;
     }
 }
-
 
 void Intake::SetState(ActionState newAction){
     if (newAction == m_actionState) return;

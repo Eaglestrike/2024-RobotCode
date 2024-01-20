@@ -23,12 +23,13 @@ class Intake: public Mechanism{
         void FeedIntoShooter();
         void CorePeriodic() override;
         void CoreTeleopPeriodic() override;
+        // void CoreAutonomousPeriodic() override;
+        void KeepIntakeDown(bool intakeDown);
         bool HasGamePiece();
         bool InChannel();
         bool InIntake();
 
     private:
-
         enum DBGstate {
             POS_EDITOR,
             STATE_TESTER, // lowk thats j teleop
@@ -38,6 +39,8 @@ class Intake: public Mechanism{
         Wrist m_wrist;
         Channel m_channel;
         ActionState m_actionState = NONE;
+
+        bool m_keepIntakeDown = false;
 
         double STOWED_POS = 0.0,
         INTAKE_POS = 0.0, 
