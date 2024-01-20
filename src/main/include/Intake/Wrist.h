@@ -17,7 +17,8 @@ class Wrist: public Mechanism{
         enum MechState{
             MOVING,
             AT_TARGET,
-            STOPPED
+            STOPPED,
+            COAST
         };
 
         enum DBGstate {
@@ -35,6 +36,7 @@ class Wrist: public Mechanism{
         void CoreShuffleboardPeriodic() override;
         void CoreShuffleboardInit() override;
         void MoveTo(double newPos);
+        void Coast();
         void Kill();
         MechState GetState();
     private:

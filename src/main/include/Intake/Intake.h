@@ -11,13 +11,8 @@ class Intake: public Mechanism{
             AMP_INTAKE, 
             PASSTHROUGH, 
             AMP_OUTTAKE,
-            FEED_TO_SHOOTER
-        };
-
-        enum GamePieceState{
-            NONE,
-            INTAKE,
-            CHANNEL
+            FEED_TO_SHOOTER,
+            NONE
         };
         
         void SetState(ActionState newAction);
@@ -42,9 +37,8 @@ class Intake: public Mechanism{
         Rollers m_rollers;
         Wrist m_wrist;
         Channel m_channel;
-        ActionState m_actionState = STOW;
+        ActionState m_actionState = NONE;
 
-        //could also put in vector w enum as key
         double STOWED_POS = 0.0,
         INTAKE_POS = 0.0, 
         PASSTHROUGH_POS = 0.0,
