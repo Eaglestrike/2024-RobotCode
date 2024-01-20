@@ -44,10 +44,10 @@ namespace OdometryConstants {
 
   // camera std dev coefficient (0 stddev if 0 m from camera, increases quadratically with distance)
   // TODO need to change
-  const double CAM_STD_DEV_COEF = 1.71e-4;
+  const double CAM_STD_DEV_COEF = 0.01;
 
   // angular speed above which we use swerve angle, in degrees / sec
-  const double USE_SWERVE_ANG_VEL = Utils::DegToRad(0);
+  const double USE_SWERVE_ANG_VEL = Utils::DegToRad(5);
 
   // offset from caams, in s
   const double CAM_TIME_OFFSET = 0.18;

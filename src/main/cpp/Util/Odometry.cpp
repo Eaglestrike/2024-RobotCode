@@ -44,6 +44,7 @@ void Odometry::Reset() {
   m_curAng = m_startAng;
   m_angVel = 0;
   m_curYaw = Utils::NormalizeAng(m_startAng);
+  m_angHistory.clear();
 
   m_estimator.SetPos(m_curPos);
 }
@@ -164,6 +165,7 @@ void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs,
   } else {
     m_curYaw = Utils::NormalizeAng(navXYaw + m_startAng);
   }
+  m_angHistory[curTime] = m_curAng;
   m_prevDriveTime = curTime;
 }
 
@@ -178,6 +180,46 @@ void Odometry::Update(const double &deltaT, const double &prevAng) {
   m_curPos = m_estimator.GetCurPos();
   m_vel = (m_curPos - prevPos) / deltaT;
   m_angVel = (m_curAng - prevAng) / deltaT;
+
+  double curTime = Utils::GetCurTimeS();
+  while (m_angHistory.size() > 1 && m_angHistory.begin()->first < curTime - PoseEstimator::MAX_HISTORY_TIME) {
+    m_angHistory.erase(m_angHistory.begin());
+  }
+}
+
+/**
+ * Gets interpolated angle from vision updates at a certain time,
+ * assuming linear movement between measurements
+ * 
+ * @param camTime time to get interpolated angle from
+ * 
+ * @returns A pair. The first element determines whether the value is valid (true if valid),
+ * and the second element determines the angle.
+*/
+std::pair<bool, double> Odometry::GetInterpolAng(const double &camTime) {
+  double angAtTime = 0.0;
+  if (m_angHistory.find(camTime) != m_angHistory.end()) {
+    angAtTime = m_angHistory[camTime];
+  } else {
+    auto ub = m_angHistory.upper_bound(camTime);
+    if (ub == m_angHistory.begin() || ub == m_angHistory.end()) {
+      return {false, 0.0};
+    }
+    auto lb = ub;
+    lb--;
+    if (lb == m_angHistory.end()) {
+      return {false, 0.0};
+    }
+
+    double time0 = lb->first;
+    double time1 = ub->first;
+    double deltaAng = ub->second - lb->second;
+
+    double deltaAng0 = deltaAng * ((camTime - time0) / (time1 - time0));
+    angAtTime = lb->second + deltaAng0;
+  }
+
+  return {true, angAtTime};
 }
 
 /**
@@ -191,6 +233,11 @@ void Odometry::Update(const double &deltaT, const double &prevAng) {
 void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age) {
   double curTime = Utils::GetCurTimeS();
   frc::SmartDashboard::PutBoolean("Tag Detected", curTime - m_prevCamTime < PoseEstimator::MAX_HISTORY_TIME);
+  double camTime = curTime - age / 1000.0 - OdometryConstants::CAM_TIME_OFFSET;
+
+  if (curTime - camTime >= PoseEstimator::MAX_HISTORY_TIME) {
+    return;
+  }
 
   // filter out repeats
   if (uniqueId == m_uniqueId) {
@@ -200,8 +247,12 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   m_uniqueId = uniqueId;
 
   // rotate relative cam pos to absolute
-  double angNavX = m_curYaw;
-
+  // using angle from when camera data was read
+  std::pair<bool, double> histAng = GetInterpolAng(camTime);
+  if (!histAng.first) {
+    return;
+  }
+  double angNavX = histAng.second;
   const vec::Vector2D axisRelPos = {relPos.y(), -relPos.x()};
   vec::Vector2D vecRot = rotate(axisRelPos, angNavX);
   vec::Vector2D tagPos;
@@ -218,30 +269,31 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   vec::Vector2D robotPosCams = tagPos - vecRot;
 
   // reject if apriltag pos is too far away
-  // vec::Vector2D odomPos = GetPos();
-  // if (magn(odomPos - robotPosCams) > OdometryConstants::AT_REJECT) {
-  //   // std::cout << "too faar" << std::endl;
-  //   return;
-  // }
+  vec::Vector2D odomPos = GetPos();
+  if (magn(odomPos - robotPosCams) > OdometryConstants::AT_REJECT) {
+    // std::cout << "too faar" << std::endl;
+    return;
+  }
 
   // check if outside field
-  // double margin = Utils::InToM(FieldConstants::FIELD_MARGIN);
-  // double fWidth = Utils::InToM(FieldConstants::FIELD_WIDTH);
-  // double fHeight = Utils::InToM(FieldConstants::FIELD_HEIGHT);
-  // if (robotPosCams.x() < -margin || robotPosCams.x() > fWidth + margin
-  //  || robotPosCams.y() < -margin || robotPosCams.y() > fHeight + margin) {
-  //   // std::cout << "outside field" << std::endl;
-  //   return;
-  // }
+  double margin = Utils::InToM(FieldConstants::FIELD_MARGIN);
+  double fWidth = Utils::InToM(FieldConstants::FIELD_WIDTH);
+  double fHeight = Utils::InToM(FieldConstants::FIELD_HEIGHT);
+  if (robotPosCams.x() < -margin || robotPosCams.x() > fWidth + margin
+   || robotPosCams.y() < -margin || robotPosCams.y() > fHeight + margin) {
+    // std::cout << "outside field" << std::endl;
+    return;
+  }
 
   if (m_shuffleboard) {
     frc::SmartDashboard::PutString("Raw Cam Pos", relPos.toString());
     frc::SmartDashboard::PutString("Robot To Tag", vecRot.toString());
+    frc::SmartDashboard::PutNumber("Hist Ang Nav X", angNavX);
   }
 
-  // update cams n pose estimator
+  // update cams in pose estimator
   double stdDev = OdometryConstants::CAM_STD_DEV_COEF * magn(robotPosCams) * magn(robotPosCams);
-  // m_estimator.UpdateCams(curTime - age / 1000.0, robotPosCams, {0, 0});
+  m_estimator.UpdateCams(camTime, robotPosCams, {stdDev, stdDev});
   m_camPos = robotPosCams;
 
   // update prev cam time

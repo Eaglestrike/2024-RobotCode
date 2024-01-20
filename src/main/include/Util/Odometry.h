@@ -1,5 +1,8 @@
 #pragma once
 
+#include <map>
+#include <utility>
+
 #include <frc/smartdashboard/Field2d.h>
 
 #include "Util/PoseEstimator.h"
@@ -42,6 +45,7 @@ public:
 
 private:
   void Update(const double &deltaT, const double &prevAng);
+  std::pair<bool, double> GetInterpolAng(const double &camTime);
 
   bool m_shuffleboard;
 
@@ -55,6 +59,8 @@ private:
   PoseEstimator m_estimator;
   long long m_uniqueId;
   double m_prevCamTime; 
+
+  std::map<double, double> m_angHistory;
 
   // debug stuff
   vec::Vector2D m_camPos; // only used for shuffleboard prints for now
