@@ -13,6 +13,7 @@ namespace Actions{
         ZERO_DRIVE_PID,
         ZERO_YAW,
         DEBUG_INTAKE,
+        SLOW_MODE,
         ACTION_COUNT //Just the number of actions, as it is at the end of a enum
     };
 
@@ -46,7 +47,7 @@ namespace ControllerMapData{
         {{RJOY, X_AXIS},        SWERVE_ROTATION},
         {{RJOY, Y_AXIS},        NONE},
         {{RJOY, TRIGGER},       NONE},
-        {{RJOY, B_2},           NONE},
+        {{RJOY, B_2},           SLOW_MODE},
 
         {XBOX_LJOY_X,           NONE},
         {XBOX_LJOY_Y,           NONE}, 

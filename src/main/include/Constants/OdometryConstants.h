@@ -10,8 +10,8 @@ namespace vec = svector;
 
 namespace OdometryConstants {
   const double P_INITIAL = 1.0;
-  const double POS_STD_DEV = 0.1;
-  const double MEASURE_STD_DEV = 0.1;
+  // const double POS_STD_DEV = 0.1;
+  // const double MEASURE_STD_DEV = 0.1;
   const double CAMERA_TRUST_K = -10.0;
 
   const struct RugConfig{
@@ -36,4 +36,8 @@ namespace OdometryConstants {
 
   // for cam data greater than AT_REJECT meters, we reject
   const double AT_REJECT = 6;
+
+  // drivebase system std dev x, y
+  // TODO need to change
+  const vec::Vector2D SYS_STD_DEV = {0, 0};
 }

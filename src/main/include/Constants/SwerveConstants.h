@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "Util/simplevectors.hpp"
+#include "Util/Utils.h"
+
 namespace vec = svector;
 
 namespace SwerveConstants
@@ -21,23 +23,23 @@ namespace SwerveConstants
   // meters
   const double CENTER_TO_EDGE = 0.368;
 
-  const std::size_t FR_DRIVE_ID = 11;
-  const std::size_t BR_DRIVE_ID = 17;
-  const std::size_t FL_DRIVE_ID = 14;
-  const std::size_t BL_DRIVE_ID = 21;
+  const std::size_t FR_DRIVE_ID = 14; // 17, 14
+  const std::size_t BR_DRIVE_ID = 11; // 21, 11
+  const std::size_t FL_DRIVE_ID = 21; // 11, 21
+  const std::size_t BL_DRIVE_ID = 17; // 14, 17
 
-  const std::size_t FR_TURN_ID = 12;
-  const std::size_t BR_TURN_ID = 18;
-  const std::size_t FL_TURN_ID = 13;
-  const std::size_t BL_TURN_ID = 15;
+  const std::size_t FR_TURN_ID = 13; // 18, 13
+  const std::size_t BR_TURN_ID = 12; // 15, 12
+  const std::size_t FL_TURN_ID = 15; // 12, 15
+  const std::size_t BL_TURN_ID = 18; // 13, 18
 
-  const std::size_t FR_ENCODER_ID = 42;
-  const std::size_t BR_ENCODER_ID = 10;
-  const std::size_t FL_ENCODER_ID = 62;
-  const std::size_t BL_ENCODER_ID = 8;
+  const std::size_t FR_ENCODER_ID = 62; // 10, 62
+  const std::size_t BR_ENCODER_ID = 42; // 8,  42
+  const std::size_t FL_ENCODER_ID = 8; // 42, 8
+  const std::size_t BL_ENCODER_ID = 10;  // 62, 10
 
   // If positive drive motor does not move swerve module forward when angle is 0
-  const bool FR_DRIVE_INVERTED = false;
+  const bool FR_DRIVE_INVERTED = true;
   const bool BR_DRIVE_INVERTED = false;
   const bool FL_DRIVE_INVERTED = false;
   const bool BL_DRIVE_INVERTED = false;
@@ -55,43 +57,31 @@ namespace SwerveConstants
   const bool BL_ANG_INVERTED = true;
 
   // encoder offset degrees, subtracted from reading
-  const double FR_OFFSET = -174.375+90; //18.72
-  const double BR_OFFSET = -83.496+90;
-  const double FL_OFFSET = 105.820;
-  const double BL_OFFSET = -168.926+180;
+  const double FR_OFFSET = 16.2; // -73.97
+  const double BR_OFFSET = 6.328; // 96.503, not oscilatimg
+  const double FL_OFFSET = 100.57;    // 9.3
+  const double BL_OFFSET = 102.08;   // 4.53
 
-  const double TURN_P = 4.0;
+  // individual module wheel PID
+  const double TURN_P = 6.8;
   const double TURN_I = 0;
-  const double TURN_D = 0.0;
+  const double TURN_D = 0.075;
 
+  // angle correction when translationally driving
   const double ANG_CORRECT_P = 5;
   const double ANG_CORRECT_I = 0;
   const double ANG_CORRECT_D = 0.5;
+  const double ANG_CORRECT_TOL = Utils::DegToRad(3.5);
+  const double SPEED_NO_ANG_CORRECT = 0.25;
+  const bool ANG_CORRECT_INVERTED = false;
+
+  // whether navx is upside down or not
+  const bool NAVX_UPSIDE_DOWN = false;
 
   const double MAX_VOLTS = 12.0; 
-  const double kS = 0.5;
-  const double kV = 2.18;
-  const double kA = 0.55;
-
-  const double TRANS_POS_ERR_TOLERANCE = 0.025;
-  const double TRANS_VEL_ERR_TOLERANCE = 100;
-
-  const double ANG_POS_ERR_TOLERANCE = 0.025;
-  const double ANG_VEL_ERR_TOLERANCE = 100;
-
-  const double UNREASONABLE_ANG_SPEED = 62.4828; // rad/s
-
-  const double TRANS_KP = 1.0;
-  const double TRANS_KI = 0;
-  const double TRANS_KD = 0.07;
-  const double TRANS_MAXSP = 3;
-  const double TRANS_MAXACC = 2.5;
-
-  const double ANG_KP = 6;
-  const double ANG_KI = 0;
-  const double ANG_KD = 0.5;
-  const double ANG_MAXSP = 1.5;
-  const double ANG_MAXACC = 1.5;
+  const double kS = 0.1833;
+  const double kV = 1.455;
+  const double kA = 0.1410;
 
   const double NORMAL_SWERVE_MULT = 12.0;
   const double SLOW_SWERVE_MULT = 3.0;

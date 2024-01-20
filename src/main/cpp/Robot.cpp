@@ -7,6 +7,7 @@
 #include <fmt/core.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 
+#include "Constants/AutoConstants.h"
 #include "Controller/ControllerMap.h"
 
 using namespace Actions;
@@ -14,7 +15,9 @@ using namespace Actions;
 Robot::Robot() :
   m_swerveController{true, false},
   m_client{"10.1.14.21", 5807, 500, 5000},
-  m_logger{"log", {}}
+  m_logger{"log", {}},
+  m_prevIsLogging{false},
+  m_autoPath{true, m_swerveController, m_odom}
   {
   // navx
   try
@@ -27,6 +30,16 @@ Robot::Robot() :
   }
 
   m_logger.SetLogToConsole(true);
+
+  AddPeriodic([&](){
+    double curAng = m_navx->GetAngle();
+    if (!SwerveConstants::NAVX_UPSIDE_DOWN) {
+      curAng = -curAng;
+    }
+    double angNavX = Utils::DegToRad(curAng);
+    vec::Vector2D vel = m_swerveController.GetRobotVelocity(angNavX + m_odom.GetStartAng());
+    m_odom.UpdateEncoder(vel, angNavX);
+  }, 5_ms, 2_ms);
 }
 
 void Robot::RobotInit() {
@@ -35,8 +48,12 @@ void Robot::RobotInit() {
   m_channel.Init();
   m_rollers.Init();
   m_intake.Init();
+  m_autoPath.ShuffleboardInit();
+
+  m_navx->Reset();
+  m_odom.Reset();
+
   m_swerveController.Init();
-  m_rollers.Init();
 }
 
 /**
@@ -54,7 +71,21 @@ void Robot::RobotPeriodic() {
   m_rollers.Periodic();
   m_intake.Periodic();
   m_logger.Periodic(Utils::GetCurTimeS());
-  m_rollers.Periodic();
+  m_autoPath.ShuffleboardPeriodic();
+
+  if (m_controller.getPressedOnce(ZERO_YAW)) {
+    m_navx->Reset();
+    m_odom.Reset();
+    m_swerveController.ResetAngleCorrection(m_odom.GetAng());
+    m_swerveController.ResetFF();
+  }
+
+  m_logger.Periodic(Utils::GetCurTimeS());
+
+  #if SWERVE_AUTOTUNING
+  m_swerveXTuner.ShuffleboardUpdate();
+  m_swerveYTuner.ShuffleboardUpdate();
+  #endif
 }
 
 /**
@@ -68,9 +99,20 @@ void Robot::RobotPeriodic() {
  * if-else structure below with additional strings. If using the SendableChooser
  * make sure to add them to the chooser code above as well.
  */
-void Robot::AutonomousInit() {}
+void Robot::AutonomousInit() {
+  m_swerveController.SetAngCorrection(false);
+  m_swerveController.SetAutoMode(true);
+  
 
-void Robot::AutonomousPeriodic() {}
+  m_autoPath.Start();
+}
+
+void Robot::AutonomousPeriodic() {
+  frc::SmartDashboard::PutNumber("percent done", m_autoPath.GetProgress() * 100);
+
+  m_autoPath.Periodic();
+  m_swerveController.Periodic();
+}
 
 void Robot::TeleopInit() {
   m_swerveController.SetAngCorrection(true);
@@ -98,20 +140,68 @@ void Robot::TeleopPeriodic() {
   // m_swerveController.SetRobotVelocityTele(setVel, w, 0, 0);
   // m_swerveController.Periodic();
 
-  if (m_controller.getPressed(DEBUG_INTAKE)) {
-    m_rollers.SetVoltage();
-  } else {
-    m_rollers.StopRollers();
+  // if (m_controller.getPressed(DEBUG_INTAKE)) {
+  //   m_rollers.SetVoltage();
+  // } else {
+  //   m_rollers.StopRollers();
+  // }
+  double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
+  double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
+
+  double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
+
+  double mult = SwerveConstants::NORMAL_SWERVE_MULT;
+  if (m_controller.getPressed(SLOW_MODE)) {
+    mult = SwerveConstants::SLOW_SWERVE_MULT;
   }
+  double vx = std::clamp(lx, -1.0, 1.0) * mult;
+  double vy = std::clamp(ly, -1.0, 1.0) * mult;
+  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
+
+  vec::Vector2D setVel = {-vy, -vx};
+  double curYaw = m_odom.GetAngNorm();
+  double curJoystickAng = m_odom.GetJoystickAng();
+
+  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
+  m_swerveController.Periodic();
 }
 
 void Robot::DisabledInit() {}
 
-void Robot::DisabledPeriodic() {}
+void Robot::DisabledPeriodic() {
+  // AUTO
+  {
+    std::string selected = m_chooser.GetSelected();
+    selected += ".csv";
+    m_autoPath.SetAutoPath(selected);
+  }
+}
 
 void Robot::TestInit() {}
 
-void Robot::TestPeriodic() {}
+void Robot::TestPeriodic() {
+  double curAng = m_navx->GetAngle();
+  if (!SwerveConstants::NAVX_UPSIDE_DOWN) {
+    curAng = -curAng;
+  }
+
+  double angNavX = Utils::DegToRad(curAng);
+
+  vec::Vector2D pos = m_odom.GetPos();
+  vec::Vector2D vel = m_swerveController.GetRobotVelocity(angNavX + m_odom.GetStartAng());
+
+  #if SWERVE_AUTOTUNING
+  m_swerveXTuner.setPose({pos.x(), vel.x(), 0.0});
+  m_swerveYTuner.setPose({pos.y(), vel.y(), 0.0});
+
+  double xVolts = m_swerveXTuner.getVoltage();
+  double yVolts = m_swerveYTuner.getVoltage();
+
+  m_swerveController.SetRobotVelocity({xVolts, yVolts}, 0.0, angNavX);
+  #endif
+
+  m_swerveController.Periodic();
+}
 
 void Robot::SimulationInit() {}
 
@@ -122,19 +212,39 @@ void Robot::SimulationPeriodic() {}
 */
 void Robot::ShuffleboardInit() {
   frc::SmartDashboard::PutBoolean("Logging", false);
+
+  if (AutoConstants::DEPLOY_FILES.size() > 0) {
+    m_chooser.SetDefaultOption(AutoConstants::DEPLOY_FILES[0], AutoConstants::DEPLOY_FILES[0]);
+  }
+  for (std::string fname : AutoConstants::DEPLOY_FILES) {
+    m_chooser.AddOption(fname, fname);
+  }
+  frc::SmartDashboard::PutData("Auto Spline Chooser", &m_chooser);
 }
 
 /**
  * Shuffleboard Periodic
  */
 void Robot::ShuffleboardPeriodic() {
-  bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
-  if (isLogging && !m_prevIsLogging) {
-    m_logger.Enable();
-  } else if (!isLogging & m_prevIsLogging) {
-    m_logger.Disable();
+  // LOGGING
+  {
+    bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
+    if (isLogging && !m_prevIsLogging) {
+      m_logger.Enable();
+    } else if (!isLogging & m_prevIsLogging) {
+      m_logger.Disable();
+    }
+    m_prevIsLogging = isLogging;
   }
-  m_prevIsLogging = isLogging;
+
+  // ODOMETRY
+  {
+    double ang = m_odom.GetAng();
+    vec::Vector2D pos = m_odom.GetPos();
+
+    frc::SmartDashboard::PutNumber("Robot Angle", ang);
+    frc::SmartDashboard::PutString("Robot Position", pos.toString());
+  }
 }
 
 #ifndef RUNNING_FRC_TESTS
