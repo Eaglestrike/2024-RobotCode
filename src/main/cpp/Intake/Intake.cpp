@@ -35,9 +35,9 @@ void Intake::CoreTeleopPeriodic(){
             else if (m_wrist.GetState() == Wrist::COAST){    
                 /* if (beambreak2){
                     if (!keepIntakeDown) {
-                        m_wrist.MoveTo(STOWED_POS);
-                        m_rollers.SetState(Rollers::STOP);
+                        m_wrist.MoveTo(STOWED_POS);   
                     }
+                    m_rollers.SetState(Rollers::STOP); // idk if this goes here or in the if
                     m_channel.SetState(Channel::RETAIN)
                     m_actionState = NONE
                 }*/ 
@@ -97,6 +97,10 @@ void Intake::Passthrough(){
 
 void Intake::AmpOuttake(){
     SetState(AMP_OUTTAKE);
+}
+
+void Intake::KeepIntakeDown(bool keepIntakeDown){
+    m_keepIntakeDown = keepIntakeDown;
 }
 
 void Intake::AmpIntake(){
