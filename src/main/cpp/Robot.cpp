@@ -21,7 +21,7 @@ Robot::Robot() :
   m_odom{true},
   m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
   m_prevIsLogging{false},
-  m_autoPath{false, m_swerveController, m_odom}
+  m_autoPath{true, m_swerveController, m_odom}
   {
   // navx
   try
@@ -85,7 +85,7 @@ void Robot::RobotInit() {
   m_navx->Reset();
   m_navx->ZeroYaw();
   m_odom.Reset();
-  m_odom.SetStartingConfig({2.337, 5.2}, M_PI, 0);
+  m_odom.SetStartingConfig({1.113015879415296,4.955401908989121}, M_PI, 0);
 
   m_client.Init();
   m_swerveController.Init();
@@ -135,7 +135,6 @@ void Robot::AutonomousInit() {
   m_swerveController.SetAngCorrection(false);
   m_swerveController.SetAutoMode(true);
   
-
   m_autoPath.Start();
 }
 

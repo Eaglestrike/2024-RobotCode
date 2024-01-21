@@ -133,8 +133,8 @@ void AutoPathSegment::Periodic() {
   }
 
   // set velocity to swerve
-  vec::Vector2D setVel = curVel + correctVel;
-  double setAngVel = curAngVel + correctAngVel;
+  vec::Vector2D setVel = curExpectedVel + correctVel;
+  double setAngVel = curExpectedAngVel + correctAngVel;
 
   if (AtPosTarget()) {
     setVel = {0, 0};
