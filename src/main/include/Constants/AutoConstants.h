@@ -10,6 +10,8 @@ namespace AutoConstants {
     "hehe",
     "4pieceswooo",
     "aprilTagOdomTest",
+    "aprilTagOdomTest7s",
+    "aprilTagOdomTest4s",
     "odometryTest",
     "odometryTestCurve"
   };
