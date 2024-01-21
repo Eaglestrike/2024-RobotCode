@@ -21,6 +21,7 @@ public:
   void Start();
   void Periodic();
   void Stop();
+  void Clear();
 
   void LoadAutoPath(const std::string path);
   void SetAutoPath(const std::string path);

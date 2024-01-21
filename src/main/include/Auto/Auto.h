@@ -19,8 +19,14 @@ class Auto{
         void AutoPeriodic();
 
     private:
+        void ShooterPeriodic(double t);
+        void IntakePeriodic(double t);
+
         void LoadPath(const AutoConstants::AutoPath& path);
         AutoPathSegment segments_; //Drive segments
+
+        //Shooter &shooter_;
+        //Intake &intake_;
 
         std::vector<AutoConstants::AutoPath> paths_; //Path instructions
 
@@ -36,6 +42,8 @@ class Auto{
         struct SubsystemTiming{
             bool finished;
             double start;
+            bool hasStarted;
+            double end;
         };
 
         SubsystemTiming shooterTiming_;

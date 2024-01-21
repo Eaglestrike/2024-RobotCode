@@ -24,12 +24,50 @@ void Auto::SetPath(AutoPath path, int index){
 void Auto::AutoInit(){
     pathNum_ = 0;
     index_ = 0;
+
+    segments_.Clear();
+    shooterTiming_.finished = true;
+    intakeTiming_.finished = true;
+
     NextBlock();
 }
 
 void Auto::AutoPeriodic(){
     double t = Utils::GetCurTimeS();
-    
+
+    if(segments_.AtTarget() && shooterTiming_.finished && intakeTiming_.finished){
+        NextBlock();
+    }
+
+    segments_.Periodic();
+    ShooterPeriodic(t);
+    IntakePeriodic(t);
+}
+
+void Auto::ShooterPeriodic(double t){
+    if(!shooterTiming_.hasStarted && t > shooterTiming_.start){
+        //shooter_.shoot()
+        shooterTiming_.hasStarted = true;
+    }
+
+    //shooter_.prepare();
+    //shooter_.periodic();
+}
+
+void Auto::IntakePeriodic(double t){
+    if(!intakeTiming_.hasStarted && t > intakeTiming_.start){
+        if(intaking_){
+            //intake_.intake()
+        }
+        else{
+            //intake.stow()
+        }
+        intakeTiming_.hasStarted = true;
+    }
+    if(intaking_){
+        //intakeTiming_.finished = intake_.hasGamePiece();
+    }
+    //intake_.periodic();
 }
 
 /**
@@ -53,12 +91,18 @@ void Auto::NextBlock(){
             break;
         case SHOOT:
             blockEnd_ = blockStart_ + AutoConstants::SHOOT_TIME;
+            firstElement.type = AT_START;
+            EvaluateShootElement(firstElement);
             break;
         case INTAKE:
             blockEnd_ = blockStart_ + AutoConstants::INTAKE_TIME;
+            firstElement.type = AT_START;
+            EvaluateIntakeElement(firstElement);
             break;
         case STOW:
             blockEnd_ = blockStart_ + AutoConstants::STOW_TIME;
+            firstElement.type = AT_START;
+            EvaluateIntakeElement(firstElement);
             break;
         default:
             std::cout<<"Did not deal with auto action case NB "<< firstElement.action <<std::endl;
@@ -66,7 +110,6 @@ void Auto::NextBlock(){
     index_++;
 
     //Lookahead for execution in this block
-    //Timing the rest of the paths
     for(;index_ < path.size();index_++){
         AutoElement element = path[index_];
         if(EvaluateElement(element)){
@@ -82,6 +125,8 @@ void Auto::NextBlock(){
 }
 
 /**
+ * Timing for the elements
+ * 
  * Returns if it has found the next block
 */
 bool Auto::EvaluateElement(AutoConstants::AutoElement element){

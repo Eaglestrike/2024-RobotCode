@@ -70,6 +70,21 @@ void AutoPathSegment::Start() {
 }
 
 /**
+ * Stops auto path
+*/
+void AutoPathSegment::Stop() {
+  m_hasStarted = false;
+}
+
+/**
+ * Clears the path
+*/
+void AutoPathSegment::Clear(){
+  m_spline.pos = {1000};
+  m_spline.ang = {1000};
+}
+
+/**
  * Sets drive PID
  * 
  * @param kP P
@@ -113,6 +128,10 @@ void AutoPathSegment::SetAngTol(double tol) {
  * Periodic
 */
 void AutoPathSegment::Periodic() {
+  if(!m_hasStarted){
+    return;
+  }
+
   // get relative time
   double curTimeRel = Utils::GetCurTimeS() - m_startTime;
   curTimeRel = curTimeRel < 0 ? 0 : (curTimeRel > m_spline.pos.getHighestTime() ? m_spline.pos.getHighestTime() : curTimeRel);
