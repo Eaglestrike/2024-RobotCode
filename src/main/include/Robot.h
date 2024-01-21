@@ -48,19 +48,18 @@ private:
   // Controller
   Controller m_controller;
 
-  // navX
+  // navX (gyroscope)
   AHRS *m_navx;
 
   // Swerve
   SwerveControl m_swerveController{true, false};
 
-  // Vision
   #if SWERVE_AUTOTUNING
   FFAutotuner m_swerveXTuner{"Swerve X", FFAutotuner::SIMPLE}; //0.1833, 1.455, 0.1410
   FFAutotuner m_swerveYTuner{"Swerve Y", FFAutotuner::SIMPLE}; //0.1711, 1.384, 0.1398
   #endif
-
-  // Jetson
+  
+  // Vision (Jetson)
   SocketClient m_client;
   bool m_isSecondTag;
   

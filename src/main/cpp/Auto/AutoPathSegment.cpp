@@ -20,10 +20,12 @@ AutoPathSegment::AutoPathSegment(bool shuffleboard, SwerveControl &swerve, Odome
   : m_shuffleboard{shuffleboard},
   m_posSpline{1000}, m_angSpline{1000}, m_swerve{swerve}, m_odom{odom}, m_startTime{0},
   m_hasStarted{false},
-  m_posCorrect{AutoConstants::DRIVE_P, AutoConstants::DRIVE_I, AutoConstants::DRIVE_D},
-  m_angCorrect{AutoConstants::ANG_P, AutoConstants::ANG_I, AutoConstants::ANG_D}
+  m_posCorrectX{{AutoConstants::DRIVE_P, AutoConstants::DRIVE_I, AutoConstants::DRIVE_D}},
+  m_posCorrectY{{AutoConstants::DRIVE_P, AutoConstants::DRIVE_I, AutoConstants::DRIVE_D}},
+  m_angCorrect{{AutoConstants::ANG_P, AutoConstants::ANG_I, AutoConstants::ANG_D}}
 {
-  m_posCorrect.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
+  m_posCorrectX.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
+  m_posCorrectY.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
   m_angCorrect.SetTolerance(AutoConstants::ANG_TOL, std::numeric_limits<double>::infinity());
 }
 
@@ -44,7 +46,8 @@ void AutoPathSegment::SetAutoPath(const std::string path) {
 void AutoPathSegment::Start() {
   m_startTime = Utils::GetCurTimeS();
   m_hasStarted = true;
-  m_posCorrect.Reset();
+  m_posCorrectX.Reset();
+  m_posCorrectY.Reset();
   m_angCorrect.Reset();
 }
 
@@ -56,7 +59,8 @@ void AutoPathSegment::Start() {
  * @param kD D
 */
 void AutoPathSegment::SetDrivePID(double kP, double kI, double kD) {
-  m_posCorrect.SetPID(kP, kI, kD);
+  m_posCorrectX.SetPID({kP, kI, kD});
+  m_posCorrectY.SetPID({kP, kI, kD});
 }
 
 /**
@@ -67,7 +71,7 @@ void AutoPathSegment::SetDrivePID(double kP, double kI, double kD) {
  * @param kD D
 */
 void AutoPathSegment::SetAngPID(double kP, double kI, double kD) {
-  m_angCorrect.SetPID(kP, kI, kD);
+  m_angCorrect.SetPID({kP, kI, kD});
 }
 
 /**
@@ -76,7 +80,8 @@ void AutoPathSegment::SetAngPID(double kP, double kI, double kD) {
  * @param tol The tol, in m
 */
 void AutoPathSegment::SetDriveTol(double tol) {
-  m_posCorrect.SetTolerance(tol, std::numeric_limits<double>::infinity());
+  m_posCorrectX.SetTolerance(tol, std::numeric_limits<double>::infinity());
+  m_posCorrectY.SetTolerance(tol, std::numeric_limits<double>::infinity());
 }
 
 /**
@@ -101,17 +106,24 @@ void AutoPathSegment::Periodic() {
   const double curExpectedAng = m_angSpline(curTimeRel)[0];
 
   // get feed forward velocity 
-  const vec::Vector2D curVel = m_posSpline.getVel(curTimeRel);
-  const double curAngVel = m_angSpline.getVel(curTimeRel)[0]; // only feedback -> set to 0
+  const vec::Vector2D curExpectedVel = m_posSpline.getVel(curTimeRel);
+  const double curExpectedAngVel = m_angSpline.getVel(curTimeRel)[0]; // only feedback -> set to 0
 
   // get current pos
   const vec::Vector2D curPos = m_odom.GetPos();
   const double curAng = m_odom.GetAng();
 
+  const vec::Vector2D curVel = m_swerve.GetRobotVelocity(curAng);
+  const double curAngVel = m_swerve.GetRobotAngularVel();
+
+  Poses::Pose1D xPose = {curPos.x(), curVel.x(), 0.0};
+  Poses::Pose1D yPose = {curPos.y(), curVel.y(), 0.0};
+  Poses::Pose1D angPose = {curAng, curAngVel, 0.0};
+
   // get correction velocity
-  const double correctVelX = m_posCorrect.Calculate(curPos.x(), curExpectedPos.x());
-  const double correctVelY = m_posCorrect.Calculate(curPos.y(), curExpectedPos.y());
-  const double correctAngVel = m_angCorrect.Calculate(curAng, curExpectedAng);
+  const double correctVelX = m_posCorrectX.Calculate(xPose, {curExpectedPos.x(), curExpectedVel.x(), 0.0});
+  const double correctVelY = m_posCorrectY.Calculate(yPose, {curExpectedPos.y(), curExpectedVel.y(), 0.0});
+  const double correctAngVel = m_angCorrect.Calculate(angPose, {curExpectedAng, curExpectedAngVel, 0.0});
   const vec::Vector2D correctVel = {correctVelX, correctVelY};
 
   if (m_shuffleboard) {
@@ -176,10 +188,10 @@ bool AutoPathSegment::AtPosTarget() const {
     return false;
   }
 
-  const vec::Vector2D curPos = m_odom.GetPos();
-  const vec::Vector2D targPos = m_posSpline(m_posSpline.getHighestTime());
-
-  return magn(targPos - curPos) < m_posCorrect.GetPositionTolerance();
+  // const vec::Vector2D curPos = m_odom.GetPos();
+  // const vec::Vector2D targPos = m_posSpline(m_posSpline.getHighestTime());
+  // return magn(targPos - curPos) < m_posCorrectX.GetPositionTolerance();
+  return m_posCorrectX.AtTarget() && m_posCorrectY.AtTarget();
 }
 
 /**
@@ -194,10 +206,11 @@ bool AutoPathSegment::AtAngTarget() const {
     return false;
   }
 
-  const double curAng = m_odom.GetAng();
-  const double targAng = m_angSpline(m_angSpline.getHighestTime())[0];
+  // const double curAng = m_odom.GetAng();
+  // const double targAng = m_angSpline(m_angSpline.getHighestTime())[0];
+  // return std::abs(targAng - curAng) < m_angCorrect.GetPositionTolerance();
 
-  return std::abs(targAng - curAng) < m_angCorrect.GetPositionTolerance();
+  return m_angCorrect.AtTarget();
 }
 
 /**

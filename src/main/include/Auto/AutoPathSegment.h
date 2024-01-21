@@ -5,6 +5,8 @@
 #include "Drive/SwerveControl.h"
 #include "Util/hermite.hpp"
 #include "Util/Odometry.h"
+#include "Util/PID.h"
+#include "Util/Poses.h"
 
 namespace hm = hermite;
 
@@ -46,6 +48,7 @@ private:
   double m_startTime;
   bool m_hasStarted;
 
-  frc::PIDController m_posCorrect;
-  frc::PIDController m_angCorrect;
+  PID m_posCorrectX;
+  PID m_posCorrectY;
+  PID m_angCorrect;
 };
