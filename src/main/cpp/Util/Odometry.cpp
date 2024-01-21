@@ -292,7 +292,7 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   }
 
   // update cams in pose estimator
-  double stdDev = m_camStdDevCoef * magn(robotPosCams) * magn(robotPosCams);
+  double stdDev = m_camStdDevCoef * magn(vecRot) * magn(vecRot);
   m_estimator.UpdateCams(camTime, robotPosCams, {stdDev, stdDev});
   m_camPos = robotPosCams;
 

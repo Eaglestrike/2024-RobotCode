@@ -36,7 +36,7 @@ namespace OdometryConstants {
   // const double ALPHA = 0.7;
 
   // for cam data greater than AT_REJECT meters, we reject
-  const double AT_REJECT = 600;
+  const double AT_REJECT = 6;
 
   // drivebase system std dev x, y
   // TODO need to change

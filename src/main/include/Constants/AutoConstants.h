@@ -9,7 +9,7 @@ namespace AutoConstants {
   const std::vector<std::string> DEPLOY_FILES = {
     "hehe",
     "4pieceswooo",
-    "aprilTagOdomtest",
+    "aprilTagOdomTest",
     "odometryTest",
     "odometryTestCurve"
   };
@@ -27,6 +27,6 @@ namespace AutoConstants {
   const double ANG_D = 0;
 
   // tolerance for being at target, in m and degrees
-  const double POS_TOL = 0.08;
-  const double ANG_TOL = Utils::DegToRad(5);
+  const double POS_TOL = 0.05;
+  const double ANG_TOL = Utils::DegToRad(3);
 }
