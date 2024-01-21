@@ -141,6 +141,13 @@ double Odometry::GetStartAng() const {
 }
 
 /**
+ * Gets whether tag is detected
+*/
+bool Odometry::GetTagDetected() const {
+  return Utils::GetCurTimeS() - m_prevCamTime < PoseEstimator::MAX_HISTORY_TIME;
+}
+
+/**
  * Updates encoder
  * 
  * @param vel Velocity
@@ -232,7 +239,6 @@ std::pair<bool, double> Odometry::GetInterpolAng(const double &camTime) {
 */
 void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age) {
   double curTime = Utils::GetCurTimeS();
-  frc::SmartDashboard::PutBoolean("Tag Detected", curTime - m_prevCamTime < PoseEstimator::MAX_HISTORY_TIME);
   double camTime = curTime - age / 1000.0 - OdometryConstants::CAM_TIME_OFFSET;
 
   if (curTime - camTime >= PoseEstimator::MAX_HISTORY_TIME) {

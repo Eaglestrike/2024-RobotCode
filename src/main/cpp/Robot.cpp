@@ -267,6 +267,7 @@ void Robot::ShuffleboardPeriodic() {
 
     frc::SmartDashboard::PutBoolean("Cams Connected", m_client.HasConn());
     frc::SmartDashboard::PutBoolean("Cams Stale", m_client.IsStale());
+    frc::SmartDashboard::PutBoolean("Tag Detected", m_odom.GetTagDetected());
 
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
