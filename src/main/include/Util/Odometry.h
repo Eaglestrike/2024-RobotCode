@@ -54,6 +54,7 @@ private:
   double m_curYaw;
   double m_joystickAng;
 
+  vec::Vector2D m_prevVel;
   double m_prevDriveTime;
 
   PoseEstimator m_estimator;

@@ -159,7 +159,8 @@ void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs,
   double curTime = Utils::GetCurTimeS();
   double deltaT = curTime - m_prevDriveTime;
 
-  vec::Vector2D deltaPos = vel * deltaT;
+  vec::Vector2D deltaPos = (vel + m_prevVel) * deltaT /2.0;
+  m_prevVel = vel;
   m_estimator.UpdateDrivebase(curTime, deltaPos);
 
   double prevAng = m_curAng;
