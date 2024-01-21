@@ -18,7 +18,7 @@ Robot::Robot() :
   m_logger{"log", {}},
   m_prevIsLogging{false},
   m_autoPath{true, m_swerveController, m_odom}
-  {
+{
   // navx
   try
   {
@@ -29,8 +29,10 @@ Robot::Robot() :
     std::cerr << e.what() << std::endl;
   }
 
+  // logger
   m_logger.SetLogToConsole(true);
 
+  // Periodic fast
   AddPeriodic([&](){
     double curAng = m_navx->GetAngle();
     if (!SwerveConstants::NAVX_UPSIDE_DOWN) {

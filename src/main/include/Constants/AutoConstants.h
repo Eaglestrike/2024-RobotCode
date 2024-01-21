@@ -53,7 +53,6 @@ namespace AutoConstants {
     DRIVE,
     SHOOT,
     INTAKE,
-    WAIT_INTAKE,
     STOW
   };
 
@@ -74,4 +73,8 @@ namespace AutoConstants {
     {STOW, AT_START},
     {SHOOT, AFTER}
   };
+
+  const double SHOOT_TIME = 1.0;
+  const double INTAKE_TIME = 1.0;
+  const double STOW_TIME = 1.0;
 }

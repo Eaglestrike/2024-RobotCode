@@ -30,6 +30,7 @@ public:
   void SetAngTol(double tol);
 
   double GetProgress() const;
+  double GetDuration() const;
   bool IsDoneHermite() const;
   bool AtPosTarget() const;
   bool AtAngTarget() const;

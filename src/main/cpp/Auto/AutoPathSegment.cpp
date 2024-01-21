@@ -170,6 +170,15 @@ double AutoPathSegment::GetProgress() const {
 }
 
 /**
+ * Gets the duration of the path
+ * 
+ * @returns the total time elapsed by the path
+*/
+double AutoPathSegment::GetDuration() const {
+  return m_spline.pos.getHighestTime() - m_spline.pos.getLowestTime();
+}
+
+/**
  * Determines whether hermite auto path is done
  * 
  * @note If true, does not mean that it's at target because of PID corrections.
