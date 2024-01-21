@@ -9,20 +9,7 @@ namespace AutoConstants {
   const std::vector<std::string> DEPLOY_FILES = {
     "hehe",
     "4pieceswooo",
-    "Blue_LeftIntake_to_LeftScore",
-    "Blue_LeftIntake_to_MidScore",
-    "Blue_LeftScore_to_LeftIntake",
-    "Blue_LeftScore_to_MidIntake",
-    "Blue_MidIntake_to_LeftScore",
-    "Blue_MidIntake_to_MidScore",
-    "Blue_MidIntake_to_RightScore",
-    "Blue_MidScore_to_LeftIntake",
-    "Blue_MidScore_to_MidIntake",
-    "Blue_MidScore_to_RightIntake",
-    "Blue_RightIntake_to_MidScore",
-    "Blue_RightIntake_to_RightScore",
-    "Blue_RightScore_to_MidIntake",
-    "Blue_RightScore_to_RightIntake",
+    "aprilTagOdomtest",
     "odometryTest",
     "odometryTestCurve"
   };
