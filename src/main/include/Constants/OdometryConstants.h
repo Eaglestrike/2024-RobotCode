@@ -50,5 +50,5 @@ namespace OdometryConstants {
   const double USE_SWERVE_ANG_VEL = Utils::DegToRad(5);
 
   // offset from caams, in s
-  const double CAM_TIME_OFFSET = 0.18;
+  const double CAM_TIME_OFFSET = 0.12;
 }

@@ -58,7 +58,8 @@ private:
 
   PoseEstimator m_estimator;
   long long m_uniqueId;
-  double m_prevCamTime; 
+  double m_prevCamTime;
+  double m_camStdDevCoef;
 
   std::map<double, double> m_angHistory;
 

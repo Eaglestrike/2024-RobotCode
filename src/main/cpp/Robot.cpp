@@ -19,7 +19,7 @@ Robot::Robot() :
   m_client{"10.1.14.52", 5590, 300, 5000},
   m_isSecondTag{false},
   m_odom{true},
-  m_logger{"log", {"ang input", "navX ang", "wheel ang", "Raw camX", "Raw camY", "Unique ID", "Tag ID", "CamX", "CamY", "db X", "db Y"}},
+  m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
   m_prevIsLogging{false},
   m_autoPath{false, m_swerveController, m_odom}
   {
@@ -171,7 +171,6 @@ void Robot::TeleopPeriodic() {
 
   m_logger.LogNum("ang input", rx);
   m_logger.LogNum("navX ang", m_odom.GetAng());
-  m_logger.LogNum("wheel ang", m_odom.GetYaw());
 
   m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   m_swerveController.Periodic();
@@ -271,12 +270,6 @@ void Robot::ShuffleboardPeriodic() {
 
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
-
-    vec::Vector2D cpos = m_odom.GetCamPos();
-    m_logger.LogNum("db X", pos.x());
-    m_logger.LogNum("db Y", pos.y());
-    m_logger.LogNum("CamX", cpos.x());
-    m_logger.LogNum("CamY", cpos.y());
   }
 
   // DEBUG
