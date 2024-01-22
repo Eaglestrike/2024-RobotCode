@@ -1,6 +1,7 @@
 #include "Drive/SwerveControl.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <limits>
 #include <vector>
@@ -70,6 +71,25 @@ vec::Vector2D SwerveControl::GetRobotVelocity(double ang)
 
   auto avg = Utils::GetVecAverage(vectors);
   return vec::rotate(avg, ang); // rotate by navx ang
+}
+
+/**
+ * Gets robot angular velocity by taking the dot product with the tangent to the circle
+ *
+ * @note Assumes modules have 
+ *
+ * @returns Robot angular velocity
+ */
+double SwerveControl::GetRobotAngularVel()
+{
+  const double r = SwerveConstants::CENTER_TO_EDGE*std::sqrt(2.0);
+  double angVel = 0.0;
+  angVel += m_fl.GetVelocity().dot(vec::Vector2D{-1,1}.normalize());
+  angVel += m_fr.GetVelocity().dot(vec::Vector2D{1,1}.normalize());
+  angVel += m_bl.GetVelocity().dot(vec::Vector2D{-1,-1}.normalize());
+  angVel += m_br.GetVelocity().dot(vec::Vector2D{1,-1}.normalize());
+  angVel /= r*4.0;
+  return angVel;
 }
 
 /**
