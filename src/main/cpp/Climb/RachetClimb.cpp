@@ -30,8 +30,6 @@ void RachetClimb::CoreTeleopPeriodic(){
         case AT_TARGET:
             //break on
             break;
-        case WINDING:
-            break;
     }
 
     voltage = std::clamp(voltage, -MAX_VOLTS, MAX_VOLTS);

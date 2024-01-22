@@ -32,8 +32,6 @@ void StaticHookClimb::CoreTeleopPeriodic(){
             break;
         case DONE:
             break;
-        case WINDING:
-            break;
     }
 
     voltage = std::clamp(voltage, -MAX_VOLTS, MAX_VOLTS);
