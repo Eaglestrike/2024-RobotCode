@@ -14,6 +14,8 @@ namespace vec = svector;
 */
 class PoseEstimator {
 public:
+  static const double MAX_HISTORY_TIME;
+
   struct VisionUpdate {
     vec::Vector2D pos;
     vec::Vector2D stdDev;
@@ -32,7 +34,7 @@ public:
   void UpdateCams(const double &timestamp, const vec::Vector2D &camPos, const vec::Vector2D &stdDevs);
 
   void SetPos(const vec::Vector2D &pose);
-  void SetQ(const vec::Vector2D &q);
+  void SetQ(const vec::Vector2D &stdDev);
 
   vec::Vector2D GetCurPos() const;
 
@@ -41,8 +43,6 @@ private:
   vec::Vector2D m_basePose;
   vec::Vector2D m_curPose;
   std::map<double, PoseUpdate> m_updates;
-
-  const double MAX_HISTORY_TIME = 0.3;
 
   void Update();
 };

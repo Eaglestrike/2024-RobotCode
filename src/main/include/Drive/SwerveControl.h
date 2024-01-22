@@ -20,6 +20,7 @@ public:
   SwerveControl(bool enabled = true, bool shuffleboard = false);
 
   vec::Vector2D GetRobotVelocity(double ang);
+  double GetRobotAngularVel();
 
   void SetAutoMode(bool enabled);
   void SetFFConstants(double kS, double kV, double kA);
