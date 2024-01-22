@@ -11,13 +11,8 @@ class Intake: public Mechanism{
             AMP_INTAKE, 
             PASSTHROUGH, 
             AMP_OUTTAKE,
-            FEED_TO_SHOOTER
-        };
-
-        enum GamePieceState{
-            NONE,
-            INTAKE,
-            CHANNEL
+            FEED_TO_SHOOTER,
+            NONE
         };
         
         void SetState(ActionState newAction);
@@ -28,23 +23,25 @@ class Intake: public Mechanism{
         void FeedIntoShooter();
         void CorePeriodic() override;
         void CoreTeleopPeriodic() override;
+        // void CoreAutonomousPeriodic() override;
+        void KeepIntakeDown(bool intakeDown);
         bool HasGamePiece();
         bool InChannel();
         bool InIntake();
 
     private:
-
         enum DBGstate {
             POS_EDITOR,
             STATE_TESTER, // lowk thats j teleop
         };
 
-        Rollers m_rollers{true, false};
-        Wrist m_wrist{true, false};
-        Channel m_channel{true, false};
-        ActionState m_actionState = STOW;
+        Rollers m_rollers;
+        Wrist m_wrist;
+        Channel m_channel;
+        ActionState m_actionState = NONE;
 
-        //could also put in vector w enum as key
+        bool m_keepIntakeDown = false;
+
         double STOWED_POS = 0.0,
         INTAKE_POS = 0.0, 
         PASSTHROUGH_POS = 0.0,

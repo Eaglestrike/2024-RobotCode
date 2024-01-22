@@ -54,7 +54,7 @@ void Wrist::CoreShuffleboardPeriodic(){
 
 // teleop periodic runs on state machine
 void Wrist::CoreTeleopPeriodic(){
-    if (m_DBGstate != TUNE_FFPID)
+    if (m_DBGstate != TUNE_FFPID && m_DBGstate != NONE)
         return;
     
     double wristVolts = 0;
@@ -88,6 +88,11 @@ void Wrist::ChangeSetPt(double newSetpt){
     m_newSetPt = std::clamp(newSetpt, MIN_POS, MAX_POS);
 }
 
+void Wrist::Coast(){
+    m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
+    m_state = COAST;
+}
+
 void Wrist::MoveToSetPt(){
     m_setPt = m_newSetPt;
     m_targetPos = m_curPos;
@@ -96,6 +101,7 @@ void Wrist::MoveToSetPt(){
     if (m_setPt < m_curPos) m_targetAcc *= -1;
     ResetPID();
     CalcSpeedDecreasePos();
+    m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
     m_state = MOVING;
 }
 

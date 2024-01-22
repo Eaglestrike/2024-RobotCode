@@ -1,6 +1,9 @@
 #include "Intake/Intake.h"
 
-Intake::Intake(bool enabled, bool dbg){
+Intake::Intake(bool enabled, bool dbg):
+    m_rollers{enabled, false},
+    m_channel{enabled, false},
+    m_wrist{enabled, false}{
     Mechanism("intake",enabled, dbg);
 }
 void Intake::CorePeriodic(){
@@ -16,27 +19,39 @@ void Intake::CoreTeleopPeriodic(){
     
     switch(m_actionState){
         case AMP_INTAKE:
-            /* if (beambreak1){
-                m_rollers.SetState(Rollers::RETAIN);
-                m_wrist.MoveTo(STOWED_POS);
-            }*/
+            if (m_wrist.GetState() == Wrist::AT_TARGET)
+                m_wrist.Coast();
+            else if (m_wrist.GetState() == Wrist::COAST){
+                /* if (beambreak1){
+                    m_rollers.SetState(Rollers::RETAIN);
+                    m_wrist.MoveTo(STOWED_POS);
+                    m_actionState = NONE;
+                }*/
+            }
             break; 
         case PASSTHROUGH:
-            /* if (beambreak2){
-                m_wrist.MoveTo(STOWED_POS);
-                m_rollers.SetState(Rollers::STOP);
-                m_channel.SetState(Channel::RETAIN)
-            }*/ 
+            if (m_wrist.GetState() == Wrist::AT_TARGET)
+                m_wrist.Coast();
+            else if (m_wrist.GetState() == Wrist::COAST){    
+                /* if (beambreak2){
+                    if (!keepIntakeDown) {
+                        m_wrist.MoveTo(STOWED_POS);   
+                    }
+                    m_rollers.SetState(Rollers::STOP); // idk if this goes here or in the if
+                    m_channel.SetState(Channel::RETAIN)
+                    m_actionState = NONE
+                }*/ 
+            }
             break; 
         case AMP_OUTTAKE:
             if (m_wrist.GetState() == Wrist::AT_TARGET){
                 m_channel.SetState(Channel::ON);
                 m_rollers.SetState(Rollers::OUTTAKE);
+                m_actionState = NONE;
             }
             break;
     }
 }
-
 
 void Intake::SetState(ActionState newAction){
     if (newAction == m_actionState) return;
@@ -48,6 +63,7 @@ void Intake::SetState(ActionState newAction){
         case STOW:
             newWristPos = STOWED_POS;
             m_rollers.SetState(Rollers::STOP);
+            m_actionState = NONE;
             break; 
         case AMP_INTAKE:
             newWristPos = INTAKE_POS;
@@ -64,6 +80,7 @@ void Intake::SetState(ActionState newAction){
             break;
         case FEED_TO_SHOOTER:
             m_channel.SetState(Channel::ON);
+            m_actionState = NONE;
             break; 
     }
 
@@ -80,6 +97,10 @@ void Intake::Passthrough(){
 
 void Intake::AmpOuttake(){
     SetState(AMP_OUTTAKE);
+}
+
+void Intake::KeepIntakeDown(bool keepIntakeDown){
+    m_keepIntakeDown = keepIntakeDown;
 }
 
 void Intake::AmpIntake(){
