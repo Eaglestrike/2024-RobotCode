@@ -4,11 +4,17 @@
 
 #pragma once
 
+#define SWERVE_AUTOTUNING false
+
 #include <string>
 
 #include <AHRS.h>
 #include <frc/TimedRobot.h>
 #include <frc/smartdashboard/SendableChooser.h>
+
+#include "ShuffleboardSender/ShuffleboardSender.h"
+
+#include "FFAutotuner/FFAutotuner.h"
 
 #include "Controller/Controller.h"
 #include "Drive/SwerveControl.h"
@@ -17,7 +23,11 @@
 #include "Intake/Intake.h"
 #include "Intake/Rollers.h"
 #include "Util/Logger.h"
+#include "Util/Odometry.h"
 #include "Util/SocketClient.h"
+
+// FOR DEBUG ONLY
+#include "Auto/AutoPathSegment.h"
 
 class Robot : public frc::TimedRobot {
 public:
@@ -42,7 +52,7 @@ private:
   // Controller
   Controller m_controller;
 
-  // navX
+  // navX (gyroscope)
   AHRS *m_navx;
 
   // Swerve
@@ -56,9 +66,24 @@ private:
   Intake m_intake {false, false};
 
   // Jetson
+  #if SWERVE_AUTOTUNING
+  FFAutotuner m_swerveXTuner{"Swerve X", FFAutotuner::SIMPLE}; //0.1833, 1.455, 0.1410
+  FFAutotuner m_swerveYTuner{"Swerve Y", FFAutotuner::SIMPLE}; //0.1711, 1.384, 0.1398
+  #endif
+  
+  // Vision (Jetson)
   SocketClient m_client;
+  bool m_isSecondTag;
+  
+  // Odometry
+  Odometry m_odom;
 
   // Logger
   FRCLogger m_logger;
   bool m_prevIsLogging;
+
+  // DEBUG ONLY
+  AutoPathSegment m_autoPath;
+  frc::SendableChooser<std::string> m_chooser;
+  // double m_wheelAng = 0;
 };

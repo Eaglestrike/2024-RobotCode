@@ -9,6 +9,7 @@
 
 #include <frc/Timer.h>
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <units/length.h>
 
 /**
  * Gets the value with the minimum absolute value between two numbers
@@ -101,13 +102,9 @@ double Utils::NormalizeAng(const double ang) {
  * @returns Normalized angle, in degrees
  */
 double Utils::NormalizeAngDeg(const double ang) {
-  double ang2 = std::fmod(ang, 360);
-  ang2 = std::fmod(ang2 + 360, 360);
-  if (ang2 > 180) {
-    ang2 -= 360;
-  }
-
-  return ang2; 
+  double angRad = ang * (M_PI / 180.0);
+  angRad = NormalizeAng(angRad);
+  return angRad * (180.0 / M_PI); 
 }
 
 /**
@@ -154,6 +151,33 @@ double Utils::RadToDeg(const double rad) {
   return rad * (180.0 / M_PI);
 }
 
+
+/**
+ * Converts inches to meters
+ * 
+ * @param in Length in inches
+ * 
+ * @returns meters
+*/
+double Utils::InToM(const double in) {
+  return units::inch_t{in}.convert<units::meters>().value();
+}
+
+/**
+ * Converts inches to meters
+ * 
+ * @param in Vector lengths in inches
+ * 
+ * @returns meters
+*/
+vec::Vector2D Utils::InToM(const vec::Vector2D in) {
+  vec::Vector2D ret;
+  for (int i = 0; i < 2; i++) {
+    ret[i] = units::inch_t{in[i]}.convert<units::meters>().value();
+  }
+  return ret;
+}
+
 /**
  * Gets unit vector from a direction angle
  * 
@@ -188,4 +212,16 @@ vec::Vector2D Utils::GetProjection(const vec::Vector2D v, const vec::Vector2D w)
 double Utils::GetAngBetweenVec(const vec::Vector2D v1, const vec::Vector2D v2) {
  return std::acos(std::clamp(
       dot(v1, v2) / (magn(v1) * magn(v2)), -1.0, 1.0));
+}
+
+/**
+ * Multiplies components of vectors together and forms into new vector
+ * 
+ * @param v1 first vector
+ * @param v2 second vector
+ * 
+ * @returns <v1.x*v2.x, v1.y*v2.y>
+*/
+vec::Vector2D Utils::MultiplyComps(const vec::Vector2D v1, const vec::Vector2D v2) {
+  return {v1.x() * v2.x(), v1.y() * v2.y()};
 }

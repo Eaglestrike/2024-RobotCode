@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "simplevectors.hpp"
-#include "Util/UtilConstants.h"
 
 namespace vec = svector; //!< vector namespace alias
 
@@ -31,8 +30,11 @@ namespace Utils {
 
   double DegToRad(const double deg);
   double RadToDeg(const double rad);
+  double InToM(const double in);
+  vec::Vector2D InToM(const vec::Vector2D in);
 
   vec::Vector2D GetUnitVecDir(const double ang);
   vec::Vector2D GetProjection(const vec::Vector2D v, const vec::Vector2D w);
   double GetAngBetweenVec(const vec::Vector2D v1, const vec::Vector2D v2);
+  vec::Vector2D MultiplyComps(const vec::Vector2D v1, const vec::Vector2D v2);
 };

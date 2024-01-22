@@ -20,9 +20,11 @@ public:
   SwerveControl(bool enabled = true, bool shuffleboard = false);
 
   vec::Vector2D GetRobotVelocity(double ang);
+  double GetRobotAngularVel();
 
   void SetAutoMode(bool enabled);
   void SetFFConstants(double kS, double kV, double kA);
+  void ResetFF();
   void ResetAngleCorrection(double startAng = 0);
   void SetAngleCorrectionPID(double kP, double kI, double kD);
   void SetRobotVelocity(vec::Vector2D vel, double angVel, double ang);
@@ -35,12 +37,14 @@ private:
   void CorePeriodic() override;
 
   void CoreShuffleboardInit() override;
+  void CoreShuffleboardPeriodic() override;
   void CoreShuffleboardUpdate() override;
 
   void SetModuleVelocity(SwerveModule &module, double &prevSpeed, vec::Vector2D vel, double angVel, double ang);
 
   double m_kS, m_kV, m_kA;
   bool m_autoEnabled;
+  bool m_angCorrectorInverted;
 
   // Swerve Modules
   SwerveModule m_fr, m_br, m_fl, m_bl;
@@ -50,4 +54,6 @@ private:
   bool m_angCorrection;
   frc::PIDController m_angleCorrector;
   double m_prevTime;
+  double m_deltaT;
+  double m_speedNoAngCorrect;
 };

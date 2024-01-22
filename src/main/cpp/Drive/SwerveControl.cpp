@@ -1,7 +1,9 @@
 #include "Drive/SwerveControl.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
+#include <limits>
 #include <vector>
 
 #include <frc/smartdashboard/SmartDashboard.h>
@@ -19,6 +21,7 @@ SwerveControl::SwerveControl(bool enabled, bool shuffleboard) :
   Mechanism("Swerve Control", enabled, shuffleboard),
   m_kS{SwerveConstants::kS}, m_kV{SwerveConstants::kV}, m_kA{SwerveConstants::kA},
   m_autoEnabled{0},
+  m_angCorrectorInverted{SwerveConstants::ANG_CORRECT_INVERTED},
   m_fr{SwerveConstants::FR_CONFIG, true, false},
   m_br{SwerveConstants::BR_CONFIG, true, false},
   m_fl{SwerveConstants::FL_CONFIG, true, false},
@@ -26,9 +29,28 @@ SwerveControl::SwerveControl(bool enabled, bool shuffleboard) :
   m_pfr{0}, m_pbr{0}, m_pfl{0}, m_pbl{0},
   m_curAngle{0}, m_angCorrection{0},
   m_angleCorrector{SwerveConstants::ANG_CORRECT_P, SwerveConstants::ANG_CORRECT_I, SwerveConstants::ANG_CORRECT_D},
-  m_prevTime{0}
-  {}
+  m_prevTime{0},
+  m_deltaT{0.02},
+  m_speedNoAngCorrect{SwerveConstants::SPEED_NO_ANG_CORRECT}
+{
+  m_angleCorrector.EnableContinuousInput(-M_PI, M_PI);
+  m_angleCorrector.SetTolerance(SwerveConstants::ANG_CORRECT_TOL, std::numeric_limits<double>::infinity());
 
+  ResetFF();
+
+  SetAngleCorrectionPID(SwerveConstants::ANG_CORRECT_P, SwerveConstants::ANG_CORRECT_I, SwerveConstants::ANG_CORRECT_D);
+}
+
+/**
+ * Resets previous speeds for acceleration feed forward
+ */
+void SwerveControl::ResetFF()
+{
+  m_pfr = 0;
+  m_pbr = 0;
+  m_pfl = 0;
+  m_pbl = 0;
+}
 
 /**
  * Gets robot velocity by averaging the velocities of the modules
@@ -49,6 +71,25 @@ vec::Vector2D SwerveControl::GetRobotVelocity(double ang)
 
   auto avg = Utils::GetVecAverage(vectors);
   return vec::rotate(avg, ang); // rotate by navx ang
+}
+
+/**
+ * Gets robot angular velocity by taking the dot product with the tangent to the circle
+ *
+ * @note Assumes modules have 
+ *
+ * @returns Robot angular velocity
+ */
+double SwerveControl::GetRobotAngularVel()
+{
+  const double r = SwerveConstants::CENTER_TO_EDGE*std::sqrt(2.0);
+  double angVel = 0.0;
+  angVel += m_fl.GetVelocity().dot(vec::Vector2D{-1,1}.normalize());
+  angVel += m_fr.GetVelocity().dot(vec::Vector2D{1,1}.normalize());
+  angVel += m_bl.GetVelocity().dot(vec::Vector2D{-1,-1}.normalize());
+  angVel += m_br.GetVelocity().dot(vec::Vector2D{1,-1}.normalize());
+  angVel /= r*4.0;
+  return angVel;
 }
 
 /**
@@ -79,7 +120,6 @@ void SwerveControl::SetAngleCorrectionPID(double kP, double kI, double kD)
  * @param vel Velocity to set
  * @param angVel Angular velocity, + is counterclockwise, - is clockwise
  * @param ang Current navX angle, in radians
- * @param time Time between readings
  */
 void SwerveControl::SetRobotVelocity(vec::Vector2D vel, double angVel, double ang)
 {
@@ -89,11 +129,11 @@ void SwerveControl::SetRobotVelocity(vec::Vector2D vel, double angVel, double an
     m_curAngle = ang;
   }
 
-  if (!Utils::NearZero(vel) && Utils::NearZero(angVel) && m_angCorrection)
+  if (!Utils::NearZero(vel) && Utils::NearZero(angVel) && m_angCorrection && magn(vel) > m_speedNoAngCorrect)
   {
     // if not turning, correct robot so that it doesnt turn
     angVel = m_angleCorrector.Calculate(ang, m_curAngle);
-    // frc::SmartDashboard::PutNumber("pidout", angVel);
+    angVel = m_angCorrectorInverted ? -angVel : angVel;
     angVel = std::clamp(angVel, -SwerveConstants::MAX_VOLTS, SwerveConstants::MAX_VOLTS);
   }
 
@@ -113,8 +153,6 @@ void SwerveControl::SetRobotVelocity(vec::Vector2D vel, double angVel, double an
  * @param ang current navX angle
 */
 void SwerveControl::SetModuleVelocity(SwerveModule &module, double &prevSpeed, vec::Vector2D vel, double angVel, double ang) {
-  double curTimeS = Utils::GetCurTimeS();
-
   module.SetLock(false);
 
   // computes vectors in 3D
@@ -134,22 +172,20 @@ void SwerveControl::SetModuleVelocity(SwerveModule &module, double &prevSpeed, v
   vec::Vector2D velBody = {x(velBody3D), y(velBody3D)};
 
   // apply voltage
-  double speed = m_kS + m_kV * magn(velBody) + m_kA * (magn(velBody) - prevSpeed) / (curTimeS - m_prevTime);
+  double volts = m_kS + m_kV * magn(velBody) + m_kA * (magn(velBody) - prevSpeed) / m_deltaT;
 
   if (!m_autoEnabled) {
-    speed = magn(velBody);
+    volts = magn(velBody);
   }
 
   prevSpeed = magn(velBody);
-  if (!Utils::NearZero(velBody) && !Utils::NearZero(speed))
+  if (!Utils::NearZero(velBody) && !Utils::NearZero(volts))
   {
-    velBody = normalize(velBody) * speed;
+    velBody = normalize(velBody) * volts;
   }
 
   // set vector
   module.SetVector(velBody);
-
-  m_prevTime = curTimeS;
 }
 
 /**
@@ -196,13 +232,17 @@ void SwerveControl::CoreInit(){
  */
 void SwerveControl::SetRobotVelocityTele(vec::Vector2D vel, double angVel, double ang, double angOfJoystick) {
   vec::Vector2D velAbs = vec::rotate(vel, angOfJoystick);
-  SetRobotVelocity(vel, angVel, ang);
+  SetRobotVelocity(velAbs, angVel, ang);
 }
 
 /**
  * Periodic function
  */
 void SwerveControl::CorePeriodic(){
+  double curTime = Utils::GetCurTimeS();
+  m_deltaT = curTime - m_prevTime;
+  m_prevTime = curTime;
+
   m_fr.Periodic();
   m_br.Periodic();
   m_fl.Periodic();
@@ -216,6 +256,11 @@ void SwerveControl::CoreShuffleboardInit(){
   frc::SmartDashboard::PutNumber("ang correct kP", SwerveConstants::ANG_CORRECT_P);
   frc::SmartDashboard::PutNumber("ang correct kI", SwerveConstants::ANG_CORRECT_I);
   frc::SmartDashboard::PutNumber("ang correct kD", SwerveConstants::ANG_CORRECT_D);
+  frc::SmartDashboard::PutNumber("Speed No Ang Correct", SwerveConstants::SPEED_NO_ANG_CORRECT);
+}
+
+void SwerveControl::CoreShuffleboardPeriodic() {
+  m_speedNoAngCorrect = frc::SmartDashboard::GetNumber("Speed No Ang Correct", SwerveConstants::SPEED_NO_ANG_CORRECT);
 }
 
 /**

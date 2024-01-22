@@ -783,7 +783,7 @@ public:
 
 private:
   struct stat m_st = {0};
-  std::string FOLDER = "frclogs/";
+  std::string FOLDER = "/home/lvuser/frclogs/";
   std::string m_dateStr = frclogger_internal::TimeMgr::GetTimeStr();
   frclogger_internal::CSVLogger m_csv;
   frclogger_internal::FileLogger m_file;
