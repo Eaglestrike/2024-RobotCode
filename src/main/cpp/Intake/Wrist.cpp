@@ -201,11 +201,14 @@ void Wrist::CoreShuffleboardInit(){
 
             m_shuff.add("cur pos", &m_curPos, false);
             m_shuff.add("cur vel", &m_curVel, false);
-            m_shuff.add("cur acc", &m_curAcc, false);
+            // m_shuff.add("cur acc", &m_curAcc, false);
 
             m_shuff.add("targ pos", &m_targetPos, false);
             m_shuff.add("targ vel", &m_targetVel, false);
-            m_shuff.add("targ acc", &m_targetAcc, false);
+            // m_shuff.add("targ acc", &m_targetAcc, false);
+
+            m_shuff.PutNumber("error pos", m_targetPos - m_curPos);
+            m_shuff.PutNumber("error vel", m_targetVel - m_curVel);
             break;
     }
 }
