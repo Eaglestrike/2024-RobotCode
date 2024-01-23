@@ -1,12 +1,17 @@
 #pragma once
 
+#define WRIST_AUTOTUNING true
+
 #include <ctre/phoenix6/TalonFX.hpp>
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/DutyCycleEncoder.h>
 #include "Util/Mechanism.h"
 #include "ShuffleboardSender/ShuffleboardSender.h"
 #include "Constants/MechanismConstants.h"
+
+#if WRIST_AUTOTUNING
 #include "FFAutoTuner/FFAutotuner.h"
+#endif
 
 using ctre::phoenix6::hardware::TalonFX;
 
@@ -18,15 +23,11 @@ class Wrist: public Mechanism{
             MOVING,
             AT_TARGET,
             STOPPED,
-            COAST
-        };
-
-        enum DBGstate {
-            POS_READER,
-            CONST_VOLTAGE,
-            TUNE_FFPID,
-            AUTO_TUNER,
-            NONE
+            COAST,
+            CONST_VOLTAGE //Mainly testing state (but could be used for )
+            #if WRIST_AUTOTUNING
+            ,AUTOTUNING
+            #endif
         };
         
         void Zero();
@@ -52,30 +53,32 @@ class Wrist: public Mechanism{
         void SetVoltage();
         double GetRelPos();
         double GetAbsEncoderPos();
-
-        ShuffleboardSender m_shuff {"Wrist", false};
-        FFAutotuner m_autoTuner {"Wrist", FFAutotuner::ARM};
-
+        
         TalonFX m_wristMotor {Ids::WRIST_MOTOR};
         frc::DutyCycleEncoder m_wristEncoder{Ids::WRIST_ENCODER_CAN_ID};
 
         //MEMBER VARS
-            //state vars
-            MechState m_state = MechState::AT_TARGET;
-         
-            //profile vars
-            double m_setPt; 
-            double m_newSetPt = -1;
-            double m_curPos, m_curVel, m_curAcc; // cur pose
-            double m_targetPos = m_setPt, m_targetVel =0 , m_targetAcc = 0; // motion profile 
-            double m_speedDecreasePos, // pos in motion profile where start decelerating
-                   m_totalErr = 0; // integral of position error for PID
+        //state vars
+        MechState m_state = MechState::AT_TARGET;
 
-            double m_absEncoderInit;
+        //profile vars
+        double m_setPt; 
+        double m_newSetPt = -1;
+        double m_curPos, m_curVel, m_curAcc; // cur pose
+        double m_targetPos = m_setPt, m_targetVel =0 , m_targetAcc = 0; // motion profile 
+        double m_speedDecreasePos, // pos in motion profile where start decelerating
+                m_totalErr = 0; // integral of position error for PID
 
-        //"CONSTANTS"
-        DBGstate m_DBGstate = DBGstate::NONE;
+        double m_absEncoderInit;
 
+        //Shuffleboard
+        ShuffleboardSender m_shuff;
+        
+        #if WRIST_AUTOTUNING
+        FFAutotuner m_autoTuner {"Wrist Autotuner", FFAutotuner::ARM};
+        #endif
+
+        //Constants
         double m_kp = 0.0, m_ki = 0.0, m_kd = 0.0;
         double m_s = 0.0, m_g = 0.0, m_v = 0.0, m_a = 0.0;
 

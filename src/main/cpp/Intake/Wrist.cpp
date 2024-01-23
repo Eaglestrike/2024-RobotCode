@@ -2,13 +2,12 @@
 #include <iostream>
 
 //constructor j sets motor to brake mode
-Wrist::Wrist(bool enabled, bool dbg){
+Wrist::Wrist(bool enabled, bool dbg):
+    Mechanism{"Wrist", enabled, dbg},
+    m_shuff{"Wrist", dbg}
+{
     UpdatePose();
     m_setPt = m_curPos;
-    if (m_DBGstate != NONE || m_DBGstate != AUTO_TUNER){
-        m_shuff.enable();
-    }
-    Mechanism("Wrist", enabled, dbg);
     m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
 }
 
@@ -33,32 +32,9 @@ void Wrist::CorePeriodic(){
     UpdatePose();
 }
 
-void Wrist::CoreShuffleboardPeriodic(){
-      if (m_DBGstate == TUNE_FFPID){
-        m_shuff.update(true);
-    } else if (m_DBGstate == POS_READER){
-        m_shuff.update(false);
-        return;
-    } else if (m_DBGstate == CONST_VOLTAGE){
-        m_shuff.update(true);
-        SetVoltage();
-        return;
-    } else if (m_DBGstate == AUTO_TUNER){
-        m_autoTuner.ShuffleboardUpdate();
-        m_autoTuner.setPose({m_curPos, m_curVel, m_curAcc});
-        double voltage = std::clamp(m_autoTuner.getVoltage(),-MAX_VOLTS, MAX_VOLTS);
-        m_wristMotor.SetVoltage(units::volt_t(voltage));
-        return;
-    }
-}
-
 // teleop periodic runs on state machine
 void Wrist::CoreTeleopPeriodic(){
-    if (m_DBGstate != TUNE_FFPID && m_DBGstate != NONE)
-        return;
-    
     double wristVolts = 0;
-
     switch (m_state){
         case MOVING:
             UpdateTargetPose(); // bc still using motion profile 
@@ -72,8 +48,20 @@ void Wrist::CoreTeleopPeriodic(){
             } 
             break;
         case AT_TARGET:
+            [[fallthrough]];
+        case COAST:
             wristVolts = FFPIDCalculate();
             break;
+        case CONST_VOLTAGE:
+            wristVolts = m_voltReq;
+            break;
+        #if WRIST_AUTOTUNING
+        case AUTOTUNING:
+            m_autoTuner.setPose({m_curPos, m_curVel, m_curAcc});
+            wristVolts = m_autoTuner.getVoltage();
+        #endif
+        default:
+            wristVolts = 0.0;
     }
     m_wristMotor.SetVoltage(units::volt_t(std::clamp(-wristVolts, -MAX_VOLTS, MAX_VOLTS)));
 }
@@ -167,62 +155,58 @@ double Wrist::FFPIDCalculate(){
     if (m_targetVel < 0) s = -m_s;
     else if (m_targetVel == 0) s = 0;
     double ff = m_g * cos(m_targetPos) + s + m_v*m_targetVel + m_a*m_targetAcc;
-    if (m_DBGstate == TUNE_FFPID){
+    if (shuffleboard_){
+        //see how each term is contributing to ff (row 4)
         m_shuff.PutNumber("posErr", posErr); 
         m_shuff.PutNumber("velErr", velErr); 
         m_shuff.PutNumber("ff out", ff); 
         m_shuff.PutNumber("pid out", pid); 
-        //see how each term is contributing to ff 
     }
     return pid+ff;
 }
 
 void Wrist::CoreShuffleboardInit(){
-    m_shuff.PutString("DBG state", DBGToString());
-    switch(m_DBGstate){
-        case POS_READER:
-            m_shuff.add("Pos", &m_curPos, false);
-            m_shuff.add("Vel", &m_curVel, false);
-            m_shuff.add("Acc", &m_curAcc, false);
-            break;
-        case CONST_VOLTAGE:
-            m_shuff.add("Voltage", &m_voltReq, true);
-            break;
-        case TUNE_FFPID:
-            m_shuff.add("g", &m_g, true);
-            m_shuff.add("s", &m_s, true);
-            m_shuff.add("v", &m_v, true);
-            m_shuff.add("a", &m_a, true);
-            m_shuff.add("p", &m_kp, true);
-            m_shuff.add("i", &m_ki, true);
-            m_shuff.add("d", &m_kd, true);
-            m_shuff.add("SetPoint", &m_newSetPt, true);
-            m_shuff.addButton("Deploy", [&]{MoveToSetPt();});
+    //Pose data (row 0)
+    m_shuff.add("Pos", &m_curPos, {1,1,0,0},false);
+    m_shuff.add("Vel", &m_curVel, {1,1,1,0},false);
+    m_shuff.add("Acc", &m_curAcc, {1,1,2,0},false);
 
-            m_shuff.add("cur pos", &m_curPos, false);
-            m_shuff.add("cur vel", &m_curVel, false);
-            // m_shuff.add("cur acc", &m_curAcc, false);
+    //Test Voltage (row 1)
+    m_shuff.add("Voltage", &m_voltReq, {1,1,0,1}, true);
+    m_shuff.addButton("Set Voltage", [&]{SetVoltage();}, {1,1,1,1});
 
-            m_shuff.add("targ pos", &m_targetPos, false);
-            m_shuff.add("targ vel", &m_targetVel, false);
-            // m_shuff.add("targ acc", &m_targetAcc, false);
+    //Feedforward tuning (row 2)
+    m_shuff.add("g", &m_g, {1,1,0,2},true);
+    m_shuff.add("s", &m_s, {1,1,1,2},true);
+    m_shuff.add("v", &m_v, {1,1,2,2},true);
+    m_shuff.add("a", &m_a, {1,1,3,2},true);
 
-            m_shuff.PutNumber("error pos", m_targetPos - m_curPos);
-            m_shuff.PutNumber("error vel", m_targetVel - m_curVel);
-            break;
-    }
+    //PID tuning (row 3)
+    m_shuff.add("p", &m_kp, {1,1,0,3},true);
+    m_shuff.add("i", &m_ki, {1,1,1,3},true);
+    m_shuff.add("d", &m_kd, {1,1,2,3},true);
+
+    //Deploy (row 3 rightside)
+    m_shuff.add("SetPoint", &m_newSetPt, {1,1,4,3}, true);
+    m_shuff.addButton("Deploy", [&]{MoveToSetPt();}, {1,1,5,3});
+    m_shuff.addButton("Coast", [&]{Coast();}, {1,1,6,3});
+    #if WRIST_AUTOTUNING
+    m_shuff.addButton("Auto Tune", [&]{m_state = AUTOTUNING}, {1,1,6,3});
+    #endif
+
+    //Debug values (row 4)
+    m_shuff.PutNumber("posErr", 0.0, {1,1,0,4}); 
+    m_shuff.PutNumber("velErr", 0.0, {1,1,1,4}); 
+    m_shuff.PutNumber("ff out", 0.0, {1,1,2,4}); 
+    m_shuff.PutNumber("pid out", 0.0, {1,1,3,4}); 
 }
 
-std::string Wrist::DBGToString(){
-    switch(m_DBGstate){
-        case POS_READER:
-            return "POS READER";
-        case CONST_VOLTAGE:
-            return "CONST VOLTAGE";
-        case TUNE_FFPID:
-            return "TUNE FFPID";
-    }
-    return "";
+
+void Wrist::CoreShuffleboardPeriodic(){
+    m_shuff.update(true);
+    #if WRIST_AUTOTUNING
+    m_autoTuner.ShuffleboardUpdate();
+    #endif
 }
 
 //calculates the position at which the speed will begin decreasing
@@ -250,6 +234,6 @@ void Wrist::ResetPID(){
 // for tuning, can test constant voltage on wrist or rollers 
 // but need to pick which wrist or rollers in the code, since it cant be changed from shuffleboard
 void Wrist::SetVoltage(){
+    m_state = CONST_VOLTAGE;
     m_voltReq = std::clamp(m_voltReq, -MAX_VOLTS, MAX_VOLTS);
-    m_wristMotor.SetVoltage(units::volt_t(m_voltReq));
 }
