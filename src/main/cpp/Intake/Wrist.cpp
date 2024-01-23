@@ -191,7 +191,7 @@ void Wrist::CoreShuffleboardInit(){
     m_shuff.addButton("Deploy", [&]{MoveToSetPt();}, {1,1,5,3});
     m_shuff.addButton("Coast", [&]{Coast();}, {1,1,6,3});
     #if WRIST_AUTOTUNING
-    m_shuff.addButton("Auto Tune", [&]{m_state = AUTOTUNING}, {1,1,6,3});
+    m_shuff.addButton("Auto Tune", [&]{m_state = AUTOTUNING;}, {1,1,6,3});
     #endif
 
     //Debug values (row 4)
