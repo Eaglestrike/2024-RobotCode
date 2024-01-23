@@ -73,7 +73,7 @@ void Intake::SetState(ActionState newAction){
         case STOW:
             newWristPos = STOWED_POS;
             m_rollers.SetState(Rollers::STOP);
-            m_actionState = NONE;
+            //m_actionState = NONE;
             break; 
         case AMP_INTAKE:
             newWristPos = INTAKE_POS;
@@ -86,6 +86,7 @@ void Intake::SetState(ActionState newAction){
             m_channel.SetState(Channel::ON);
             break; 
         case AMP_OUTTAKE:
+            m_rollers.SetState(Rollers::OUTTAKE);
             newWristPos = AMP_OUT_POS;
             break;
         case FEED_TO_SHOOTER:

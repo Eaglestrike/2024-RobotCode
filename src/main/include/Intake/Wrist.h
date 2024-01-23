@@ -92,7 +92,7 @@ class Wrist: public Mechanism{
         double MAX_VOLTS = 5.0;
         
         // will prob change
-        double REL_CONV_FACTOR = 1 * (1.0 / 20.0) * (16.0 / 36.0) * (2 * M_PI) * (1.885 / 1.588);
+        double REL_CONV_FACTOR = 1.0 * (8.0 / 66.0) * (18.0 / 66.0);
         //for dbg
         double m_voltReq = 0.0;
 };

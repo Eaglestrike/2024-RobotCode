@@ -5,7 +5,8 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 
 Rollers::Rollers(bool enabled, bool shuffleboard)
-    : Mechanism{"Rollers", enabled, shuffleboard} {
+    : Mechanism{"Rollers", enabled, shuffleboard},
+    m_shuff{"Rollers", shuffleboard}{
     m_rollerMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
 }
 
@@ -36,6 +37,9 @@ void Rollers::CoreTeleopPeriodic() {
         case STOP:
             setVolts = 0;
             break;
+        case SET_VOLTAGE:
+            setVolts = m_voltReq;
+            break;
     }
 
     m_rollerMotor.SetVoltage(units::volt_t{setVolts});
@@ -44,7 +48,7 @@ void Rollers::CoreTeleopPeriodic() {
 
 void Rollers::SetVoltage(){
     m_voltReq = std::clamp(m_voltReq, -MAX_VOLTS, MAX_VOLTS);
-    m_rollerMotor.SetVoltage(units::volt_t(m_voltReq));
+    m_state = SET_VOLTAGE;
 }
 
 void Rollers::StopRollers() {
@@ -53,11 +57,10 @@ void Rollers::StopRollers() {
 }
 
 void Rollers::CoreShuffleboardInit(){
-    // m_shuff.add("Voltage", &m_voltReq, true);
-    frc::SmartDashboard::PutNumber("Roller Voltage", 0);
+    m_shuff.add("Voltage", &m_voltReq, true);
+    m_shuff.addButton("Set Voltage", [&]{SetVoltage();}, {2,1});
 }
 
 void Rollers::CoreShuffleboardPeriodic(){
-    // m_shuff.update(true);
-    m_voltReq = frc::SmartDashboard::GetNumber("Roller Voltage", 0);
+    m_shuff.update(true);
 }

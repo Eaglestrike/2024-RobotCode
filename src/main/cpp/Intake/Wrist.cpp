@@ -25,7 +25,9 @@ double Wrist::GetAbsEncoderPos() {
 
 // needs to be called INSTEAD of teleop periodic
 void Wrist::ManualPeriodic(double wristVolts){
-    m_wristMotor.SetVoltage(units::volt_t(std::clamp(-wristVolts, -MAX_VOLTS, MAX_VOLTS)));
+    m_voltReq = wristVolts;
+    SetVoltage();
+    //m_wristMotor.SetVoltage(units::volt_t(std::clamp(-wristVolts, -MAX_VOLTS, MAX_VOLTS)));
 }
 
 void Wrist::CorePeriodic(){
@@ -106,8 +108,7 @@ Wrist::MechState Wrist::GetState(){
 
 // need to check
 double Wrist::GetRelPos() {
-    // return m_wristMotor.GetPosition().GetValueAsDouble() * 2 * M_PI;
-    return m_wristMotor.GetPosition().GetValueAsDouble()  * 2 * M_PI + m_absEncoderInit;
+    return m_wristMotor.GetPosition().GetValueAsDouble()  * 2 * M_PI * REL_CONV_FACTOR+ m_absEncoderInit;
 }
 
 //Updates the current position, velocity, and acceleration of the wrist
@@ -172,6 +173,7 @@ void Wrist::CoreShuffleboardInit(){
     m_shuff.add("Pos", &m_curPos, {1,1,0,0},false);
     m_shuff.add("Vel", &m_curVel, {1,1,1,0},false);
     m_shuff.add("Acc", &m_curAcc, {1,1,2,0},false);
+    m_shuff.PutString("State", "", {1,1,3,0});
 
     //Test Voltage (row 1)
     m_shuff.add("Voltage", &m_voltReq, {1,1,0,1}, true);
@@ -194,6 +196,7 @@ void Wrist::CoreShuffleboardInit(){
     m_shuff.add("SetPoint", &m_newSetPt, {1,1,4,3}, true);
     m_shuff.addButton("Deploy", [&]{MoveToSetPt();}, {1,1,5,3});
     m_shuff.addButton("Coast", [&]{Coast();}, {1,1,6,3});
+    m_shuff.addButton("Zero", [&]{Zero();}, {1,1,6,3});
     #if WRIST_AUTOTUNING
     m_shuff.addButton("Auto Tune", [&]{m_state = AUTOTUNING;}, {1,1,7,3});
     #endif
@@ -204,15 +207,34 @@ void Wrist::CoreShuffleboardInit(){
     m_shuff.add("Min Pos", &MIN_POS, {1,1,2,4}, true);
     m_shuff.add("Tolerance", &POS_TOLERANCE, {1,1,3,4}, true);
 
-    //Debug values (row 5 rightside)
-    m_shuff.PutNumber("posErr", 0.0, {1,1,3,5}); 
-    m_shuff.PutNumber("velErr", 0.0, {1,1,4,5}); 
-    m_shuff.PutNumber("ff out", 0.0, {1,1,5,5}); 
-    m_shuff.PutNumber("pid out", 0.0, {1,1,6,5}); 
+    //Debug values (row 4 rightside)
+    m_shuff.PutNumber("posErr", 0.0, {1,1,5,4}); 
+    m_shuff.PutNumber("velErr", 0.0, {1,1,6,4}); 
+    m_shuff.PutNumber("ff out", 0.0, {1,1,7,4}); 
+    m_shuff.PutNumber("pid out", 0.0, {1,1,8,4});
 }
 
 
 void Wrist::CoreShuffleboardPeriodic(){
+    switch(m_state){
+        case MOVING:
+            m_shuff.PutString("State", "Moving");
+            break;
+        case AT_TARGET:
+            m_shuff.PutString("State", "At Target");
+            break;
+        case STOPPED:
+            m_shuff.PutString("State", "Stopped");
+            break;
+        case COAST:
+            m_shuff.PutString("State", "Coast");
+            break;
+        case CONST_VOLTAGE:
+            m_shuff.PutString("State", "Voltage");
+            break;
+        default:
+            m_shuff.PutString("State", "Other");
+    }
     m_shuff.update(true);
     #if WRIST_AUTOTUNING
     m_autoTuner.ShuffleboardUpdate();

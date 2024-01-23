@@ -14,7 +14,8 @@ class Rollers : public Mechanism{
             INTAKE_STRONG, //Hold and intake strong
             RETAIN,
             STOP,
-            OUTTAKE
+            OUTTAKE,
+            SET_VOLTAGE
         };
 
         Rollers(bool enabled, bool shuffleboard);
@@ -27,17 +28,17 @@ class Rollers : public Mechanism{
         void SetVoltage();
         void StopRollers();
 
-private:
-  RollerState m_state{STOP};
-  TalonFX m_rollerMotor{IntakeConstants::ROLLER_MOTOR, "rio"};
-  ShuffleboardSender m_shuff{"Rollers", false};
+  private:
+    RollerState m_state{STOP};
+    TalonFX m_rollerMotor{IntakeConstants::ROLLER_MOTOR, "rio"};
+    ShuffleboardSender m_shuff;
 
-  //Constants
-  double MAX_VOLTS = 12.0;
-  double KEEP_VOLTS = 0.0;
-  double IN_VOLTS = 3.0;
-  double OUT_VOLTS =0.0;
+    //Constants
+    double MAX_VOLTS = 12.0;
+    double KEEP_VOLTS = 0.0;
+    double IN_VOLTS = 3.0;
+    double OUT_VOLTS = -3.0;
 
-  //for dbg
-  double m_voltReq = 0.0;
+    //for dbg
+    double m_voltReq = 0.0;
 };
