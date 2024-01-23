@@ -178,6 +178,7 @@ void Wrist::CoreShuffleboardInit(){
     //Test Voltage (row 1)
     m_shuff.add("Voltage", &m_voltReq, {1,1,0,1}, true);
     m_shuff.addButton("Set Voltage", [&]{SetVoltage();}, {1,1,1,1});
+    m_shuff.add("Max Voltage", &MAX_VOLTS, {1,1,2,1}, true);
 
     //Feedforward tuning (row 2)
     m_shuff.add("g", &m_g, {1,1,0,2},true);
