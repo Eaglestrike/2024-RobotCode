@@ -3,8 +3,8 @@
 Intake::Intake(bool enabled, bool dbg):
     Mechanism("intake",enabled, dbg),
     m_rollers{enabled, dbg},
-    m_channel{false, dbg},
     m_wrist{enabled, dbg},
+    m_channel{false, dbg},
     m_shuff{"intake", dbg}
 {
 }
@@ -59,6 +59,8 @@ void Intake::CoreTeleopPeriodic(){
                 m_actionState = NONE;
             }
             break;
+        default:
+            break;
     }
 }
 
@@ -67,7 +69,6 @@ void Intake::SetState(ActionState newAction){
     m_actionState = newAction;
     
     double newWristPos;
-
     switch(newAction){
         case STOW:
             newWristPos = STOWED_POS;
@@ -90,9 +91,10 @@ void Intake::SetState(ActionState newAction){
         case FEED_TO_SHOOTER:
             m_channel.SetState(Channel::ON);
             m_actionState = NONE;
-            break; 
+            return;
+        default:
+            return;
     }
-
     m_wrist.MoveTo(newWristPos);
 }
 
@@ -143,11 +145,14 @@ void Intake::CoreShuffleboardInit(){
     //State (row 0)
     m_shuff.PutString("State", "", {2,1,0,0});
 
-    //Target position
+    //Target position (row 1)
     m_shuff.add("Stow", &STOWED_POS, {1,1,0,1}, true);
     m_shuff.add("Intake", &INTAKE_POS, {1,1,1,1}, true);
     m_shuff.add("Passthrough", &PASSTHROUGH_POS, {1,1,2,1}, true);
     m_shuff.add("Amp", &AMP_OUT_POS, {1,1,3,1}, true);
+
+    //Go to NONE state (row 2)
+    m_shuff.addButton("NONE STATE", [&]{m_actionState = NONE;}, {4,1,0,2});
 }
 
 void Intake::CoreShuffleboardPeriodic(){
@@ -166,6 +171,9 @@ void Intake::CoreShuffleboardPeriodic(){
             break;
         case FEED_TO_SHOOTER:
             m_shuff.PutString("State", "Feed to Shooter");
+            break;
+        case NONE:
+            m_shuff.PutString("State", "None");
             break;
     }
     m_shuff.update(true);
