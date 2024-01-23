@@ -87,9 +87,6 @@ void Robot::RobotInit() {
   m_odom.Reset();
   m_odom.SetStartingConfig({1.113015879415296,4.955401908989121}, M_PI, 0);
 
-  m_wrist.Init();
-  m_channel.Init();
-  m_rollers.Init();
   m_intake.Init();
   m_client.Init();
   m_swerveController.Init();
@@ -122,9 +119,6 @@ void Robot::RobotPeriodic() {
   #endif
 
   m_logger.Periodic(Utils::GetCurTimeS());
-  m_rollers.Periodic();
-  m_wrist.Periodic();
-  m_channel.Periodic();
   m_intake.Periodic();
 }
 
@@ -175,11 +169,7 @@ void Robot::TeleopPeriodic() {
   // m_swerveController.SetRobotVelocityTele(setVel, w, 0, 0);
   // m_swerveController.Periodic();
 
-  if (m_controller.getPressed(DEBUG_INTAKE)) {
-    m_rollers.SetVoltage();
-  } else {
-    m_rollers.StopRollers();
-  }
+  //Swerve
   double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
   double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
 
@@ -202,9 +192,20 @@ void Robot::TeleopPeriodic() {
 
   m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   m_swerveController.Periodic();
-  m_wrist.TeleopPeriodic();
-  m_channel.TeleopPeriodic();
-  m_rollers.TeleopPeriodic();
+
+  //Intake
+  if(m_controller.getPressedOnce(STOW)){
+    m_intake.Stow();
+  }
+  if(m_controller.getPressedOnce(PASSTHROUGH)){
+    m_intake.Passthrough();
+  }
+  if(m_controller.getPressedOnce(AMP_OUTTAKE)){
+    m_intake.AmpOuttake();
+  }
+  if(m_controller.getPressedOnce(AMP_INTAKE)){
+    m_intake.AmpIntake();
+  }
   m_intake.TeleopPeriodic();
 }
 

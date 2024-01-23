@@ -2,6 +2,8 @@
 
 #include <frc/DigitalInput.h>
 
+#include "ShuffleboardSender/ShuffleboardSender.h"
+
 #include "Constants/IntakeConstants.h"
 
 #include "Intake/Wrist.h"
@@ -26,15 +28,21 @@ class Intake: public Mechanism{
         void AmpOuttake();
         void AmpIntake();
         void FeedIntoShooter();
-        void CorePeriodic() override;
-        void CoreTeleopPeriodic() override;
         // void CoreAutonomousPeriodic() override;
         void KeepIntakeDown(bool intakeDown);
+
         bool HasGamePiece();
         bool InChannel();
         bool InIntake();
 
     private:
+        void CoreInit() override;
+        void CorePeriodic() override;
+        void CoreTeleopPeriodic() override;
+
+        void CoreShuffleboardInit() override;
+        void CoreShuffleboardPeriodic() override;
+
         enum DBGstate {
             POS_EDITOR,
             STATE_TESTER, // lowk thats j teleop
@@ -55,5 +63,7 @@ class Intake: public Mechanism{
         PASSTHROUGH_POS = 0.0,
         AMP_OUT_POS = 0.0;
 
-        frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
+        //frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
+
+        ShuffleboardSender m_shuff;
 };

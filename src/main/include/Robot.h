@@ -59,9 +59,6 @@ private:
   SwerveControl m_swerveController{true, false};
 
   //intake
-  Wrist m_wrist {true, true};
-  Channel m_channel {false, false};
-  Rollers m_rollers {false, false};
   Intake m_intake {false, false};
 
   // Jetson

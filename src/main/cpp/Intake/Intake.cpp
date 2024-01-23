@@ -1,11 +1,20 @@
 #include "Intake/Intake.h"
 
 Intake::Intake(bool enabled, bool dbg):
-    m_rollers{enabled, false},
-    m_channel{enabled, false},
-    m_wrist{enabled, false}{
-    Mechanism("intake",enabled, dbg);
+    Mechanism("intake",enabled, dbg),
+    m_rollers{enabled, dbg},
+    m_channel{false, dbg},
+    m_wrist{enabled, dbg},
+    m_shuff{"intake", dbg}
+{
 }
+
+void Intake::CoreInit(){
+    m_rollers.Init();
+    m_wrist.Init();
+    m_channel.Init();
+}
+
 void Intake::CorePeriodic(){
     m_rollers.Periodic();
     m_wrist.Periodic();
@@ -126,5 +135,38 @@ bool Intake::InIntake(){
 }
 
 bool Intake::GetBeamBreak1() {
-    return m_beamBreak1.Get();
+    return false;
+    //return m_beamBreak1.Get();
+}
+
+void Intake::CoreShuffleboardInit(){
+    //State (row 0)
+    m_shuff.PutString("State", "", {2,1,0,0});
+
+    //Target position
+    m_shuff.add("Stow", &STOWED_POS, {1,1,0,1}, true);
+    m_shuff.add("Intake", &INTAKE_POS, {1,1,1,1}, true);
+    m_shuff.add("Passthrough", &PASSTHROUGH_POS, {1,1,2,1}, true);
+    m_shuff.add("Amp", &AMP_OUT_POS, {1,1,3,1}, true);
+}
+
+void Intake::CoreShuffleboardPeriodic(){
+    switch(m_actionState){
+        case STOW:
+            m_shuff.PutString("State", "Stow");
+            break;
+        case AMP_INTAKE:
+            m_shuff.PutString("State", "Amp Intake");
+            break;
+        case PASSTHROUGH:
+            m_shuff.PutString("State", "Passthrough");
+            break;
+        case AMP_OUTTAKE:
+            m_shuff.PutString("State", "Amp Outtake");
+            break;
+        case FEED_TO_SHOOTER:
+            m_shuff.PutString("State", "Feed to Shooter");
+            break;
+    }
+    m_shuff.update(true);
 }
