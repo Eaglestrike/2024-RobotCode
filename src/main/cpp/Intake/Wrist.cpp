@@ -48,9 +48,10 @@ void Wrist::CoreTeleopPeriodic(){
             } 
             break;
         case AT_TARGET:
-            [[fallthrough]];
-        case COAST:
             wristVolts = FFPIDCalculate();
+            break;
+        case COAST:
+            wristVolts = 0.0;
             break;
         case CONST_VOLTAGE:
             wristVolts = m_voltReq;
@@ -59,6 +60,7 @@ void Wrist::CoreTeleopPeriodic(){
         case AUTOTUNING:
             m_autoTuner.setPose({m_curPos, m_curVel, m_curAcc});
             wristVolts = m_autoTuner.getVoltage();
+            break;
         #endif
         default:
             wristVolts = 0.0;
@@ -180,6 +182,8 @@ void Wrist::CoreShuffleboardInit(){
     m_shuff.add("s", &m_s, {1,1,1,2},true);
     m_shuff.add("v", &m_v, {1,1,2,2},true);
     m_shuff.add("a", &m_a, {1,1,3,2},true);
+    m_shuff.add("max v", &MAX_VEL, {1,1,4,2},true);
+    m_shuff.add("max a", &MAX_ACC, {1,1,5,2},true);
 
     //PID tuning (row 3)
     m_shuff.add("p", &m_kp, {1,1,0,3},true);
@@ -191,14 +195,20 @@ void Wrist::CoreShuffleboardInit(){
     m_shuff.addButton("Deploy", [&]{MoveToSetPt();}, {1,1,5,3});
     m_shuff.addButton("Coast", [&]{Coast();}, {1,1,6,3});
     #if WRIST_AUTOTUNING
-    m_shuff.addButton("Auto Tune", [&]{m_state = AUTOTUNING;}, {1,1,6,3});
+    m_shuff.addButton("Auto Tune", [&]{m_state = AUTOTUNING;}, {1,1,7,3});
     #endif
 
-    //Debug values (row 4)
-    m_shuff.PutNumber("posErr", 0.0, {1,1,0,4}); 
-    m_shuff.PutNumber("velErr", 0.0, {1,1,1,4}); 
-    m_shuff.PutNumber("ff out", 0.0, {1,1,2,4}); 
-    m_shuff.PutNumber("pid out", 0.0, {1,1,3,4}); 
+    //Constants (row 4)
+    m_shuff.add("Offset", &WRIST_ABS_ENCODER_OFFSET, {1,1,0,4}, true);
+    m_shuff.add("Max Pos", &MAX_POS, {1,1,1,4}, true);
+    m_shuff.add("Min Pos", &MIN_POS, {1,1,2,4}, true);
+    m_shuff.add("Tolerance", &POS_TOLERANCE, {1,1,3,4}, true);
+
+    //Debug values (row 5 rightside)
+    m_shuff.PutNumber("posErr", 0.0, {1,1,3,5}); 
+    m_shuff.PutNumber("velErr", 0.0, {1,1,4,5}); 
+    m_shuff.PutNumber("ff out", 0.0, {1,1,5,5}); 
+    m_shuff.PutNumber("pid out", 0.0, {1,1,6,5}); 
 }
 
 
@@ -211,7 +221,7 @@ void Wrist::CoreShuffleboardPeriodic(){
 
 //calculates the position at which the speed will begin decreasing
 void Wrist::CalcSpeedDecreasePos(){
-    double MAX_VEL = MAX_VEL, MAX_ACC = MAX_ACC;
+    //double MAX_VEL = MAX_VEL, MAX_ACC = MAX_ACC;
     if(fabs(m_setPt - m_curPos) < MAX_VEL*MAX_VEL/MAX_ACC){ // for triangle motion profile
         m_speedDecreasePos = (m_setPt+m_curPos)/2;
     } else if (m_setPt > m_curPos)
