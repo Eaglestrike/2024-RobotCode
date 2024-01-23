@@ -1,7 +1,12 @@
 #pragma once
-#include "Wrist.h"
-#include "Rollers.h"
-#include "Channel.h"
+
+#include <frc/DigitalInput.h>
+
+#include "Constants/IntakeConstants.h"
+
+#include "Intake/Wrist.h"
+#include "Intake/Rollers.h"
+#include "Intake/Channel.h"
 
 class Intake: public Mechanism{
     public:
@@ -35,6 +40,9 @@ class Intake: public Mechanism{
             STATE_TESTER, // lowk thats j teleop
         };
 
+        bool GetBeamBreak1();
+        bool GetBeamBreak2();
+
         Rollers m_rollers;
         Wrist m_wrist;
         Channel m_channel;
@@ -46,4 +54,6 @@ class Intake: public Mechanism{
         INTAKE_POS = 0.0, 
         PASSTHROUGH_POS = 0.0,
         AMP_OUT_POS = 0.0;
+
+        frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
 };

@@ -7,7 +7,7 @@
 #include <frc/DutyCycleEncoder.h>
 #include "Util/Mechanism.h"
 #include "ShuffleboardSender/ShuffleboardSender.h"
-#include "Constants/MechanismConstants.h"
+#include "Constants/IntakeConstants.h"
 
 #if WRIST_AUTOTUNING
 #include "FFAutoTuner/FFAutotuner.h"
@@ -54,8 +54,8 @@ class Wrist: public Mechanism{
         double GetRelPos();
         double GetAbsEncoderPos();
         
-        TalonFX m_wristMotor {Ids::WRIST_MOTOR};
-        frc::DutyCycleEncoder m_wristEncoder{Ids::WRIST_ENCODER_CAN_ID};
+        TalonFX m_wristMotor {IntakeConstants::WRIST_MOTOR};
+        frc::DutyCycleEncoder m_wristEncoder{IntakeConstants::WRIST_ENCODER_CAN_ID};
 
         //MEMBER VARS
         //state vars

@@ -22,11 +22,11 @@ void Intake::CoreTeleopPeriodic(){
             if (m_wrist.GetState() == Wrist::AT_TARGET)
                 m_wrist.Coast();
             else if (m_wrist.GetState() == Wrist::COAST){
-                /* if (beambreak1){
+                if (GetBeamBreak1()){
                     m_rollers.SetState(Rollers::RETAIN);
                     m_wrist.MoveTo(STOWED_POS);
                     m_actionState = NONE;
-                }*/
+                }
             }
             break; 
         case PASSTHROUGH:
@@ -122,7 +122,9 @@ bool Intake::InChannel(){
 }
 
 bool Intake::InIntake(){
-    // if(beam break 1 broken)
-    return true;
-    // else return false;
+    return GetBeamBreak1();
+}
+
+bool Intake::GetBeamBreak1() {
+    return m_beamBreak1.Get();
 }
