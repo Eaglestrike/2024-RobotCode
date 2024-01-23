@@ -3,7 +3,7 @@
 #include <ctre/phoenix6/TalonFX.hpp>
 #include "Util/Mechanism.h"
 #include "ShuffleboardSender/ShuffleboardSender.h"
-#include "Constants/MechanismConstants.h"
+#include "Constants/IntakeConstants.h"
 
 using ctre::phoenix6::hardware::TalonFX;
 
@@ -25,7 +25,7 @@ class Channel : public Mechanism{
 private:
   void SetVoltage();
   ChannelState m_state{STOP};
-  TalonFX m_channelMotor{Ids::CHANNEL_MOTOR};
+  TalonFX m_channelMotor{IntakeConstants::CHANNEL_MOTOR};
   ShuffleboardSender m_shuff {"Channel", false};
 
   //Constants

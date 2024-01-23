@@ -2,7 +2,7 @@
 
 #include <ctre/phoenix6/TalonFX.hpp>
 #include "Util/Mechanism.h"
-#include "Constants/MechanismConstants.h"
+#include "Constants/IntakeConstants.h"
 #include "ShuffleboardSender/ShuffleboardSender.h"
 
 using ctre::phoenix6::hardware::TalonFX;
@@ -29,7 +29,7 @@ class Rollers : public Mechanism{
 
 private:
   RollerState m_state{STOP};
-  TalonFX m_rollerMotor{Ids::ROLLER_MOTOR, "rio"};
+  TalonFX m_rollerMotor{IntakeConstants::ROLLER_MOTOR, "rio"};
   ShuffleboardSender m_shuff{"Rollers", false};
 
   //Constants
