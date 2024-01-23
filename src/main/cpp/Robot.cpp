@@ -21,7 +21,7 @@ Robot::Robot() :
   m_odom{true},
   m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
   m_prevIsLogging{false},
-  m_autoPath{true, m_swerveController, m_odom}
+  m_autoPath{false, m_swerveController, m_odom}
   {
   // navx
   try
