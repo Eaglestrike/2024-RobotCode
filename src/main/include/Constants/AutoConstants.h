@@ -66,7 +66,28 @@ namespace AutoConstants {
     {SHOOT, AFTER, "", 1.0}
   };
 
+  const AutoPath TEST2 = {
+    {DRIVE, AFTER, "testIntake"},
+    {INTAKE, BEFORE_END},
+    {DRIVE, AFTER, "zero", 4.0},
+    {STOW, AT_START, "", 1.0},
+    {SHOOT, AFTER, "", 1.0}
+  };
+
+  //Shuffleboard paths
+  const std::vector<std::pair<std::string, AutoPath>> PATHS = {
+      {"drive and intake", TEST},
+      {"drive and intake wait",TEST2},
+      {"Nothing", {}}
+  };
+
   const double SHOOT_TIME = 1.0;
   const double INTAKE_TIME = 1.0;
   const double STOW_TIME = 1.0;
+
+  //Time padding
+  const double DRIVE_PADDING = 0.5;
+  const double INTAKE_PADDING = 0.5;
+  const double STOW_PADDING = 0.5;
+  const double SHOOT_PADDING = 0.0;
 }

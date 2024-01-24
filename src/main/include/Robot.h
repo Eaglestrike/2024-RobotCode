@@ -22,12 +22,12 @@
 #include "Intake/Channel.h"
 #include "Intake/Intake.h"
 #include "Intake/Rollers.h"
+#include "Auto/Auto.h"
 #include "Util/Logger.h"
 #include "Util/Odometry.h"
 #include "Util/SocketClient.h"
 
-// FOR DEBUG ONLY
-#include "Auto/AutoPathSegment.h"
+#include "Constants/AutoConstants.h"
 
 class Robot : public frc::TimedRobot {
 public:
@@ -61,6 +61,11 @@ private:
   //intake
   Intake m_intake {true, true};
 
+  //Auto 
+  Auto m_auto;
+  frc::SendableChooser<AutoConstants::AutoPath&> m_auto1;
+  frc::SendableChooser<AutoConstants::AutoPath&> m_auto2;
+
   // Jetson
   #if SWERVE_AUTOTUNING
   FFAutotuner m_swerveXTuner{"Swerve X", FFAutotuner::SIMPLE}; //0.1833, 1.455, 0.1410
@@ -78,8 +83,4 @@ private:
   FRCLogger m_logger;
   bool m_prevIsLogging;
 
-  // DEBUG ONLY
-  AutoPathSegment m_autoPath;
-  frc::SendableChooser<std::string> m_chooser;
-  // double m_wheelAng = 0;
 };

@@ -146,8 +146,8 @@ void AutoPathSegment::Periodic() {
   const double curExpectedAng = m_spline.ang(curTimeRel)[0];
 
   // get feed forward velocity 
-  const vec::Vector2D curExpectedVel = m_posSpline.getVel(curTimeRel);
-  const double curExpectedAngVel = m_angSpline.getVel(curTimeRel)[0]; // only feedback -> set to 0
+  const vec::Vector2D curExpectedVel = m_spline.pos.getVel(curTimeRel);
+  const double curExpectedAngVel = m_spline.ang.getVel(curTimeRel)[0]; // only feedback -> set to 0
 
   // get current pos
   const vec::Vector2D curPos = m_odom.GetPos();

@@ -16,13 +16,13 @@ using namespace Actions;
 
 Robot::Robot() :
   m_swerveController{true, false},
+  m_auto{true, m_swerveController, m_odom, m_intake},
   m_client{"10.1.14.52", 5590, 300, 5000},
   m_isSecondTag{false},
   m_odom{true},
   m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
-  m_prevIsLogging{false},
-  m_autoPath{false, m_swerveController, m_odom}
-  {
+  m_prevIsLogging{false}
+{
   // navx
   try
   {
@@ -81,7 +81,7 @@ Robot::Robot() :
 
 void Robot::RobotInit() {
   ShuffleboardInit();
-  m_autoPath.ShuffleboardInit();
+  m_auto.ShuffleboardInit();
   m_odom.ShuffleboardInit();
 
   m_navx->Reset();
@@ -104,7 +104,7 @@ void Robot::RobotInit() {
  */
 void Robot::RobotPeriodic() {
   ShuffleboardPeriodic();
-  m_autoPath.ShuffleboardPeriodic();
+  m_auto.ShuffleboardPeriodic();
   m_odom.ShuffleboardPeriodic();
 
   if (m_controller.getPressedOnce(ZERO_YAW)) {
@@ -139,14 +139,11 @@ void Robot::AutonomousInit() {
   m_swerveController.SetAngCorrection(false);
   m_swerveController.SetAutoMode(true);
   
-  m_autoPath.Start();
+  m_auto.AutoInit();
 }
 
 void Robot::AutonomousPeriodic() {
-  frc::SmartDashboard::PutNumber("percent done", m_autoPath.GetProgress() * 100);
-
-  m_autoPath.Periodic();
-  m_swerveController.Periodic();
+  m_auto.AutoPeriodic();
 }
 
 void Robot::TeleopInit() {
@@ -215,11 +212,10 @@ void Robot::DisabledInit() {}
 
 void Robot::DisabledPeriodic() {
   // AUTO
-  {
-    std::string selected = m_chooser.GetSelected();
-    selected += ".csv";
-    m_autoPath.SetAutoPath(selected);
-  }
+  AutoConstants::AutoPath &selected = m_auto1.GetSelected();
+  m_auto.SetPath(selected,0);
+  selected = m_auto2.GetSelected();
+  m_auto.SetPath(selected,1);
 }
 
 void Robot::TestInit() {}
@@ -258,26 +254,12 @@ void Robot::SimulationPeriodic() {}
 void Robot::ShuffleboardInit() {
   frc::SmartDashboard::PutBoolean("Logging", false);
 
-  // DEBUG
-  {
-    if (AutoConstants::DEPLOY_FILES.size() > 0) {
-      m_chooser.SetDefaultOption(AutoConstants::DEPLOY_FILES[0], AutoConstants::DEPLOY_FILES[0]);
-    }
-    for (std::string fname : AutoConstants::DEPLOY_FILES) {
-      m_chooser.AddOption(fname, fname);
-    }
-    frc::SmartDashboard::PutData("Auto Spline Chooser", &m_chooser);
-
-    // double navXAngVel = m_odom.GetAngVel();
-    // double wheelAngVel = m_swerveController.GetRobotAngularVel();
-
-    // frc::SmartDashboard::PutNumber("navX Ang Vel", navXAngVel);
-    // frc::SmartDashboard::PutNumber("wheel Ang Vel", m_swerveController.GetRobotAngularVel());
-    // frc::SmartDashboard::PutNumber("diff Ang Vel", navXAngVel - wheelAngVel);
-
-    // frc::SmartDashboard::PutNumber("wheel ang", m_wheelAng);
-    // frc::SmartDashboard::PutNumber("error ang", 0);
+  // Auto
+  for (auto path : AutoConstants::PATHS) {
+    m_auto1.AddOption(path.first, path.second);
+    m_auto2.AddOption(path.first, path.second);
   }
+  frc::SmartDashboard::PutData("Auto Spline Chooser", &m_auto1);
 }
 
 /**
