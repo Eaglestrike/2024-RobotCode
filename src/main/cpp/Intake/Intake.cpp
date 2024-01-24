@@ -1,8 +1,8 @@
 #include "Intake/Intake.h"
 
 Intake::Intake(bool enabled, bool dbg):
-    Mechanism("intake",enabled, dbg),
-    m_rollers{false, dbg},
+    Mechanism("intake", enabled, dbg),
+    m_rollers{true, dbg},
     m_wrist{enabled, dbg},
     m_channel{false, dbg},
     m_shuff{"intake", dbg}
@@ -177,6 +177,21 @@ void Intake::CoreShuffleboardPeriodic(){
             break;
         case NONE:
             m_shuff.PutString("State", "None");
+            break;
+    }
+
+    switch(m_wrist.GetState()){
+        case Wrist:: MOVING:
+            m_shuff.PutString("Wrist", "Moving");
+            break;
+        case Wrist::AT_TARGET:
+            m_shuff.PutString("Wrist", "At target");
+            break;
+        case Wrist::STOPPED:
+            m_shuff.PutString("Wrist", "Stppped");
+            break;
+        case Wrist::COAST:
+            m_shuff.PutString("Wrist", "Coast");
             break;
     }
     m_shuff.update(true);

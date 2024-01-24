@@ -86,7 +86,7 @@ class Wrist: public Mechanism{
         double MAX_POS = 1.9, MIN_POS = -0.75;
 
         double MAX_VEL = 20.0, MAX_ACC = 17.0;
-        double POS_TOLERANCE = 0.0;
+        double POS_TOLERANCE = 0.05;
 
         double ENCODER_OFFSET = 1.68 + M_PI/2.0 - 1.3411;
         
