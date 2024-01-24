@@ -54,6 +54,7 @@ namespace AutoConstants {
     AutoAction action;
     AutoType type;
     std::string data = ""; //String to select files or other data
+    double offset = 0.0;
   };
 
   using AutoPath = std::vector<AutoElement>;
