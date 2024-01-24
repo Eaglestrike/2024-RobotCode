@@ -12,7 +12,9 @@ Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, Intake &int
     intake_{intake},
     shuff_{"Auto", shuffleboard}
 {
-
+    ResetTiming(intakeTiming_);
+    ResetTiming(shooterTiming_);
+    ResetTiming(driveTiming_);
 }
 
 void Auto::SetPath(AutoPath path, int index){
@@ -105,7 +107,7 @@ void Auto::IntakePeriodic(double t){
  * Sets up the next block (the actions between 2 AFTERS)
 */
 void Auto::NextBlock(){
-    if(pathNum_ >= paths_.size()){
+    if(pathNum_ >= (int)paths_.size()){
         return;
     }
     
@@ -140,7 +142,7 @@ void Auto::NextBlock(){
     index_++;
 
     //Lookahead for execution in this block
-    for(;index_ < path.size();index_++){
+    for(;index_ < (int)path.size();index_++){
         AutoElement element = path[index_];
         if(element.type == AFTER){
             break;
@@ -148,7 +150,7 @@ void Auto::NextBlock(){
         EvaluateElement(element);
     }
 
-    if(index_ >= path.size()){//Finished this path
+    if(index_ >= (int)path.size()){//Finished this path
         pathNum_++;
         index_ = 0;
         return;
