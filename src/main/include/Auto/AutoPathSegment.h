@@ -8,6 +8,8 @@
 #include "Util/PID.h"
 #include "Util/Poses.h"
 
+#include "ShuffleboardSender/ShuffleboardSender.h"
+
 namespace hm = hermite;
 
 /**
@@ -58,4 +60,6 @@ private:
   PID m_posCorrectX;
   PID m_posCorrectY;
   PID m_angCorrect;
+
+  ShuffleboardSender m_shuff;
 };

@@ -24,7 +24,8 @@ AutoPathSegment::AutoPathSegment(bool shuffleboard, SwerveControl &swerve, Odome
   m_hasStarted{false},
   m_posCorrectX{{AutoConstants::DRIVE_P, AutoConstants::DRIVE_I, AutoConstants::DRIVE_D}},
   m_posCorrectY{{AutoConstants::DRIVE_P, AutoConstants::DRIVE_I, AutoConstants::DRIVE_D}},
-  m_angCorrect{{AutoConstants::ANG_P, AutoConstants::ANG_I, AutoConstants::ANG_D}}
+  m_angCorrect{{AutoConstants::ANG_P, AutoConstants::ANG_I, AutoConstants::ANG_D}},
+  m_shuff{"Auto Segment", shuffleboard}
 {
   m_posCorrectX.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
   m_posCorrectY.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
@@ -167,9 +168,9 @@ void AutoPathSegment::Periodic() {
   const vec::Vector2D correctVel = {correctVelX, correctVelY};
 
   if (m_shuffleboard) {
-    frc::SmartDashboard::PutNumber("error x", curExpectedPos.x() - curPos.x());
-    frc::SmartDashboard::PutNumber("error y", curExpectedPos.y() - curPos.y());
-    frc::SmartDashboard::PutNumber("error ang", curExpectedAng - curAng);
+    m_shuff.PutNumber("error x", curExpectedPos.x() - curPos.x(), {1,1,4,4});
+    m_shuff.PutNumber("error y", curExpectedPos.y() - curPos.y(), {1,1,5,4});
+    m_shuff.PutNumber("error ang", curExpectedAng - curAng, {1,1,6,4});
   }
 
   // set velocity to swerve
@@ -292,16 +293,16 @@ void AutoPathSegment::ShuffleboardInit() {
     return;
   }
 
-  frc::SmartDashboard::PutNumber("trans kP", AutoConstants::DRIVE_P);
-  frc::SmartDashboard::PutNumber("trans kI", AutoConstants::DRIVE_I);
-  frc::SmartDashboard::PutNumber("trans kD", AutoConstants::DRIVE_D);
+  m_shuff.PutNumber("trans kP", AutoConstants::DRIVE_P, {1,1,0,0});
+  m_shuff.PutNumber("trans kI", AutoConstants::DRIVE_I, {1,1,1,0});
+  m_shuff.PutNumber("trans kD", AutoConstants::DRIVE_D, {1,1,2,0});
 
-  frc::SmartDashboard::PutNumber("turn kP", AutoConstants::ANG_P);
-  frc::SmartDashboard::PutNumber("turn kI", AutoConstants::ANG_I);
-  frc::SmartDashboard::PutNumber("turn kD", AutoConstants::ANG_D);
+  m_shuff.PutNumber("turn kP", AutoConstants::ANG_P, {1,1,0,1});
+  m_shuff.PutNumber("turn kI", AutoConstants::ANG_I, {1,1,1,1});
+  m_shuff.PutNumber("turn kD", AutoConstants::ANG_D, {1,1,2,1});
 
-  frc::SmartDashboard::PutNumber("pos tol", AutoConstants::POS_TOL);
-  frc::SmartDashboard::PutNumber("ang tol", AutoConstants::ANG_TOL);
+  m_shuff.PutNumber("pos tol", AutoConstants::POS_TOL, {1,1,0,2});
+  m_shuff.PutNumber("ang tol", AutoConstants::ANG_TOL, {1,1,1,2});
 }
 
 void AutoPathSegment::ShuffleboardPeriodic() {
@@ -309,22 +310,22 @@ void AutoPathSegment::ShuffleboardPeriodic() {
     return;
   }
 
-  double kP = frc::SmartDashboard::GetNumber("trans kP", AutoConstants::DRIVE_P);
-  double kI = frc::SmartDashboard::GetNumber("trans kI", AutoConstants::DRIVE_I);
-  double kD = frc::SmartDashboard::GetNumber("trans kD", AutoConstants::DRIVE_D);
-
+  double kP = m_shuff.GetNumber("trans kP", AutoConstants::DRIVE_P);
+  double kI = m_shuff.GetNumber("trans kI", AutoConstants::DRIVE_I);
+  double kD = m_shuff.GetNumber("trans kD", AutoConstants::DRIVE_D);
   SetDrivePID(kP, kI, kD);
 
-  double wkP =  frc::SmartDashboard::GetNumber("turn kP", AutoConstants::ANG_P);
-  double wkI =  frc::SmartDashboard::GetNumber("turn kI", AutoConstants::ANG_I);
-  double wkD =  frc::SmartDashboard::GetNumber("turn kD", AutoConstants::ANG_D);
-
+  double wkP =  m_shuff.GetNumber("turn kP", AutoConstants::ANG_P);
+  double wkI =  m_shuff.GetNumber("turn kI", AutoConstants::ANG_I);
+  double wkD =  m_shuff.GetNumber("turn kD", AutoConstants::ANG_D);
   SetAngPID(wkP, wkI, wkD);
 
-  double pTol = frc::SmartDashboard::GetNumber("pos tol", AutoConstants::POS_TOL);
+  double pTol = m_shuff.GetNumber("pos tol", AutoConstants::POS_TOL);
   SetDriveTol(pTol);
-  double aTol = frc::SmartDashboard::GetNumber("ang tol", AutoConstants::ANG_TOL);
+  double aTol = m_shuff.GetNumber("ang tol", AutoConstants::ANG_TOL);
   SetAngTol(aTol);
 
-  frc::SmartDashboard::PutBoolean("At Target", AtTarget());
+  m_shuff.PutBoolean("At Target", AtTarget(), {3,3,5,0});
+
+  m_shuff.update(true);
 }

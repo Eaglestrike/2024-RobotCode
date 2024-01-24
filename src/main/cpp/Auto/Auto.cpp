@@ -303,6 +303,7 @@ void Auto::ShuffleboardInit(){
     if(!shuff_.isEnabled()){
         return;
     }
+    segments_.ShuffleboardInit();
     //Block (row 0)
     shuff_.add("Path", &pathNum_, {1,1,0,0});
     shuff_.add("Index", &index_, {1,1,1,0});
@@ -334,6 +335,7 @@ void Auto::ShuffleboardPeriodic(){
     if(!shuff_.isEnabled()){
         return;
     }
+    segments_.ShuffleboardPeriodic();
     shuff_.PutNumber("time", Utils::GetCurTimeS());
     shuff_.PutNumber("Drive Progress", segments_.GetProgress());
     shuff_.update(false); //No tuning for auto
