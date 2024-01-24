@@ -212,10 +212,10 @@ void Robot::DisabledInit() {}
 
 void Robot::DisabledPeriodic() {
   // AUTO
-  AutoConstants::AutoPath &selected = m_auto1.GetSelected();
-  m_auto.SetPath(selected,0);
-  selected = m_auto2.GetSelected();
-  m_auto.SetPath(selected,1);
+  std::string path = m_auto1.GetSelected();
+  m_auto.SetPath(AutoConstants::PATHS.at(path),0);
+  path = m_auto2.GetSelected();
+  m_auto.SetPath(AutoConstants::PATHS.at(path),1);
 }
 
 void Robot::TestInit() {}
@@ -256,8 +256,8 @@ void Robot::ShuffleboardInit() {
 
   // Auto
   for (auto path : AutoConstants::PATHS) {
-    m_auto1.AddOption(path.first, path.second);
-    m_auto2.AddOption(path.first, path.second);
+    m_auto1.AddOption(path.first, path.first);
+    m_auto2.AddOption(path.first, path.first);
   }
   frc::SmartDashboard::PutData("Auto Spline Chooser", &m_auto1);
 }

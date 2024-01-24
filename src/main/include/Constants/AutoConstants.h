@@ -2,22 +2,11 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "Util/Utils.h"
 
 namespace AutoConstants {
-  const std::vector<std::string> DEPLOY_FILES = {
-    "hehe",
-    "4pieceswooo",
-    "aprilTagOdomTest",
-    "aprilTagOdomTest7s",
-    "aprilTagOdomTest4s",
-    "aprilTagOdomTest3s",
-    "aprilTagOdomTest2s",
-    "odometryTest",
-    "odometryTestCurve"
-  };
-
   // Translational PID after FF
   // TODO change
   const double DRIVE_P = 15;
@@ -68,17 +57,20 @@ namespace AutoConstants {
 
   const AutoPath TEST2 = {
     {DRIVE, AFTER, "testIntake"},
-    {INTAKE, BEFORE_END},
+    {INTAKE, BEFORE_END, "", 1.0},
     {DRIVE, AFTER, "zero", 4.0},
     {STOW, AT_START, "", 1.0},
     {SHOOT, AFTER, "", 1.0}
   };
 
+  const AutoPath NOTHING = {
+  };
+
   //Shuffleboard paths
-  const std::vector<std::pair<std::string, AutoPath>> PATHS = {
+  const std::map<std::string, AutoPath> PATHS = {
       {"drive and intake", TEST},
-      {"drive and intake wait",TEST2},
-      {"Nothing", {}}
+      {"drive and intake wait", TEST2},
+      {"Nothing", NOTHING}
   };
 
   const double SHOOT_TIME = 1.0;

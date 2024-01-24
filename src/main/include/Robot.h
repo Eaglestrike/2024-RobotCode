@@ -63,8 +63,8 @@ private:
 
   //Auto 
   Auto m_auto;
-  frc::SendableChooser<AutoConstants::AutoPath&> m_auto1;
-  frc::SendableChooser<AutoConstants::AutoPath&> m_auto2;
+  frc::SendableChooser<std::string> m_auto1;
+  frc::SendableChooser<std::string> m_auto2;
 
   // Jetson
   #if SWERVE_AUTOTUNING

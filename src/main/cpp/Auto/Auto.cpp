@@ -28,9 +28,10 @@ void Auto::AutoInit(){
     index_ = 0;
 
     segments_.Clear();
-    shooterTiming_.finished = true;
-    intakeTiming_.finished = true;
-    driveTiming_.finished = true;
+
+    ResetTiming(intakeTiming_);
+    ResetTiming(shooterTiming_);
+    ResetTiming(driveTiming_);
 
     NextBlock();
 }
@@ -107,6 +108,10 @@ void Auto::NextBlock(){
     if(pathNum_ >= paths_.size()){
         return;
     }
+    
+    ResetTiming(intakeTiming_);
+    ResetTiming(shooterTiming_);
+    ResetTiming(driveTiming_);
 
     AutoPath path = paths_[pathNum_];
     AutoElement firstElement = path[index_];
@@ -249,6 +254,16 @@ void Auto::EvaluateIntakeElement(AutoConstants::AutoElement element){
 }
 
 /**
+ * Sets the timing to be done
+*/
+void Auto::ResetTiming(Auto::SubsystemTiming& timing){
+    timing.start = 0.0;
+    timing.end = 0.0;
+    timing.finished = true;
+    timing.hasStarted = true;
+}
+
+/**
  * Reads all paths from file
 */
 void Auto::LoadPath(const AutoPath& path){
@@ -263,12 +278,36 @@ void Auto::ShuffleboardInit(){
     if(!shuff_.isEnabled()){
         return;
     }
-    shuff_.add("Index", &index_, {1,1,1,0}, false);
+    //Block (row 0)
+    shuff_.add("Path", &pathNum_, {1,1,0,0});
+    shuff_.add("Index", &index_, {1,1,1,0});
+    shuff_.add("Block Start", &blockStart_, {1,1,2,0});
+    shuff_.add("Block End", &blockEnd_, {1,1,3,0});
+    shuff_.PutNumber("time", 0.0, {1,1,4,0});
+
+    //Drive Timing (row 1)
+    shuff_.add("Drive Start", &driveTiming_.start, {1,1,0,1});
+    shuff_.add("Drive End", &driveTiming_.end, {1,1,1,1});
+    shuff_.add("Drive Has Started", &driveTiming_.hasStarted, {1,1,2,1});
+    shuff_.add("Drive Has Finished", &driveTiming_.finished, {1,1,3,1});
+
+    //Shooter Timing (row 2)
+    shuff_.add("Shooter Start", &shooterTiming_.start, {1,1,0,2});
+    shuff_.add("Shooter End", &shooterTiming_.end, {1,1,1,2});
+    shuff_.add("Shooter Has Started", &shooterTiming_.hasStarted, {1,1,2,2});
+    shuff_.add("Shooter Has Finished", &shooterTiming_.finished, {1,1,3,2});
+    
+    //Intake Timing (row 3)
+    shuff_.add("Intake Start", &intakeTiming_.start, {1,1,0,3});
+    shuff_.add("Intake End", &intakeTiming_.end, {1,1,1,3});
+    shuff_.add("Intake Has Started", &intakeTiming_.hasStarted, {1,1,2,3});
+    shuff_.add("Intake Has Finished", &intakeTiming_.finished, {1,1,3,3});
 }
 
 void Auto::ShuffleboardPeriodic(){
     if(!shuff_.isEnabled()){
         return;
     }
-    shuff_.update(true);
+    shuff_.PutNumber("time", Utils::GetCurTimeS());
+    shuff_.update(false); //No tuning for auto
 }
