@@ -144,7 +144,7 @@ void Robot::AutonomousInit() {
 
 void Robot::AutonomousPeriodic() {
   m_auto.AutoPeriodic();
-  m_swerveController.TeleopPeriodic();
+  m_swerveController.Periodic();
   m_intake.TeleopPeriodic();
 }
 
@@ -154,22 +154,6 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-  // double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.1);
-  // double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.1);
-
-  // double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.1);
-
-  // double mult = SwerveConstants::NORMAL_SWERVE_MULT;
-  // double vx = std::clamp(lx, -1.0, 1.0) * mult;
-  // double vy = std::clamp(ly, -1.0, 1.0) * mult;
-  // double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
-
-  // vec::Vector2D setVel = {-vy, -vx};
-  // double curYaw = m_navx->GetYaw();
-
-  // m_swerveController.SetRobotVelocityTele(setVel, w, 0, 0);
-  // m_swerveController.Periodic();
-
   //Swerve
   double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
   double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
