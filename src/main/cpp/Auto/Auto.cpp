@@ -7,6 +7,11 @@ using AutoElement = AutoConstants::AutoElement;
 using enum AutoConstants::AutoType;
 using enum AutoConstants::AutoAction;
 
+/**
+ * Auto class
+ * 
+ * @note does not call periodic calls of mechanisms
+*/
 Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, Intake &intake):
     segments_{shuffleboard, swerve, odom},
     intake_{intake},
@@ -17,14 +22,20 @@ Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, Intake &int
     ResetTiming(driveTiming_);
 }
 
-void Auto::SetPath(AutoPath path, int index){
-    for(int i = paths_.size() - 1; i < index; i++){
+/**
+ * Sets the path to run at some index
+*/
+void Auto::SetPath(AutoPath path, uint index){
+    for(uint i = paths_.size() - 1; i < index; i++){
         paths_.push_back({});
     }
     paths_[index] = path;
     LoadPath(path);
 }
 
+/**
+ * Autonomous Init
+*/
 void Auto::AutoInit(){
     pathNum_ = 0;
     index_ = 0;
@@ -38,6 +49,9 @@ void Auto::AutoInit(){
     NextBlock();
 }
 
+/**
+ * Autonomous Periodic
+*/
 void Auto::AutoPeriodic(){
     double t = Utils::GetCurTimeS();
 
@@ -51,6 +65,9 @@ void Auto::AutoPeriodic(){
     IntakePeriodic(t);
 }
 
+/**
+ * Execution for drive
+*/
 void Auto::DrivePeriodic(double t){
     if(!driveTiming_.hasStarted && t > driveTiming_.start){
         segments_.Start();
@@ -66,6 +83,9 @@ void Auto::DrivePeriodic(double t){
     }
 }
 
+/**
+ * Execution for shooter
+*/
 void Auto::ShooterPeriodic(double t){
     if(!shooterTiming_.hasStarted && t > shooterTiming_.start){
         //shooter_.shoot()
@@ -78,6 +98,9 @@ void Auto::ShooterPeriodic(double t){
     //shooter_.prepare();
 }
 
+/**
+ * Execution for intake
+*/
 void Auto::IntakePeriodic(double t){
     //First Action
     if(!intakeTiming_.hasStarted && t > intakeTiming_.start){
@@ -292,6 +315,7 @@ void Auto::ShuffleboardInit(){
     shuff_.add("Drive End", &driveTiming_.end, {1,1,1,1});
     shuff_.add("Drive Has Started", &driveTiming_.hasStarted, {1,1,2,1});
     shuff_.add("Drive Has Finished", &driveTiming_.finished, {1,1,3,1});
+    shuff_.PutNumber("Drive Progress", 0.0, {1,1,4,1});
 
     //Shooter Timing (row 2)
     shuff_.add("Shooter Start", &shooterTiming_.start, {1,1,0,2});
@@ -311,5 +335,6 @@ void Auto::ShuffleboardPeriodic(){
         return;
     }
     shuff_.PutNumber("time", Utils::GetCurTimeS());
+    shuff_.PutNumber("Drive Progress", segments_.GetProgress());
     shuff_.update(false); //No tuning for auto
 }

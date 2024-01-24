@@ -144,6 +144,8 @@ void Robot::AutonomousInit() {
 
 void Robot::AutonomousPeriodic() {
   m_auto.AutoPeriodic();
+  m_swerveController.TeleopPeriodic();
+  m_intake.TeleopPeriodic();
 }
 
 void Robot::TeleopInit() {

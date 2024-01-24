@@ -14,7 +14,7 @@
 class Auto{
     public:
         Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, Intake &intake);
-        void SetPath(AutoConstants::AutoPath path, int index);
+        void SetPath(AutoConstants::AutoPath path, uint index);
 
         void AutoInit();
         void AutoPeriodic();
