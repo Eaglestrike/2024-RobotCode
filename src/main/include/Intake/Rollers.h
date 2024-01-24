@@ -34,10 +34,10 @@ class Rollers : public Mechanism{
     ShuffleboardSender m_shuff;
 
     //Constants
-    double MAX_VOLTS = 12.0;
+    double MAX_VOLTS = 10.0;
     double KEEP_VOLTS = 0.0;
-    double IN_VOLTS = 3.0;
-    double OUT_VOLTS = -3.0;
+    double IN_VOLTS = -3.0;
+    double OUT_VOLTS = 2.8; // 3.3
 
     //for dbg
     double m_voltReq = 0.0;

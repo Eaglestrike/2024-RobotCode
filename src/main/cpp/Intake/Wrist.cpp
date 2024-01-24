@@ -7,19 +7,20 @@ Wrist::Wrist(bool enabled, bool dbg):
     m_shuff{"Wrist", dbg}
 {
     UpdatePose();
+    
     m_setPt = m_curPos;
     m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
 }
 
 void Wrist::Zero() {
     m_absEncoderInit = GetAbsEncoderPos();
-    m_wristMotor.SetPosition(units::turn_t(0.0));
+    m_wristMotor.SetPosition(units::turn_t(0));
 }
 
 
 // absolute encoder pos in radians
 double Wrist::GetAbsEncoderPos() {
-    return m_wristEncoder.GetAbsolutePosition() * 2 * M_PI + WRIST_ABS_ENCODER_OFFSET;
+    return -m_wristEncoder.GetAbsolutePosition().GetValueAsDouble() * 18.0 / 66.0 * 2.0 * M_PI + ENCODER_OFFSET;
 }
 
 
@@ -67,6 +68,7 @@ void Wrist::CoreTeleopPeriodic(){
         default:
             wristVolts = 0.0;
     }
+    std::cout << wristVolts<< std::endl;
     m_wristMotor.SetVoltage(units::volt_t(std::clamp(-wristVolts, -MAX_VOLTS, MAX_VOLTS)));
 }
 
@@ -108,7 +110,7 @@ Wrist::MechState Wrist::GetState(){
 
 // need to check
 double Wrist::GetRelPos() {
-    return m_wristMotor.GetPosition().GetValueAsDouble()  * 2 * M_PI * REL_CONV_FACTOR+ m_absEncoderInit;
+    return -m_wristMotor.GetPosition().GetValueAsDouble()  * 2 * M_PI * REL_CONV_FACTOR + ENCODER_OFFSET;
 }
 
 //Updates the current position, velocity, and acceleration of the wrist
@@ -157,7 +159,7 @@ double Wrist::FFPIDCalculate(){
     double s = m_s;
     if (m_targetVel < 0) s = -m_s;
     else if (m_targetVel == 0) s = 0;
-    double ff = m_g * cos(m_targetPos) + s + m_v*m_targetVel + m_a*m_targetAcc;
+    double ff = m_g * cos(m_curPos) + s + m_v*m_targetVel + m_a*m_targetAcc;
     if (shuffleboard_){
         //see how each term is contributing to ff (row 4)
         m_shuff.PutNumber("posErr", posErr); 
@@ -173,6 +175,10 @@ void Wrist::CoreShuffleboardInit(){
     m_shuff.add("Pos", &m_curPos, {1,1,0,0},false);
     m_shuff.add("Vel", &m_curVel, {1,1,1,0},false);
     m_shuff.add("Acc", &m_curAcc, {1,1,2,0},false);
+
+    m_shuff.add("targ Pos", &m_targetPos, {1,1,0,0},false);
+    m_shuff.add("targ Vel", &m_targetVel, {1,1,1,0},false);
+    m_shuff.add("targ Acc", &m_targetAcc, {1,1,2,0},false);
     m_shuff.PutString("State", "", {1,1,3,0});
 
     //Test Voltage (row 1)
@@ -203,7 +209,7 @@ void Wrist::CoreShuffleboardInit(){
     #endif
 
     //Constants (row 4)
-    m_shuff.add("Offset", &WRIST_ABS_ENCODER_OFFSET, {1,1,0,4}, true);
+    m_shuff.add("Offset", &ENCODER_OFFSET, {1,1,0,4}, true);
     m_shuff.add("Max Pos", &MAX_POS, {1,1,1,4}, true);
     m_shuff.add("Min Pos", &MIN_POS, {1,1,2,4}, true);
     m_shuff.add("Tolerance", &POS_TOLERANCE, {1,1,3,4}, true);

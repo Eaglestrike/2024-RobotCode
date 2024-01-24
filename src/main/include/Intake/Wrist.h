@@ -1,10 +1,10 @@
 #pragma once
 
-#define WRIST_AUTOTUNING true
+#define WRIST_AUTOTUNING false
 
 #include <ctre/phoenix6/TalonFX.hpp>
 #include <frc/smartdashboard/SmartDashboard.h>
-#include <frc/DutyCycleEncoder.h>
+#include <ctre/phoenix6/CANcoder.hpp>
 #include "Util/Mechanism.h"
 #include "ShuffleboardSender/ShuffleboardSender.h"
 #include "Constants/IntakeConstants.h"
@@ -14,6 +14,7 @@
 #endif
 
 using ctre::phoenix6::hardware::TalonFX;
+using ctre::phoenix6::hardware::CANcoder;
 
 class Wrist: public Mechanism{
     public:
@@ -55,7 +56,7 @@ class Wrist: public Mechanism{
         double GetAbsEncoderPos();
         
         TalonFX m_wristMotor {IntakeConstants::WRIST_MOTOR};
-        frc::DutyCycleEncoder m_wristEncoder{IntakeConstants::WRIST_ENCODER_CAN_ID};
+        CANcoder m_wristEncoder{IntakeConstants::WRIST_ENCODER_CAN_ID};
 
         //MEMBER VARS
         //state vars
@@ -79,15 +80,15 @@ class Wrist: public Mechanism{
         #endif
 
         //Constants
-        double m_kp = 0.0, m_ki = 0.0, m_kd = 0.0;
-        double m_s = 0.0, m_g = 0.0, m_v = 0.0, m_a = 0.0;
+        double m_kp = 1.5, m_ki = 0.03, m_kd = 0.0;
+        double m_s = 0.32, m_g =0.455, m_v = 0.46, m_a = 0.045;
 
-        double MAX_POS = 0.0, MIN_POS = 0.0;
+        double MAX_POS = 1.9, MIN_POS = -0.75;
 
-        double MAX_VEL = 0.0, MAX_ACC = 0.0;
+        double MAX_VEL = 20.0, MAX_ACC = 17.0;
         double POS_TOLERANCE = 0.0;
 
-        double WRIST_ABS_ENCODER_OFFSET = 0.0;
+        double ENCODER_OFFSET = 1.68 + M_PI/2.0 - 1.3411;
         
         double MAX_VOLTS = 5.0;
         

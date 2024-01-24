@@ -61,7 +61,7 @@ class Intake: public Mechanism{
         double STOWED_POS = 0.0,
         INTAKE_POS = 0.0, 
         PASSTHROUGH_POS = 0.0,
-        AMP_OUT_POS = 0.0;
+        AMP_OUT_POS = 1.364; // 1.26 
 
         //frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
 

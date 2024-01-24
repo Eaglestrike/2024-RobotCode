@@ -2,7 +2,7 @@
 
 Intake::Intake(bool enabled, bool dbg):
     Mechanism("intake",enabled, dbg),
-    m_rollers{enabled, dbg},
+    m_rollers{false, dbg},
     m_wrist{enabled, dbg},
     m_channel{false, dbg},
     m_shuff{"intake", dbg}
@@ -27,6 +27,9 @@ void Intake::CoreTeleopPeriodic(){
     m_channel.TeleopPeriodic();
     
     switch(m_actionState){
+        case STOW:
+            if (m_wrist.GetState() == Wrist::AT_TARGET)
+                m_actionState = NONE;
         case AMP_INTAKE:
             if (m_wrist.GetState() == Wrist::AT_TARGET)
                 m_wrist.Coast();
@@ -73,7 +76,6 @@ void Intake::SetState(ActionState newAction){
         case STOW:
             newWristPos = STOWED_POS;
             m_rollers.SetState(Rollers::STOP);
-            //m_actionState = NONE;
             break; 
         case AMP_INTAKE:
             newWristPos = INTAKE_POS;
