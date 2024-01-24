@@ -62,8 +62,8 @@ namespace AutoConstants {
     {DRIVE, AFTER, "testIntake"},
     {INTAKE, BEFORE_END},
     {DRIVE, AFTER, "zero"},
-    {STOW, AT_START},
-    {SHOOT, AFTER}
+    {STOW, AT_START, "", 1.0},
+    {SHOOT, AFTER, "", 1.0}
   };
 
   const double SHOOT_TIME = 1.0;

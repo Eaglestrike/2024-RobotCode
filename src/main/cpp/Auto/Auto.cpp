@@ -14,7 +14,7 @@ Auto::Auto(SwerveControl &swerve, Odometry &odom, bool shuffleboard):
 }
 
 void Auto::SetPath(AutoPath path, int index){
-    while(paths_.size() < index){
+    for(int i = paths_.size() - 1; i < index; i++){
         paths_.push_back({});
     }
     paths_[index] = path;
@@ -80,7 +80,7 @@ void Auto::NextBlock(){
     AutoPath path = paths_[pathNum_];
     AutoElement firstElement = path[index_];
 
-    blockStart_ = Utils::GetCurTimeS();
+    blockStart_ = Utils::GetCurTimeS() + firstElement.offset;
 
     //Figure out the block duration/initialize the first element
     switch(firstElement.action){
@@ -155,17 +155,12 @@ bool Auto::EvaluateElement(AutoConstants::AutoElement element){
 */
 void Auto::EvaluateShootElement(AutoConstants::AutoElement element){
     shooterTiming_.finished = false;
-    //Set offset
-    double offset = 0.0;
-    if(element.data != ""){
-        offset = std::stod(element.data); //TODO CHECK IF THIS IS SAFE
-    }
     //Set timing
     if(element.type == AT_START){
-        shooterTiming_.start = blockStart_ + offset;
+        shooterTiming_.start = blockStart_ + element.offset;
     }
     else if(element.type == BEFORE_END){
-        shooterTiming_.start = blockEnd_ + AutoConstants::SHOOT_TIME - offset;
+        shooterTiming_.start = blockEnd_ + AutoConstants::SHOOT_TIME - element.offset;
     }
     else{
         std::cout<<"forgor deal with case SE "<< element.action <<std::endl;
@@ -179,21 +174,16 @@ void Auto::EvaluateShootElement(AutoConstants::AutoElement element){
 void Auto::EvaluateIntakeElement(AutoConstants::AutoElement element){
     intaking_ = (element.action == INTAKE);
     intakeTiming_.finished = false;
-    //Offset
-    double offset = 0.0;
-    if(element.data != ""){
-        offset = std::stod(element.data); //TODO CHECK IF THIS IS SAFE
-    }
     //Set timing
     if(element.type == AT_START){
-        intakeTiming_.start = blockStart_ + offset;
+        intakeTiming_.start = blockStart_ + element.offset;
     }
     else if(element.type == BEFORE_END){
         if(intaking_){
-            intakeTiming_.start = blockEnd_ - AutoConstants::INTAKE_TIME - offset;
+            intakeTiming_.start = blockEnd_ - AutoConstants::INTAKE_TIME - element.offset;
         }
         else{
-            intakeTiming_.start = blockEnd_ - AutoConstants::STOW_TIME - offset;
+            intakeTiming_.start = blockEnd_ - AutoConstants::STOW_TIME - element.offset;
         }
     }
     else{
