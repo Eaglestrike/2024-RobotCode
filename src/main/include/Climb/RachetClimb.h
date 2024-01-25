@@ -64,8 +64,8 @@ class RachetClimb : public Mechanism{
                 MAX_POS= 0.0, 
                 POS_TOLERANCE= 0.0; 
 
-        bool ON = true;
-        bool OFF = !ON;
+        bool BREAK = true;
+        bool OFF = !BREAK;
 
         double STILL_VOLTS = 0.0 ;
         StateInfo CLIMB_INFO =  {MIN_POS, 
