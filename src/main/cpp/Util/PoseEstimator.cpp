@@ -6,6 +6,11 @@
 #include "Util/Utils.h"
 
 /**
+ * Max time before rejecting cameras
+*/
+const double PoseEstimator::MAX_HISTORY_TIME = 0.3;
+
+/**
  * Constructor
  * 
  * @param stdDevs system standard deviation in x and y directions
@@ -137,6 +142,15 @@ void PoseEstimator::SetPos(const vec::Vector2D &pose) {
   m_basePose = pose;
   m_updates.clear();
   Update();
+}
+
+/**
+ * Sets Standard Deviation value
+ * 
+ * @param stdDev std dev value
+*/
+void PoseEstimator::SetQ(const vec::Vector2D &stdDev) {
+  m_q = Utils::MultiplyComps(stdDev, stdDev);
 }
 
 /**
