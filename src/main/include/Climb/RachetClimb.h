@@ -47,7 +47,7 @@ class RachetClimb : public Mechanism{
 
         TalonFX m_master {Ids::MASTER_CLIMB_MOTOR};//, m_slave {Ids::SLAVE_CLIMB_MOTOR};
         CANcoder m_absEncoder{Ids::CLIMB_ABS_ENCODER};
-        frc::DigitalOutput m_actuator{Ids::CLIMB_ABS_ENCODER};
+        frc::DigitalOutput m_actuator{Ids::ACTUATOR};
 
         double m_pos;
         Target m_targ = STOWED;
