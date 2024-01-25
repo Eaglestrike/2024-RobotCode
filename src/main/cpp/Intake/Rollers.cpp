@@ -119,7 +119,7 @@ switch(m_state){
  * Sets roller volts for both motors because FX and sRX differnt versions cannot do leader/follower
 */
 void Rollers::SetRollerVolts(double volts) {
-    volts = std::clamp(volts, -12.0, 12.0);
+    volts = std::clamp(volts, -MAX_VOLTS, MAX_VOLTS);
     m_rollerMotor.SetVoltage(units::volt_t{volts});
     m_rollerMotorBack.SetVoltage(units::volt_t{volts});
 }
