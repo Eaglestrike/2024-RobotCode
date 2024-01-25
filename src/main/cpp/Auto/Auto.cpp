@@ -115,8 +115,8 @@ void Auto::IntakePeriodic(double t){
     }
     //Check if finished
     if(intaking_){
-        //intakeTiming_.finished = intake_.hasGamePiece();
-        if(t > intakeTiming_.end + AutoConstants::INTAKE_PADDING){
+        if( (intake_.HasGamePiece()) ||
+            (t > intakeTiming_.end + AutoConstants::INTAKE_PADDING)){
             intakeTiming_.finished = true;
         }
     }
