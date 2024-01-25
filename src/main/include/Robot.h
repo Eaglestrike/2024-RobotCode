@@ -78,6 +78,8 @@ private:
   FRCLogger m_logger;
   bool m_prevIsLogging;
 
+  bool m_amp = true;
+
   // DEBUG ONLY
   AutoPathSegment m_autoPath;
   frc::SendableChooser<std::string> m_chooser;

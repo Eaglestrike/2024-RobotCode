@@ -21,6 +21,10 @@ void Intake::CorePeriodic(){
     m_channel.Periodic();
 }
 
+Intake::ActionState Intake::GetState(){
+    return m_actionState;
+}
+
 void Intake::CoreTeleopPeriodic(){
     m_rollers.TeleopPeriodic();
     m_wrist.TeleopPeriodic();
@@ -30,15 +34,14 @@ void Intake::CoreTeleopPeriodic(){
         case STOW:
             if (m_wrist.GetState() == Wrist::AT_TARGET)
                 m_actionState = NONE;
+            break;
         case AMP_INTAKE:
-            if (m_wrist.GetState() == Wrist::AT_TARGET)
+            if (m_wrist.ProfileDone())
                 m_wrist.Coast();
-            else if (m_wrist.GetState() == Wrist::COAST){
-                if (GetBeamBreak1()){
-                    m_rollers.SetState(Rollers::RETAIN);
-                    m_wrist.MoveTo(STOWED_POS);
-                    m_actionState = NONE;
-                }
+            if (GetBeamBreak1()){
+                m_rollers.SetStateBuffer(Rollers::RETAIN, INTAKE_WAIT_s);
+                m_wrist.MoveTo(STOWED_POS);
+                m_actionState = NONE;
             }
             break; 
         case PASSTHROUGH:
@@ -140,8 +143,8 @@ bool Intake::InIntake(){
 }
 
 bool Intake::GetBeamBreak1() {
-    return false;
-    //return m_beamBreak1.Get();
+    // return false;
+    return !m_beamBreak1.Get();
 }
 
 void Intake::CoreShuffleboardInit(){
@@ -153,6 +156,7 @@ void Intake::CoreShuffleboardInit(){
     m_shuff.add("Intake", &INTAKE_POS, {1,1,1,1}, true);
     m_shuff.add("Passthrough", &PASSTHROUGH_POS, {1,1,2,1}, true);
     m_shuff.add("Amp", &AMP_OUT_POS, {1,1,3,1}, true);
+    m_shuff.add("wait time", &INTAKE_WAIT_s, {1,1,6,1}, true);
 
     //Go to NONE state (row 2)
     m_shuff.addButton("NONE STATE", [&]{m_actionState = NONE;}, {4,1,0,2});
@@ -194,5 +198,9 @@ void Intake::CoreShuffleboardPeriodic(){
             m_shuff.PutString("Wrist", "Coast");
             break;
     }
+            
+    m_shuff.PutBoolean("BeamBreak 1", GetBeamBreak1());
+    m_shuff.addButton("disable rollers", [&]{m_rollers.StopRollers(); m_rollers.Disable();}, {1,1,7,3});
+    m_shuff.addButton("enable rollers", [&]{m_rollers.Enable();}, {1,1,7,3});
     m_shuff.update(true);
 }
