@@ -28,6 +28,7 @@ void RachetClimb::CoreTeleopPeriodic(){
             }
             break;
         case AT_TARGET:
+            m_actuator.Set(BREAK);
             //break on
             break;
     }
@@ -38,11 +39,12 @@ void RachetClimb::CoreTeleopPeriodic(){
 }
 
 void RachetClimb::UpdatePos(){
-    m_pos = m_absEncoder.GetAbsolutePosition();
+    m_pos = m_absEncoder.GetPosition().GetValueAsDouble();
 }
 
 bool RachetClimb::AtTarget(double target){
-    if (std::abs(m_pos-target) <= POS_TOLERANCE)
+    // if (std::abs(m_pos-target) <= POS_TOLERANCE)
+    if (m_pos >= target-POS_TOLERANCE)
         return true;
     return false;
 }
@@ -71,6 +73,7 @@ RachetClimb::State RachetClimb::GetState(){
 void RachetClimb::SetTarget(Target t){
     if (t = m_targ) return;
     m_state = MOVING;
+    m_actuator.Set(OFF);
     //brake off
     m_targ = t;
 }
@@ -79,6 +82,10 @@ void RachetClimb::SetTarget(Target t){
 void RachetClimb::ManualPeriodic(double voltage){
     voltage = std::clamp(voltage, -MAX_VOLTS, MAX_VOLTS);
     m_master.SetVoltage(units::volt_t(voltage));
+}
+
+void RachetClimb::Zero(){
+    m_absEncoder.SetPosition(units::angle::turn_t(0));
 }
 
 void RachetClimb::CoreShuffleboardPeriodic(){
