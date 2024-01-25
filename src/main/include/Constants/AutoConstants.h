@@ -48,17 +48,17 @@ namespace AutoConstants {
 
   using AutoPath = std::vector<AutoElement>;
   const AutoPath TEST = {
-    {DRIVE, AFTER, "testIntake"},
+    {DRIVE, AFTER, "testIntake.csv"},
     {INTAKE, BEFORE_END},
-    {DRIVE, AFTER, "backFromIntake"},
+    {DRIVE, AFTER, "testBackFromIntake.csv"},
     {STOW, AT_START, "", 1.0},
     {SHOOT, AFTER, "", 1.0}
   };
 
   const AutoPath TEST2 = {
-    {DRIVE, AFTER, "testIntake"},
+    {DRIVE, AFTER, "testIntake.csv"},
     {INTAKE, BEFORE_END, "", 1.0},
-    {DRIVE, AFTER, "backFromIntake", 4.0},
+    {DRIVE, AFTER, "testBackFromIntake.csv", 4.0},
     {STOW, AT_START, "", 1.0},
     {SHOOT, AFTER, "", 1.0}
   };

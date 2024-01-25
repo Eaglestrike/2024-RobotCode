@@ -90,6 +90,7 @@ void Auto::ShooterPeriodic(double t){
     if(!shooterTiming_.hasStarted && t > shooterTiming_.start){
         //shooter_.shoot()
         shooterTiming_.hasStarted = true;
+        intake_.AmpOuttake();
     }
 
     if(t > shooterTiming_.end + AutoConstants::SHOOT_PADDING){
