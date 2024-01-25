@@ -56,9 +56,9 @@ namespace AutoConstants {
   };
 
   const AutoPath TEST2 = {
-    {DRIVE, AFTER, "backFromIntake"},
+    {DRIVE, AFTER, "testIntake"},
     {INTAKE, BEFORE_END, "", 1.0},
-    {DRIVE, AFTER, "zero", 4.0},
+    {DRIVE, AFTER, "backFromIntake", 4.0},
     {STOW, AT_START, "", 1.0},
     {SHOOT, AFTER, "", 1.0}
   };
