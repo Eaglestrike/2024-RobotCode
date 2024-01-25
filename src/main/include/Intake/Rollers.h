@@ -24,6 +24,7 @@ class Rollers : public Mechanism{
         void CoreTeleopPeriodic() override;
         void CoreShuffleboardInit() override;
         void CoreShuffleboardPeriodic() override;
+        void SetStateBuffer(RollerState r, double offset_s);
 
         void SetVoltage();
         void StopRollers();
@@ -33,10 +34,15 @@ class Rollers : public Mechanism{
     TalonFX m_rollerMotor{IntakeConstants::ROLLER_MOTOR, "rio"};
     ShuffleboardSender m_shuff;
 
+    double m_timer = 0;
+    double m_wait = 0;
+    RollerState m_nxtState;
+
     //Constants
     double MAX_VOLTS = 10.0;
     double KEEP_VOLTS = 0.0;
     double IN_VOLTS = -3.0;
+    //amp out
     double OUT_VOLTS = 2.8; // 3.3
 
     //for dbg

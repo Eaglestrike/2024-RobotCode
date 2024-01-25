@@ -40,6 +40,8 @@ class Wrist: public Mechanism{
         void MoveTo(double newPos);
         void Coast();
         void Kill();
+        bool ProfileDone();
+        double GetPos();
         MechState GetState();
     private:
         void MoveToSetPt();
@@ -60,7 +62,7 @@ class Wrist: public Mechanism{
 
         //MEMBER VARS
         //state vars
-        MechState m_state = MechState::AT_TARGET;
+        MechState m_state = MechState::STOPPED;
 
         //profile vars
         double m_setPt; 
@@ -80,13 +82,13 @@ class Wrist: public Mechanism{
         #endif
 
         //Constants
-        double m_kp = 1.5, m_ki = 0.03, m_kd = 0.0;
+        double m_kp = 1.75, m_ki = 0.03, m_kd = 0.0;
         double m_s = 0.32, m_g =0.455, m_v = 0.46, m_a = 0.045;
 
         double MAX_POS = 1.9, MIN_POS = -0.75;
 
         double MAX_VEL = 20.0, MAX_ACC = 17.0;
-        double POS_TOLERANCE = 0.0;
+        double POS_TOLERANCE = 0.05;
 
         double ENCODER_OFFSET = 1.68 + M_PI/2.0 - 1.3411;
         

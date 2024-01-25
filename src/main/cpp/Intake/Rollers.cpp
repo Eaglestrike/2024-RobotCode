@@ -14,12 +14,26 @@ void Rollers::SetState(RollerState r) {
     m_state = r;
 }
 
+void Rollers::SetStateBuffer(RollerState r, double offset_s) {
+    m_wait = offset_s;
+    m_timer = 0;
+    m_nxtState = r;
+}
+
 Rollers::RollerState Rollers::GetState() {
     return m_state;
 }
 
 void Rollers::CoreTeleopPeriodic() {
     double setVolts = 0;
+
+    if (m_wait != -1){
+        m_timer += 0.02;
+        if (m_timer >= m_wait){
+            m_wait = -1;
+            m_state = m_nxtState;
+        }
+    }
 
     switch (m_state) {
         case INTAKE:
@@ -62,5 +76,37 @@ void Rollers::CoreShuffleboardInit(){
 }
 
 void Rollers::CoreShuffleboardPeriodic(){
+switch(m_state){
+        case RollerState::INTAKE:
+            m_shuff.PutString("state", "Intake");
+            break;
+        case RollerState::RETAIN:
+            m_shuff.PutString("state", "Retain");
+            break;
+        case RollerState::STOP:
+            m_shuff.PutString("state", "Stppped");
+            break;
+        case RollerState::OUTTAKE:
+            m_shuff.PutString("state", "Outtake");
+            break;
+    }
+
+     switch(m_nxtState){
+        case RollerState::INTAKE:
+            m_shuff.PutString("nxt state", "Intake");
+            break;
+        case RollerState::RETAIN:
+            m_shuff.PutString("nxt state", "Retain");
+            break;
+        case RollerState::STOP:
+            m_shuff.PutString("nxt state", "Stppped");
+            break;
+        case RollerState::OUTTAKE:
+            m_shuff.PutString("nxt state", "Outtake");
+            break;
+    }
+
+    m_shuff.PutNumber("timer", m_timer);
+    m_shuff.PutNumber("wait", m_wait);
     m_shuff.update(true);
 }

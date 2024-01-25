@@ -17,6 +17,10 @@ void Wrist::Zero() {
     m_wristMotor.SetPosition(units::turn_t(0));
 }
 
+double Wrist::GetPos(){
+    return m_curPos;
+}
+
 
 // absolute encoder pos in radians
 double Wrist::GetAbsEncoderPos() {
@@ -68,9 +72,11 @@ void Wrist::CoreTeleopPeriodic(){
         default:
             wristVolts = 0.0;
     }
-    std::cout << wristVolts<< std::endl;
+    // std::cout << wristVolts<< std::endl;
     m_wristMotor.SetVoltage(units::volt_t(std::clamp(-wristVolts, -MAX_VOLTS, MAX_VOLTS)));
 }
+
+
 
 void Wrist::MoveTo(double newpos){
     if (newpos == m_setPt) return;
@@ -203,7 +209,7 @@ void Wrist::CoreShuffleboardInit(){
     m_shuff.add("SetPoint", &m_newSetPt, {1,1,4,3}, true);
     m_shuff.addButton("Deploy", [&]{MoveToSetPt();}, {1,1,5,3});
     m_shuff.addButton("Coast", [&]{Coast();}, {1,1,6,3});
-    m_shuff.addButton("Zero", [&]{Zero();}, {1,1,6,3});
+    m_shuff.addButton("Zero", [&]{Zero();}, {1,1,7,3});
     #if WRIST_AUTOTUNING
     m_shuff.addButton("Auto Tune", [&]{m_state = AUTOTUNING;}, {1,1,7,3});
     #endif
@@ -246,6 +252,10 @@ void Wrist::CoreShuffleboardPeriodic(){
     #if WRIST_AUTOTUNING
     m_autoTuner.ShuffleboardUpdate();
     #endif
+}
+
+bool Wrist::ProfileDone(){
+    return (m_targetPos == m_setPt);
 }
 
 //calculates the position at which the speed will begin decreasing

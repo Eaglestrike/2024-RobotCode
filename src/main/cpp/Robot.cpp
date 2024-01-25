@@ -179,17 +179,23 @@ void Robot::TeleopPeriodic() {
   m_swerveController.Periodic();
 
   //Intake
-  if(m_controller.getPressedOnce(STOW)){
-    m_intake.Stow();
+  if(m_controller.getPressedOnce(OUT)){
+    if (m_amp)
+      m_intake.Passthrough();
   }
-  if(m_controller.getPressedOnce(PASSTHROUGH)){
-    m_intake.Passthrough();
+  if(m_controller.getPressedOnce(AMP)){
+    m_amp = true;
   }
-  if(m_controller.getPressedOnce(AMP_OUTTAKE)){
-    m_intake.AmpOuttake();
+  if(m_controller.getPressedOnce(SHOOT)){
+    m_amp = false;
   }
-  if(m_controller.getPressedOnce(AMP_INTAKE)){
+  if(m_controller.getPressedOnce(IN)){
+    if (m_amp)
     m_intake.AmpIntake();
+    else
+    m_intake.Passthrough();
+  } else if (m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH){
+    m_intake.Stow();
   }
   m_intake.TeleopPeriodic();
 }

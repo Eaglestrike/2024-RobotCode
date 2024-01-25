@@ -83,4 +83,5 @@ private:
   FRCLogger m_logger;
   bool m_prevIsLogging;
 
+  bool m_amp = true;
 };

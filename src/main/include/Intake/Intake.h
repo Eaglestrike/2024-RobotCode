@@ -23,6 +23,7 @@ class Intake: public Mechanism{
         };
         
         void SetState(ActionState newAction);
+        ActionState GetState();
         void Stow();
         void Passthrough();
         void AmpOuttake();
@@ -58,12 +59,14 @@ class Intake: public Mechanism{
 
         bool m_keepIntakeDown = false;
 
-        double STOWED_POS = 0.0,
-        INTAKE_POS = 0.0, 
-        PASSTHROUGH_POS = 0.0,
+        double STOWED_POS = M_PI / 2,
+        INTAKE_POS = -0.7, 
+        PASSTHROUGH_POS = INTAKE_POS,
         AMP_OUT_POS = 1.364; // 1.26 
 
-        //frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
+        double INTAKE_WAIT_s = 0.1;
+
+        frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
 
         ShuffleboardSender m_shuff;
 };
