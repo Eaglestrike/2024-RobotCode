@@ -1,11 +1,15 @@
 #pragma once
 
 #include <ctre/phoenix6/TalonFX.hpp>
+// #include <ctre/Phoenix.h>
+#include <ctre/phoenix/motorcontrol/can/WPI_TalonSRX.h>
+// #include <ctre/phoenix6/TalonSRX.hpp>
 #include "Util/Mechanism.h"
 #include "Constants/IntakeConstants.h"
 #include "ShuffleboardSender/ShuffleboardSender.h"
 
 using ctre::phoenix6::hardware::TalonFX;
+using ctre::phoenix::motorcontrol::can::WPI_TalonSRX;
 
 class Rollers : public Mechanism{
     public:
@@ -32,6 +36,7 @@ class Rollers : public Mechanism{
   private:
     RollerState m_state{STOP};
     TalonFX m_rollerMotor{IntakeConstants::ROLLER_MOTOR, "rio"};
+    WPI_TalonSRX m_rollerMotorBack{IntakeConstants::ROLLER_MOTOR_BACK};
     ShuffleboardSender m_shuff;
 
     double m_timer = 0;
@@ -47,4 +52,6 @@ class Rollers : public Mechanism{
 
     //for dbg
     double m_voltReq = 0.0;
+
+    void SetRollerVolts(double volts);
 };

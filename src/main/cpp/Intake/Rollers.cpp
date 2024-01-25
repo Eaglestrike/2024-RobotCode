@@ -1,5 +1,7 @@
 #include "Intake/Rollers.h"
 
+#include <algorithm>
+
 #include "Util/Utils.h"
 
 #include <frc/smartdashboard/SmartDashboard.h>
@@ -7,6 +9,8 @@
 Rollers::Rollers(bool enabled, bool shuffleboard)
     : Mechanism{"Rollers", enabled, shuffleboard},
     m_shuff{"Rollers", shuffleboard}{
+    
+    m_rollerMotorBack.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Coast);
     m_rollerMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
 }
 
@@ -56,7 +60,7 @@ void Rollers::CoreTeleopPeriodic() {
             break;
     }
 
-    m_rollerMotor.SetVoltage(units::volt_t{setVolts});
+    SetRollerVolts(setVolts);
 }
 
 
@@ -66,7 +70,7 @@ void Rollers::SetVoltage(){
 }
 
 void Rollers::StopRollers() {
-    m_rollerMotor.SetVoltage(units::volt_t(0));
+    SetRollerVolts(0);
 
 }
 
@@ -109,4 +113,13 @@ switch(m_state){
     m_shuff.PutNumber("timer", m_timer);
     m_shuff.PutNumber("wait", m_wait);
     m_shuff.update(true);
+}
+
+/**
+ * Sets roller volts for both motors because FX and sRX differnt versions cannot do leader/follower
+*/
+void Rollers::SetRollerVolts(double volts) {
+    volts = std::clamp(volts, -12.0, 12.0);
+    m_rollerMotor.SetVoltage(units::volt_t{volts});
+    m_rollerMotorBack.SetVoltage(units::volt_t{volts});
 }

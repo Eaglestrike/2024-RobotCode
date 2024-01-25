@@ -134,7 +134,7 @@ bool Intake::HasGamePiece(){
 
 bool Intake::InChannel(){
     // if(beam break 2 broken)
-    return true;
+    return false;
     // else return false;
 }
 

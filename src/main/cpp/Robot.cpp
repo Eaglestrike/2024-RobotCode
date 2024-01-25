@@ -194,17 +194,22 @@ void Robot::TeleopPeriodic() {
   m_swerveController.Periodic();
 
   //Intake
-  if(m_controller.getPressedOnce(OUT)){
-    if (m_amp)
-      m_intake.Passthrough();
-  }
-  if(m_controller.getPressedOnce(AMP)){
+  if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
     m_amp = true;
   }
-  if(m_controller.getPressedOnce(SHOOT)){
+  if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
     m_amp = false;
   }
-  if(m_controller.getPressedOnce(IN)){
+  if (m_controller.getPressedOnce(SHOOT)){
+    if (m_amp) {
+      m_intake.AmpOuttake();
+    } else {
+      // code shooter later
+      // if somehow switched from shooter to amp when in channel
+      // HANDLE THIS CASE
+    }
+  }
+  else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
     if (m_amp)
     m_intake.AmpIntake();
     else
