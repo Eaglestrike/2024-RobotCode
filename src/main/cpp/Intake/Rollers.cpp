@@ -77,6 +77,9 @@ void Rollers::StopRollers() {
 void Rollers::CoreShuffleboardInit(){
     m_shuff.add("Voltage", &m_voltReq, true);
     m_shuff.addButton("Set Voltage", [&]{SetVoltage();}, {2,1});
+     m_shuff.add("In volts ", &IN_VOLTS, {1,1,0,4}, true);
+    m_shuff.add("out volts", &OUT_VOLTS, {1,1,1,4}, true);
+    m_shuff.add("keep volts", &KEEP_VOLTS, {1,1,2,4}, true);
 }
 
 void Rollers::CoreShuffleboardPeriodic(){

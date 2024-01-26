@@ -51,6 +51,7 @@ class Intake: public Mechanism{
 
         bool GetBeamBreak1();
         bool GetBeamBreak2();
+        bool DebounceBeamBreak1();
 
         Rollers m_rollers;
         Wrist m_wrist;
@@ -58,6 +59,11 @@ class Intake: public Mechanism{
         ActionState m_actionState = NONE;
 
         bool m_keepIntakeDown = false;
+        
+        bool m_beam1broke;
+
+        double m_timer = -1;
+        double m_dbTimer = -1;
 
         double STOWED_POS = M_PI / 2,
         INTAKE_POS = -0.7, 
@@ -65,6 +71,8 @@ class Intake: public Mechanism{
         AMP_OUT_POS = 1.364; // 1.26 
 
         double INTAKE_WAIT_s = 0.1;
+        double OUTTAKE_WAIT_s = 0.5;
+        double DEBOUNCE_WAIT_s = 0.5;
 
         frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
 
