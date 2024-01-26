@@ -44,11 +44,6 @@ class Intake: public Mechanism{
         void CoreShuffleboardInit() override;
         void CoreShuffleboardPeriodic() override;
 
-        enum DBGstate {
-            POS_EDITOR,
-            STATE_TESTER, // lowk thats j teleop
-        };
-
         bool GetBeamBreak1();
         bool GetBeamBreak2();
         bool DebounceBeamBreak1();

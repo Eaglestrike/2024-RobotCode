@@ -11,7 +11,7 @@ Rollers::Rollers(bool enabled, bool shuffleboard)
     m_shuff{"Rollers", shuffleboard}{
     
     m_rollerMotorBack.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Coast);
-    m_rollerMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
+    m_rollerMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
 }
 
 void Rollers::SetState(RollerState r) {

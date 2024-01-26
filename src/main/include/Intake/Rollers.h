@@ -40,7 +40,7 @@ class Rollers : public Mechanism{
     ShuffleboardSender m_shuff;
 
     double m_timer = 0;
-    double m_wait = 0;
+    double m_wait = -1;
     RollerState m_nxtState;
 
     //Constants

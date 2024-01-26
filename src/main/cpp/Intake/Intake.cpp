@@ -226,7 +226,5 @@ void Intake::CoreShuffleboardPeriodic(){
     }
             
     m_shuff.PutBoolean("BeamBreak 1", m_beam1broke);
-    m_shuff.addButton("disable rollers", [&]{m_rollers.StopRollers(); m_rollers.Disable();}, {1,1,7,3});
-    m_shuff.addButton("enable rollers", [&]{m_rollers.Enable();}, {1,1,7,3});
     m_shuff.update(true);
 }
