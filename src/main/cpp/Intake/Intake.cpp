@@ -29,6 +29,8 @@ void Intake::CoreTeleopPeriodic(){
     m_rollers.TeleopPeriodic();
     m_wrist.TeleopPeriodic();
     m_channel.TeleopPeriodic();
+
+    DebounceBeamBreak1();
     
     switch(m_actionState){
         case STOW:
@@ -38,7 +40,7 @@ void Intake::CoreTeleopPeriodic(){
         case AMP_INTAKE:
             if (m_wrist.ProfileDone())
                 m_wrist.Coast();
-            if (m_wrist.GetState() == Wrist::COAST && DebounceBeamBreak1()){
+            if (m_wrist.GetState() == Wrist::COAST && m_beam1broke){
                 m_rollers.SetStateBuffer(Rollers::RETAIN, INTAKE_WAIT_s);
                 m_wrist.MoveTo(STOWED_POS);
                 m_actionState = NONE;
@@ -81,6 +83,7 @@ void Intake::SetState(ActionState newAction){
     if (newAction == m_actionState) return;
 
     if (newAction == AMP_INTAKE && (m_wrist.GetState() == Wrist::COAST || m_timer !=-1)) return;
+    if (m_actionState == AMP_INTAKE) m_timer = -1;
     m_actionState = newAction;
     
     double newWristPos;
@@ -226,5 +229,6 @@ void Intake::CoreShuffleboardPeriodic(){
     }
             
     m_shuff.PutBoolean("BeamBreak 1", m_beam1broke);
+    m_shuff.PutNumber("debounce timer", m_dbTimer);
     m_shuff.update(true);
 }
