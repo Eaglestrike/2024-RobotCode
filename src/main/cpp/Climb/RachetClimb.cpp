@@ -26,10 +26,10 @@ void RachetClimb::CoreTeleopPeriodic(){
             if (AtTarget(info.TARG_POS)){
                 m_state = AT_TARGET;
             }
+            m_actuator.Set(OFF); //brake off
             break;
         case AT_TARGET:
-            m_actuator.Set(BREAK);
-            //break on
+            m_actuator.Set(BREAK); //break on
             break;
     }
 
@@ -73,8 +73,6 @@ RachetClimb::State RachetClimb::GetState(){
 void RachetClimb::SetTarget(Target t){
     if (t = m_targ) return;
     m_state = MOVING;
-    m_actuator.Set(OFF);
-    //brake off
     m_targ = t;
 }
 
@@ -106,4 +104,6 @@ void RachetClimb::CoreShuffleboardPeriodic(){
 
     m_shuff.add("extend pos", &EXTENDED_INFO.TARG_POS, true);
     m_shuff.add("extend volts", &EXTENDED_INFO.MOVE_VOLTS, true);
+
+    m_shuff.update(true);
 }
