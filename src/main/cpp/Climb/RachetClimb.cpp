@@ -86,24 +86,31 @@ void RachetClimb::Zero(){
     m_absEncoder.SetPosition(units::angle::turn_t(0));
 }
 
+void RachetClimb::CoreShuffleboardInit(){
+    //settings (row 0)
+    m_shuff.add("max pos", &MAX_POS, {1,1,0,0}, true);
+    m_shuff.add("min pos", &MIN_POS, {1,1,1,0}, true);
+    m_shuff.add("max volts", &MAX_VOLTS, {1,1,2,0}, true);
+    m_shuff.add("tolerance", &POS_TOLERANCE, {1,1,3,0}, true);
+
+    //Climb (row 1)
+    m_shuff.add("climb pos", &CLIMB_INFO.TARG_POS, {1,1,0,1}, true);
+    m_shuff.add("climb volts", &CLIMB_INFO.MOVE_VOLTS, {1,1,1,1}, true);
+
+    //Stow (row 2)
+    m_shuff.add("stow pos", &STOW_INFO.TARG_POS, {1,1,0,2}, true);
+    m_shuff.add("stow volts", &STOW_INFO.MOVE_VOLTS, {1,1,1,2}, true);
+
+    //Extend (row 3)
+    m_shuff.add("extend pos", &EXTENDED_INFO.TARG_POS, {1,1,0,3}, true);
+    m_shuff.add("extend volts", &EXTENDED_INFO.MOVE_VOLTS, {1,1,1,3}, true);
+}
+
 void RachetClimb::CoreShuffleboardPeriodic(){
-    m_shuff.PutNumber("cur pos", m_pos);
-    m_shuff.PutNumber("targ state", m_targ);
-    m_shuff.PutNumber("state", m_state);
-
-    m_shuff.add("max pos", &MAX_POS, true);
-    m_shuff.add("min pos", &MIN_POS, true);
-    m_shuff.add("max volts", &MAX_VOLTS, true);
-    m_shuff.add("tolerance", &POS_TOLERANCE, true);
-
-    m_shuff.add("climb pos", &CLIMB_INFO.TARG_POS, true);
-    m_shuff.add("climb volts", &CLIMB_INFO.MOVE_VOLTS, true);
-
-    m_shuff.add("stow pos", &STOW_INFO.TARG_POS, true);
-    m_shuff.add("stow volts", &STOW_INFO.MOVE_VOLTS, true);
-
-    m_shuff.add("extend pos", &EXTENDED_INFO.TARG_POS, true);
-    m_shuff.add("extend volts", &EXTENDED_INFO.MOVE_VOLTS, true);
+    //State (row 1 right)
+    m_shuff.PutNumber("cur pos", m_pos, {1,1,4,0});
+    m_shuff.PutNumber("targ state", m_targ, {1,1,5,0});
+    m_shuff.PutNumber("state", m_state, {1,1,6,0});
 
     m_shuff.update(true);
 }

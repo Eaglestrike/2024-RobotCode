@@ -27,19 +27,21 @@ class RachetClimb : public Mechanism{
             AT_TARGET
         };
 
-    RachetClimb();
-    void Zero();
-    void CorePeriodic() override;
-    void CoreTeleopPeriodic() override;
-    void CoreShuffleboardPeriodic() override;
-    void ManualPeriodic(double voltage); // use for winding
-    void PullUp();
-    void Stow ();
-    void Extend();
-    State GetState();
-    void SetTarget(Target t);
+        RachetClimb();
+        void Zero();
+        void ManualPeriodic(double voltage); // use for winding
+        void PullUp();
+        void Stow ();
+        void Extend();
+        State GetState();
+        void SetTarget(Target t);
 
     private:
+        void CorePeriodic() override;
+        void CoreTeleopPeriodic() override;
+        void CoreShuffleboardInit() override;
+        void CoreShuffleboardPeriodic() override;
+
         void UpdatePos();
         bool AtTarget(double target);
 
