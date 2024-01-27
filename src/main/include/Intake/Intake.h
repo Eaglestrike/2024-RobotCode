@@ -55,7 +55,7 @@ class Intake: public Mechanism{
 
         bool m_keepIntakeDown = false;
         
-        bool m_beam1broke;
+        bool m_beam1broke= false;
 
         double m_timer = -1;
         double m_dbTimer = -1;
@@ -67,7 +67,7 @@ class Intake: public Mechanism{
 
         double INTAKE_WAIT_s = 0.1;
         double OUTTAKE_WAIT_s = 0.5;
-        double DEBOUNCE_WAIT_s = 0.5;
+        double DEBOUNCE_WAIT_s = 2.0;
 
         frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
 

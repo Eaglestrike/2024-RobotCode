@@ -214,7 +214,7 @@ void Robot::TeleopPeriodic() {
     m_intake.AmpIntake();
     else
     m_intake.Passthrough();
-  } else if (m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH){
+  } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
     m_intake.Stow();
   }
   m_intake.TeleopPeriodic();
