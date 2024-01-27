@@ -18,6 +18,10 @@
 
 #include "Controller/Controller.h"
 #include "Drive/SwerveControl.h"
+#include "Intake/Wrist.h"
+#include "Intake/Channel.h"
+#include "Intake/Intake.h"
+#include "Intake/Rollers.h"
 #include "Util/Logger.h"
 #include "Util/Odometry.h"
 #include "Util/SocketClient.h"
@@ -48,19 +52,24 @@ private:
   // Controller
   Controller m_controller;
 
-  // navX
+  // navX (gyroscope)
   AHRS *m_navx;
 
   // Swerve
   SwerveControl m_swerveController{true, false};
 
+  //intake
+  Intake m_intake {true, true};
+
+  // Jetson
   #if SWERVE_AUTOTUNING
   FFAutotuner m_swerveXTuner{"Swerve X", FFAutotuner::SIMPLE}; //0.1833, 1.455, 0.1410
   FFAutotuner m_swerveYTuner{"Swerve Y", FFAutotuner::SIMPLE}; //0.1711, 1.384, 0.1398
   #endif
-
-  // Jetson
+  
+  // Vision (Jetson)
   SocketClient m_client;
+  bool m_isSecondTag;
   
   // Odometry
   Odometry m_odom;
@@ -69,7 +78,10 @@ private:
   FRCLogger m_logger;
   bool m_prevIsLogging;
 
+  bool m_amp = true;
+
   // DEBUG ONLY
   AutoPathSegment m_autoPath;
   frc::SendableChooser<std::string> m_chooser;
+  // double m_wheelAng = 0;
 };

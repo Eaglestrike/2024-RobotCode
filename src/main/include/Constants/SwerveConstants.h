@@ -21,7 +21,7 @@ namespace SwerveConstants
   const double WHEEL_GEAR_RATIO = 6.12; // stolen from Alex, 6.12 motor spins = 1 wheel spin
 
   // meters
-  const double CENTER_TO_EDGE = 0.368;
+  const double CENTER_TO_EDGE = 0.288;
 
   const std::size_t FR_DRIVE_ID = 14; // 17, 14
   const std::size_t BR_DRIVE_ID = 11; // 21, 11

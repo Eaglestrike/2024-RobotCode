@@ -13,6 +13,10 @@ namespace Actions{
         ZERO_DRIVE_PID,
         ZERO_YAW,
         SLOW_MODE,
+        INTAKE,
+        INTAKE_TO_AMP,
+        INTAKE_TO_CHANNEL,
+        SHOOT,
         ACTION_COUNT //Just the number of actions, as it is at the end of a enum
     };
 
@@ -39,23 +43,23 @@ namespace ControllerMapData{
     const std::vector<ControlMapElement> ButtonMap = {
         {{LJOY, X_AXIS},        SWERVE_STRAFEX},
         {{LJOY, Y_AXIS},        SWERVE_STRAFEY},
-        {{LJOY, TRIGGER},       NONE},
+        {{LJOY, TRIGGER},       SHOOT},
         {{LJOY, B_4},           NONE},
         {{LJOY, B_2},           NONE},
         {{RJOY, B_3},           NONE},
         {{RJOY, X_AXIS},        SWERVE_ROTATION},
         {{RJOY, Y_AXIS},        NONE},
-        {{RJOY, TRIGGER},       NONE},
+        {{RJOY, TRIGGER},       INTAKE},
         {{RJOY, B_2},           SLOW_MODE},
 
         {XBOX_LJOY_X,           NONE},
         {XBOX_LJOY_Y,           NONE}, 
         {XBOX_RJOY_X,           NONE},
         {XBOX_RJOY_Y,           NONE},
-        {XBOX_A_BUTTON ,        NONE},
+        {XBOX_A_BUTTON ,        INTAKE_TO_AMP},
         {XBOX_B_BUTTON ,        NONE},
         {XBOX_X_BUTTON ,        NONE},
-        {XBOX_Y_BUTTON ,        NONE},
+        {XBOX_Y_BUTTON ,        INTAKE_TO_CHANNEL},
         {XBOX_L_BUMPER ,        NONE},
         {XBOX_LTRIGGER ,        NONE},
         {XBOX_R_BUMPER ,        NONE},

@@ -9,6 +9,7 @@
 
 #include <frc/Timer.h>
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <units/length.h>
 
 /**
  * Gets the value with the minimum absolute value between two numbers
@@ -148,6 +149,33 @@ double Utils::DegToRad(const double deg) {
 */
 double Utils::RadToDeg(const double rad) {
   return rad * (180.0 / M_PI);
+}
+
+
+/**
+ * Converts inches to meters
+ * 
+ * @param in Length in inches
+ * 
+ * @returns meters
+*/
+double Utils::InToM(const double in) {
+  return units::inch_t{in}.convert<units::meters>().value();
+}
+
+/**
+ * Converts inches to meters
+ * 
+ * @param in Vector lengths in inches
+ * 
+ * @returns meters
+*/
+vec::Vector2D Utils::InToM(const vec::Vector2D in) {
+  vec::Vector2D ret;
+  for (int i = 0; i < 2; i++) {
+    ret[i] = units::inch_t{in[i]}.convert<units::meters>().value();
+  }
+  return ret;
 }
 
 /**
