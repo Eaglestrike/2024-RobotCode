@@ -1,10 +1,10 @@
-#include "Climb/RachetClimb.h"
+#include "Climb/Climb.h"
 
-void RachetClimb::CorePeriodic(){
+void Climb::CorePeriodic(){
     UpdatePos();
 }
 
-void RachetClimb::CoreTeleopPeriodic(){
+void Climb::CoreTeleopPeriodic(){
     StateInfo info;
     switch (m_targ){
         case STOWED:
@@ -38,55 +38,55 @@ void RachetClimb::CoreTeleopPeriodic(){
     m_master.SetVoltage(units::volt_t(voltage));
 }
 
-void RachetClimb::UpdatePos(){
+void Climb::UpdatePos(){
     m_pos = m_absEncoder.GetPosition().GetValueAsDouble();
 }
 
-bool RachetClimb::AtTarget(double target){
+bool Climb::AtTarget(double target){
     // if (std::abs(m_pos-target) <= POS_TOLERANCE)
     if (m_pos >= target-POS_TOLERANCE)
         return true;
     return false;
 }
 
-RachetClimb::RachetClimb(){
+Climb::Climb(){
     m_master.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
     // m_slave.SetControl(Follower(Ids::MASTER_CLIMB_MOTOR, false));
 }
 
-void RachetClimb::Extend(){
+void Climb::Extend(){
     SetTarget(EXTENDED);
 }
 
-void RachetClimb::Stow(){
+void Climb::Stow(){
     SetTarget(STOWED);
 }
 
-void RachetClimb::PullUp(){
+void Climb::PullUp(){
     SetTarget(CLIMB);
 }
 
-RachetClimb::State RachetClimb::GetState(){
+Climb::State Climb::GetState(){
     return m_state;
 }
 
-void RachetClimb::SetTarget(Target t){
+void Climb::SetTarget(Target t){
     if (t = m_targ) return;
     m_state = MOVING;
     m_targ = t;
 }
 
 // should put break on here also 
-void RachetClimb::ManualPeriodic(double voltage){
+void Climb::ManualPeriodic(double voltage){
     voltage = std::clamp(voltage, -MAX_VOLTS, MAX_VOLTS);
     m_master.SetVoltage(units::volt_t(voltage));
 }
 
-void RachetClimb::Zero(){
+void Climb::Zero(){
     m_absEncoder.SetPosition(units::angle::turn_t(0));
 }
 
-void RachetClimb::CoreShuffleboardInit(){
+void Climb::CoreShuffleboardInit(){
     //settings (row 0)
     m_shuff.add("max pos", &MAX_POS, {1,1,0,0}, true);
     m_shuff.add("min pos", &MIN_POS, {1,1,1,0}, true);
@@ -106,11 +106,29 @@ void RachetClimb::CoreShuffleboardInit(){
     m_shuff.add("extend volts", &EXTENDED_INFO.MOVE_VOLTS, {1,1,1,3}, true);
 }
 
-void RachetClimb::CoreShuffleboardPeriodic(){
+void Climb::CoreShuffleboardPeriodic(){
     //State (row 1 right)
     m_shuff.PutNumber("cur pos", m_pos, {1,1,4,0});
-    m_shuff.PutNumber("targ state", m_targ, {1,1,5,0});
-    m_shuff.PutNumber("state", m_state, {1,1,6,0});
+    switch(m_targ){
+        case EXTENDED:
+            m_shuff.PutString("targ state", "Extended", {2,1,5,0});
+            break;
+        case STOWED:
+            m_shuff.PutString("targ state", "Stowed", {2,1,5,0});
+            break;
+        case CLIMB:
+            m_shuff.PutString("targ state", "Climb", {2,1,5,0});
+            break;
+    }
+    switch(m_state){
+        case MOVING:
+            m_shuff.PutString("state", "Moving", {2,1,6,0});
+            break;
+        case AT_TARGET:
+            m_shuff.PutString("state", "At target", {2,1,6,0});
+            break;
+    }
 
+    m_shuff.addButton("Zero", [&]{Zero();}, {1,1,7,3});
     m_shuff.update(true);
 }

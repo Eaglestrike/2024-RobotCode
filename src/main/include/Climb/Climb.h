@@ -14,7 +14,7 @@ using ctre::phoenix6::hardware::CANcoder;
 using ctre::phoenix6::hardware::TalonFX;
 using ctre::phoenix6::controls::Follower;
 
-class RachetClimb : public Mechanism{
+class Climb : public Mechanism{
     public:
         enum Target {
             EXTENDED,
@@ -27,7 +27,7 @@ class RachetClimb : public Mechanism{
             AT_TARGET
         };
 
-        RachetClimb();
+        Climb();
         void Zero();
         void ManualPeriodic(double voltage); // use for winding
         void PullUp();
@@ -45,7 +45,7 @@ class RachetClimb : public Mechanism{
         void UpdatePos();
         bool AtTarget(double target);
 
-        ShuffleboardSender m_shuff {"rachet climb", true};
+        ShuffleboardSender m_shuff {"Climb", true};
 
         TalonFX m_master {Ids::MASTER_CLIMB_MOTOR};//, m_slave {Ids::SLAVE_CLIMB_MOTOR};
         CANcoder m_absEncoder{Ids::CLIMB_ABS_ENCODER};
@@ -55,7 +55,7 @@ class RachetClimb : public Mechanism{
         Target m_targ = STOWED;
         State m_state = AT_TARGET;
 
-        struct StateInfo{
+        struct StateInfo {
             double TARG_POS;
             double MOVE_VOLTS;
         };
@@ -69,7 +69,7 @@ class RachetClimb : public Mechanism{
         bool BREAK = true;
         bool OFF = !BREAK;
 
-        double STILL_VOLTS = 0.0 ;
+        // double STILL_VOLTS = 0.0 ;
         StateInfo CLIMB_INFO =  {MIN_POS, 
                                 0.0}; 
         StateInfo STOW_INFO =    {MIN_POS, 
