@@ -59,7 +59,7 @@ private:
   SwerveControl m_swerveController{true, false};
 
   //intake
-  Intake m_intake {true, true};
+  Intake m_intake {true, false};
 
   //Auto 
   Auto m_auto;

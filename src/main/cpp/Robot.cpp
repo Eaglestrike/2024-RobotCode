@@ -205,9 +205,13 @@ void Robot::DisabledInit() {}
 void Robot::DisabledPeriodic() {
   // AUTO
   std::string path = m_auto1.GetSelected();
-  m_auto.SetPath(AutoConstants::PATHS.at(path),0);
+  if(AutoConstants::PATHS.find(path) != AutoConstants::PATHS.end()){
+    m_auto.SetPath(AutoConstants::PATHS.at(path),0);
+  }
   path = m_auto2.GetSelected();
-  m_auto.SetPath(AutoConstants::PATHS.at(path),1);
+  if(AutoConstants::PATHS.find(path) != AutoConstants::PATHS.end()){
+    m_auto.SetPath(AutoConstants::PATHS.at(path),1);
+  }
 }
 
 void Robot::TestInit() {}
@@ -247,6 +251,7 @@ void Robot::ShuffleboardInit() {
   frc::SmartDashboard::PutBoolean("Logging", false);
 
   // Auto
+  m_auto1.SetDefaultOption("Nothing")
   for (auto path : AutoConstants::PATHS) {
     m_auto1.AddOption(path.first, path.first);
     m_auto2.AddOption(path.first, path.first);

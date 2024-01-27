@@ -41,9 +41,10 @@ void AutoPathSegment::LoadAutoPath(const std::string path) {
   if(m_loadedSplines.find(path) != m_loadedSplines.end()){
     return;
   }
+  std::cout<<"Here 1"<<std::endl;
   AutoPathReader reader{path};
-  m_loadedSplines[path] = {.pos = reader.GetSplinePos(),
-                          .ang = reader.GetSplineAng()};
+  std::cout<<"Here 2"<<std::endl;
+  m_loadedSplines.insert({path, {.pos = reader.GetSplinePos(), .ang = reader.GetSplineAng()}});
 }
 
 /**
@@ -53,12 +54,14 @@ void AutoPathSegment::LoadAutoPath(const std::string path) {
 */
 void AutoPathSegment::SetAutoPath(const std::string path) {
   if(m_loadedSplines.find(path) != m_loadedSplines.end()){
+    std::cout<<"Here 3"<<std::endl;
     m_spline = m_loadedSplines[path];
     return;
   }
   else{
+    std::cout<<"Here 4"<<std::endl;
     LoadAutoPath(path);
-    SetAutoPath(path);
+    m_spline = m_loadedSplines[path];
   }
 }
 
