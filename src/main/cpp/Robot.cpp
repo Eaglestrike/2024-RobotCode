@@ -89,6 +89,8 @@ void Robot::RobotInit() {
 
   m_client.Init();
   m_swerveController.Init();
+
+  shooter_.Init();
 }
 
 /**
@@ -100,6 +102,8 @@ void Robot::RobotInit() {
  * LiveWindow and SmartDashboard integrated updating.
  */
 void Robot::RobotPeriodic() {
+  shooter_.Periodic();
+
   ShuffleboardPeriodic();
   m_autoPath.ShuffleboardPeriodic();
   m_odom.ShuffleboardPeriodic();

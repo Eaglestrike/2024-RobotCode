@@ -25,6 +25,8 @@
 // FOR DEBUG ONLY
 #include "Auto/AutoPathSegment.h"
 
+#include "Shooter/Shooter.h"
+
 class Robot : public frc::TimedRobot {
 public:
   Robot();
@@ -73,5 +75,7 @@ private:
   // DEBUG ONLY
   AutoPathSegment m_autoPath;
   frc::SendableChooser<std::string> m_chooser;
+
+  Shooter shooter_{"Shooter", true, true};
   // double m_wheelAng = 0;
 };
