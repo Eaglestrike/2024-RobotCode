@@ -90,7 +90,7 @@ class Wrist: public Mechanism{
         double MAX_VEL = 20.0, MAX_ACC = 17.0;
         double POS_TOLERANCE = 0.05;
 
-        double ENCODER_OFFSET = 1.68 + M_PI/2.0 - 1.3411;
+        double ENCODER_OFFSET = 1.68 + M_PI/2.0 - 1.3411 + 0.1134;
         
         double MAX_VOLTS = 5.0;
         

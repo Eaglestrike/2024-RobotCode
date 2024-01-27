@@ -149,7 +149,6 @@ void Wrist::UpdateTargetPose(){
     if (newV-m_targetVel == 0) newA = 0;
     else if (newV > m_targetVel) newA = MAX_ACC;
     else newA = -MAX_ACC;
-
     m_targetPos = newP;
     m_targetVel = newV;
     m_targetAcc = newA;
@@ -255,7 +254,7 @@ void Wrist::CoreShuffleboardPeriodic(){
 }
 
 bool Wrist::ProfileDone(){
-    return (m_targetPos == m_setPt);
+    return (m_targetVel == 0 && m_targetPos != m_curPos) || m_state == AT_TARGET;
 }
 
 //calculates the position at which the speed will begin decreasing

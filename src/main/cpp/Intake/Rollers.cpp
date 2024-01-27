@@ -1,5 +1,7 @@
 #include "Intake/Rollers.h"
 
+#include <algorithm>
+
 #include "Util/Utils.h"
 
 #include <frc/smartdashboard/SmartDashboard.h>
@@ -7,7 +9,9 @@
 Rollers::Rollers(bool enabled, bool shuffleboard)
     : Mechanism{"Rollers", enabled, shuffleboard},
     m_shuff{"Rollers", shuffleboard}{
-    m_rollerMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
+    
+    m_rollerMotorBack.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Coast);
+    m_rollerMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
 }
 
 void Rollers::SetState(RollerState r) {
@@ -56,7 +60,7 @@ void Rollers::CoreTeleopPeriodic() {
             break;
     }
 
-    m_rollerMotor.SetVoltage(units::volt_t{setVolts});
+    SetRollerVolts(setVolts);
 }
 
 
@@ -66,13 +70,16 @@ void Rollers::SetVoltage(){
 }
 
 void Rollers::StopRollers() {
-    m_rollerMotor.SetVoltage(units::volt_t(0));
+    SetRollerVolts(0);
 
 }
 
 void Rollers::CoreShuffleboardInit(){
     m_shuff.add("Voltage", &m_voltReq, true);
     m_shuff.addButton("Set Voltage", [&]{SetVoltage();}, {2,1});
+     m_shuff.add("In volts ", &IN_VOLTS, {1,1,0,4}, true);
+    m_shuff.add("out volts", &OUT_VOLTS, {1,1,1,4}, true);
+    m_shuff.add("keep volts", &KEEP_VOLTS, {1,1,2,4}, true);
 }
 
 void Rollers::CoreShuffleboardPeriodic(){
@@ -109,4 +116,13 @@ switch(m_state){
     m_shuff.PutNumber("timer", m_timer);
     m_shuff.PutNumber("wait", m_wait);
     m_shuff.update(true);
+}
+
+/**
+ * Sets roller volts for both motors because FX and sRX differnt versions cannot do leader/follower
+*/
+void Rollers::SetRollerVolts(double volts) {
+    volts = std::clamp(volts, -MAX_VOLTS, MAX_VOLTS);
+    m_rollerMotor.SetVoltage(units::volt_t{volts});
+    m_rollerMotorBack.SetVoltage(units::volt_t{volts});
 }

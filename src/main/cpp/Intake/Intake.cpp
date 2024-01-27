@@ -29,6 +29,8 @@ void Intake::CoreTeleopPeriodic(){
     m_rollers.TeleopPeriodic();
     m_wrist.TeleopPeriodic();
     m_channel.TeleopPeriodic();
+
+    DebounceBeamBreak1();
     
     switch(m_actionState){
         case STOW:
@@ -38,7 +40,7 @@ void Intake::CoreTeleopPeriodic(){
         case AMP_INTAKE:
             if (m_wrist.ProfileDone())
                 m_wrist.Coast();
-            if (GetBeamBreak1()){
+            if (m_wrist.GetState() == Wrist::COAST && m_beam1broke){
                 m_rollers.SetStateBuffer(Rollers::RETAIN, INTAKE_WAIT_s);
                 m_wrist.MoveTo(STOWED_POS);
                 m_actionState = NONE;
@@ -59,10 +61,17 @@ void Intake::CoreTeleopPeriodic(){
             }
             break; 
         case AMP_OUTTAKE:
-            if (m_wrist.GetState() == Wrist::AT_TARGET){
+            if (m_wrist.ProfileDone()){
                 m_channel.SetState(Channel::ON);
                 m_rollers.SetState(Rollers::OUTTAKE);
-                m_actionState = NONE;
+            }
+            if (m_timer >= OUTTAKE_WAIT_s){
+                m_timer = -1;
+                SetState(STOW);
+            } else if (m_timer != -1){
+                m_timer += 0.02;
+            } else if (!GetBeamBreak1()){
+                m_timer = 0;
             }
             break;
         default:
@@ -72,6 +81,9 @@ void Intake::CoreTeleopPeriodic(){
 
 void Intake::SetState(ActionState newAction){
     if (newAction == m_actionState) return;
+
+    if (newAction == AMP_INTAKE && (m_wrist.GetState() == Wrist::COAST || m_timer !=-1)) return;
+    if (m_actionState == AMP_INTAKE) m_timer = -1;
     m_actionState = newAction;
     
     double newWristPos;
@@ -134,17 +146,32 @@ bool Intake::HasGamePiece(){
 
 bool Intake::InChannel(){
     // if(beam break 2 broken)
-    return true;
+    return false;
     // else return false;
 }
 
 bool Intake::InIntake(){
-    return GetBeamBreak1();
+    return m_beam1broke;
 }
 
 bool Intake::GetBeamBreak1() {
-    // return false;
     return !m_beamBreak1.Get();
+}
+
+bool Intake::DebounceBeamBreak1(){
+     if (m_dbTimer == -1){
+        m_beam1broke = !m_beamBreak1.Get();
+        if (m_beam1broke){
+            m_dbTimer= 0;
+        }
+    } else {
+        m_dbTimer+= 0.02;
+        if (m_dbTimer >= DEBOUNCE_WAIT_s){
+            m_dbTimer = -1;
+        }
+        m_beam1broke = true;
+    }   
+    return m_beam1broke;
 }
 
 void Intake::CoreShuffleboardInit(){
@@ -157,6 +184,8 @@ void Intake::CoreShuffleboardInit(){
     m_shuff.add("Passthrough", &PASSTHROUGH_POS, {1,1,2,1}, true);
     m_shuff.add("Amp", &AMP_OUT_POS, {1,1,3,1}, true);
     m_shuff.add("wait time", &INTAKE_WAIT_s, {1,1,6,1}, true);
+    m_shuff.add("out wait time", &OUTTAKE_WAIT_s, {1,1,7,1}, true);
+    m_shuff.add("debounce wait time", &DEBOUNCE_WAIT_s, {1,1,7,1}, true);
 
     //Go to NONE state (row 2)
     m_shuff.addButton("NONE STATE", [&]{m_actionState = NONE;}, {4,1,0,2});
@@ -199,8 +228,7 @@ void Intake::CoreShuffleboardPeriodic(){
             break;
     }
             
-    m_shuff.PutBoolean("BeamBreak 1", GetBeamBreak1());
-    m_shuff.addButton("disable rollers", [&]{m_rollers.StopRollers(); m_rollers.Disable();}, {1,1,7,3});
-    m_shuff.addButton("enable rollers", [&]{m_rollers.Enable();}, {1,1,7,3});
+    m_shuff.PutBoolean("BeamBreak 1", m_beam1broke);
+    m_shuff.PutNumber("debounce timer", m_dbTimer);
     m_shuff.update(true);
 }
