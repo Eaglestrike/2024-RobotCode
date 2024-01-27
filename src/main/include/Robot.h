@@ -50,7 +50,7 @@ private:
   // Controller
   Controller m_controller;
 
-  // navX
+  // navX (gyroscope)
   AHRS *m_navx;
 
   // Swerve
@@ -60,9 +60,10 @@ private:
   FFAutotuner m_swerveXTuner{"Swerve X", FFAutotuner::SIMPLE}; //0.1833, 1.455, 0.1410
   FFAutotuner m_swerveYTuner{"Swerve Y", FFAutotuner::SIMPLE}; //0.1711, 1.384, 0.1398
   #endif
-
-  // Jetson
+  
+  // Vision (Jetson)
   SocketClient m_client;
+  bool m_isSecondTag;
   
   // Odometry
   Odometry m_odom;
@@ -76,4 +77,5 @@ private:
   frc::SendableChooser<std::string> m_chooser;
 
   Shooter shooter_{"Shooter", true, true};
+  // double m_wheelAng = 0;
 };
