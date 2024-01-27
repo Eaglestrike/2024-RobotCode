@@ -17,7 +17,7 @@ using namespace Actions;
 Robot::Robot() :
   m_swerveController{true, false},
   m_auto{true, m_swerveController, m_odom, m_intake},
-  m_client{"10.1.14.52", 5590, 300, 5000},
+  m_client{"10.1.14.46", 5590, 300, 5000},
   m_isSecondTag{false},
   m_odom{true},
   m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
