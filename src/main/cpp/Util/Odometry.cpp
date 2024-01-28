@@ -173,6 +173,7 @@ void Odometry::UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs,
   } else {
     m_curYaw = Utils::NormalizeAng(navXYaw + m_startAng);
   }
+  m_angVel = swerveAngVel;
   m_angHistory[curTime] = m_curAng;
   m_prevDriveTime = curTime;
 }
@@ -187,7 +188,7 @@ void Odometry::Update(const double &deltaT, const double &prevAng) {
   vec::Vector2D prevPos = m_curPos;
   m_curPos = m_estimator.GetCurPos();
   m_vel = (m_curPos - prevPos) / deltaT;
-  m_angVel = (m_curAng - prevAng) / deltaT;
+  // m_angVel = (m_curAng - prevAng) / deltaT;
 
   double curTime = Utils::GetCurTimeS();
   while (m_angHistory.size() > 1 && m_angHistory.begin()->first < curTime - PoseEstimator::MAX_HISTORY_TIME) {

@@ -17,6 +17,7 @@
 #include "FFAutotuner/FFAutotuner.h"
 
 #include "Controller/Controller.h"
+#include "Drive/AutoAngLineup.h"
 #include "Drive/SwerveControl.h"
 #include "Intake/Wrist.h"
 #include "Intake/Channel.h"
@@ -28,6 +29,8 @@
 
 // FOR DEBUG ONLY
 #include "Auto/AutoPathSegment.h"
+
+#include "Shooter/Shooter.h"
 
 class Robot : public frc::TimedRobot {
 public:
@@ -83,5 +86,10 @@ private:
   // DEBUG ONLY
   AutoPathSegment m_autoPath;
   frc::SendableChooser<std::string> m_chooser;
+
+  // Shooter shooter_{"Shooter", true, true};
+
+  // auto lineup
+  AutoAngLineup m_autoLineup;
   // double m_wheelAng = 0;
 };
