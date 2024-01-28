@@ -67,7 +67,7 @@ bool SocketClient::HasConn()
 bool SocketClient::IsStale()
 {
   unsigned long long curTimeMs = GET_CUR_TIME_MS;
-  double lastTime = m_lastTimeMs.load();
+  unsigned long long lastTime = m_lastTimeMs.load();
   // bool hasInit = m_hasInit.load();
 
   return (curTimeMs - lastTime >= m_staleTime);
