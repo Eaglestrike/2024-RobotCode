@@ -10,6 +10,7 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 
 #include "Constants/AutoConstants.h"
+#include "Constants/AutoLineupConstants.h"
 #include "Controller/ControllerMap.h"
 
 using namespace Actions;
@@ -93,7 +94,7 @@ void Robot::RobotInit() {
   m_client.Init();
   m_swerveController.Init();
 
-  shooter_.Init();
+  // shooter_.Init();
 }
 
 /**
@@ -105,7 +106,7 @@ void Robot::RobotInit() {
  * LiveWindow and SmartDashboard integrated updating.
  */
 void Robot::RobotPeriodic() {
-  shooter_.Periodic();
+  // shooter_.Periodic();
 
   ShuffleboardPeriodic();
   m_autoPath.ShuffleboardPeriodic();
@@ -160,22 +161,6 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-  // double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.1);
-  // double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.1);
-
-  // double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.1);
-
-  // double mult = SwerveConstants::NORMAL_SWERVE_MULT;
-  // double vx = std::clamp(lx, -1.0, 1.0) * mult;
-  // double vy = std::clamp(ly, -1.0, 1.0) * mult;
-  // double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
-
-  // vec::Vector2D setVel = {-vy, -vx};
-  // double curYaw = m_navx->GetYaw();
-
-  // m_swerveController.SetRobotVelocityTele(setVel, w, 0, 0);
-  // m_swerveController.Periodic();
-
   //Swerve
   double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
   double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
@@ -197,6 +182,11 @@ void Robot::TeleopPeriodic() {
   m_logger.LogNum("ang input", rx);
   m_logger.LogNum("navX ang", m_odom.GetAng());
 
+  // auto lineup to amp
+  if (m_controller.getPressedOnce(AMP_AUTO_LINEUP)) {
+    m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
+    m_autoLineup.Start();
+  }
   //Intake
   if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
     m_amp = true;
@@ -221,7 +211,18 @@ void Robot::TeleopPeriodic() {
   } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
     m_intake.Stow();
   }
+
+  if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
+    double angVel = m_autoLineup.GetAngVel();
+    m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
+  } else {
+    m_autoLineup.Stop();
+    m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
+  }
+
   m_intake.TeleopPeriodic();
+  m_swerveController.Periodic();
+  m_autoLineup.Periodic();
 }
 
 void Robot::DisabledInit() {}

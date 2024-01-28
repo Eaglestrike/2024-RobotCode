@@ -87,7 +87,7 @@ private:
   AutoPathSegment m_autoPath;
   frc::SendableChooser<std::string> m_chooser;
 
-  Shooter shooter_{"Shooter", true, true};
+  // Shooter shooter_{"Shooter", true, true};
 
   // auto lineup
   AutoAngLineup m_autoLineup;

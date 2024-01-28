@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 #include "Util/Utils.h"
 
 namespace vec = svector;
@@ -15,4 +17,6 @@ namespace AutoLineupConstants {
 
   const double MAX_SPEED = 7;
   const double MAX_ACCEL = 20;
+
+  const double AMP_LINEUP_ANG = -M_PI / 2;
 }
