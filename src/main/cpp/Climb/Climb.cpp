@@ -26,10 +26,17 @@ void Climb::CoreTeleopPeriodic(){
             if (AtTarget(info.TARG_POS)){
                 m_state = AT_TARGET;
             }
-            m_actuator.Set(OFF); //brake off
+            ReleaseBrake();
             break;
         case AT_TARGET:
-            m_actuator.Set(BREAK); //break on
+            Brake(); 
+            break;
+        case MANUAL:
+            voltage = m_manualVolts;
+            if (m_braking)
+                Brake();
+            else 
+                ReleaseBrake();
             break;
     }
 
@@ -38,8 +45,24 @@ void Climb::CoreTeleopPeriodic(){
     m_master.SetVoltage(units::volt_t(voltage));
 }
 
+void Climb::Brake(){
+    m_actuatorPin1.Set(BREAK); //brake on
+    m_actuatorPin2.Set(!BREAK); 
+    m_braking = true;
+}
+
+void Climb::ReleaseBrake(){
+    m_actuatorPin1.Set(!BREAK); //brake off
+    m_actuatorPin2.Set(BREAK); 
+    m_braking = true;
+}
+
+void Climb::ToggleBrake(){
+    m_braking = !m_braking;
+}
+
 void Climb::UpdatePos(){
-    m_pos = m_absEncoder.GetPosition().GetValueAsDouble();
+    m_pos = m_master.GetPosition().GetValueAsDouble();
 }
 
 bool Climb::AtTarget(double target){
@@ -49,7 +72,8 @@ bool Climb::AtTarget(double target){
     return false;
 }
 
-Climb::Climb(){
+Climb::Climb(bool enabled, bool dbg): 
+    Mechanism("climb", enabled, dbg){
     m_master.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
     // m_slave.SetControl(Follower(Ids::MASTER_CLIMB_MOTOR, false));
 }
@@ -77,13 +101,14 @@ void Climb::SetTarget(Target t){
 }
 
 // should put break on here also 
-void Climb::ManualPeriodic(double voltage){
-    voltage = std::clamp(voltage, -MAX_VOLTS, MAX_VOLTS);
-    m_master.SetVoltage(units::volt_t(voltage));
+void Climb::SetManualInput(double ctrlr){
+    ctrlr = std::clamp(ctrlr, -1.0, 1.0);
+    ctrlr *= MAX_VOLTS;
+    m_manualVolts = ctrlr;
 }
 
 void Climb::Zero(){
-    m_absEncoder.SetPosition(units::angle::turn_t(0));
+    m_master.SetPosition(units::angle::turn_t(0));
 }
 
 void Climb::CoreShuffleboardInit(){
@@ -127,8 +152,12 @@ void Climb::CoreShuffleboardPeriodic(){
         case AT_TARGET:
             m_shuff.PutString("state", "At target", {2,1,6,0});
             break;
+        case MANUAL:
+            m_shuff.PutString("state", "Manual", {2,1,6,0});
+            break;
     }
 
     m_shuff.addButton("Zero", [&]{Zero();}, {1,1,7,3});
     m_shuff.update(true);
 }
+

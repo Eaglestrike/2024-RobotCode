@@ -24,19 +24,23 @@ class Climb : public Mechanism{
 
         enum State{
             MOVING,
-            AT_TARGET
+            AT_TARGET,
+            MANUAL
         };
 
-        Climb();
+        Climb(bool enabled, bool dbg);
         void Zero();
-        void ManualPeriodic(double voltage); // use for winding
+        void SetManualInput(double ctrlr); // use for winding
         void PullUp();
         void Stow ();
         void Extend();
+        void ToggleBrake();
         State GetState();
         void SetTarget(Target t);
 
     private:
+        void Brake();
+        void ReleaseBrake();
         void CorePeriodic() override;
         void CoreTeleopPeriodic() override;
         void CoreShuffleboardInit() override;
@@ -48,12 +52,15 @@ class Climb : public Mechanism{
         ShuffleboardSender m_shuff {"Climb", true};
 
         TalonFX m_master {Ids::MASTER_CLIMB_MOTOR};//, m_slave {Ids::SLAVE_CLIMB_MOTOR};
-        CANcoder m_absEncoder{Ids::CLIMB_ABS_ENCODER};
-        frc::DigitalOutput m_actuator{Ids::ACTUATOR};
+        frc::DigitalOutput m_actuatorPin1{Ids::ACTUATOR_PIN_1};
+        frc::DigitalOutput m_actuatorPin2{Ids::ACTUATOR_PIN_2};
 
         double m_pos;
         Target m_targ = STOWED;
         State m_state = AT_TARGET;
+
+        double m_manualVolts=0;
+        bool m_braking = true;
 
         struct StateInfo {
             double TARG_POS;
@@ -67,7 +74,6 @@ class Climb : public Mechanism{
                 POS_TOLERANCE= 0.0; 
 
         bool BREAK = true;
-        bool OFF = !BREAK;
 
         // double STILL_VOLTS = 0.0 ;
         StateInfo CLIMB_INFO =  {MIN_POS, 
