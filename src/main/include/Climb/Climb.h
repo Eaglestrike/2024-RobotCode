@@ -68,7 +68,7 @@ class Climb : public Mechanism{
         };
 
         //CONSTANTS:
-        double  MAX_VOLTS = 0.0, 
+        double  MAX_VOLTS = 5.0, 
                 MIN_POS= 0.0, 
                 MAX_POS= 0.0, 
                 POS_TOLERANCE= 0.0; 

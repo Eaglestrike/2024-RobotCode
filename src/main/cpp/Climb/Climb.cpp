@@ -54,7 +54,7 @@ void Climb::Brake(){
 void Climb::ReleaseBrake(){
     m_actuatorPin1.Set(!BREAK); //brake off
     m_actuatorPin2.Set(BREAK); 
-    m_braking = true;
+    m_braking = false;
 }
 
 void Climb::ToggleBrake(){
