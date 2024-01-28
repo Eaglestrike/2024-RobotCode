@@ -26,7 +26,7 @@ Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, Intake &int
  * Sets the path to run at some index
 */
 void Auto::SetPath(AutoPath path, uint index){
-    for(uint i = paths_.size() - 1; i < index; i++){
+    for(uint i = paths_.size(); i <= index; i++){
         paths_.push_back({});
     }
     paths_[index] = path;
@@ -45,7 +45,8 @@ void Auto::AutoInit(){
     ResetTiming(intakeTiming_);
     ResetTiming(shooterTiming_);
     ResetTiming(driveTiming_);
-
+    
+    std::cout<<"init next"<<std::endl;
     NextBlock();
 }
 
@@ -134,13 +135,18 @@ void Auto::NextBlock(){
     if(pathNum_ >= (int)paths_.size()){
         return;
     }
-    
+
+    AutoPath path = paths_[pathNum_];
+    if(path.size() == 0){
+        pathNum_++;
+        NextBlock();
+        return;
+    }
+    AutoElement firstElement = path[index_];
+
     ResetTiming(intakeTiming_);
     ResetTiming(shooterTiming_);
     ResetTiming(driveTiming_);
-
-    AutoPath path = paths_[pathNum_];
-    AutoElement firstElement = path[index_];
 
     blockStart_ = Utils::GetCurTimeS() + firstElement.offset;
 

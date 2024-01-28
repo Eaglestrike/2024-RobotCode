@@ -45,19 +45,22 @@ namespace AutoConstants {
   };
 
   using AutoPath = std::vector<AutoElement>;
-  const AutoPath TEST = {
-    {DRIVE, AFTER, "testIntake.csv"},
+  const AutoPath INTAKE1 = {
+    {DRIVE, AFTER, "testIntake1.csv"},
     {INTAKE, BEFORE_END},
     {DRIVE, AFTER, "testBackFromIntake.csv"},
-    {STOW, AT_START, "", 1.0},
     {SHOOT, AFTER, "", 1.0}
   };
-
-  const AutoPath TEST2 = {
-    {DRIVE, AFTER, "testIntake.csv"},
-    {INTAKE, BEFORE_END, "", 1.0},
-    {DRIVE, AFTER, "testBackFromIntake.csv", 4.0},
-    {STOW, AT_START, "", 1.0},
+  const AutoPath INTAKE2 = {
+    {DRIVE, AFTER, "testIntake2.csv"},
+    {INTAKE, BEFORE_END},
+    {DRIVE, AFTER, "testBackFromIntake.csv"},
+    {SHOOT, AFTER, "", 1.0}
+  };
+  const AutoPath INTAKE3 = {
+    {DRIVE, AFTER, "testIntake3.csv"},
+    {INTAKE, BEFORE_END},
+    {DRIVE, AFTER, "testBackFromIntake.csv"},
     {SHOOT, AFTER, "", 1.0}
   };
 
@@ -66,8 +69,9 @@ namespace AutoConstants {
 
   //Shuffleboard paths
   const std::map<std::string, AutoPath> PATHS = {
-      {"drive and intake", TEST},
-      {"drive and intake wait", TEST2},
+      {"intake 1", INTAKE1},
+      {"intake 2", INTAKE2},
+      {"intake 3", INTAKE3},
       {"Nothing", NOTHING}
   };
 

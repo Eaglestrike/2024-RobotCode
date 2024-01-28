@@ -150,6 +150,7 @@ void Robot::AutonomousPeriodic() {
 
 void Robot::TeleopInit() {
   m_swerveController.SetAngCorrection(true);
+  m_swerveController.ResetAngleCorrection(m_odom.GetAng());
   m_swerveController.SetAutoMode(false);
 }
 
@@ -209,13 +210,12 @@ void Robot::DisabledInit() {}
 
 void Robot::DisabledPeriodic() {
   // AUTO
-  std::string path = m_auto1.GetSelected();
-  if(AutoConstants::PATHS.find(path) != AutoConstants::PATHS.end()){
-    m_auto.SetPath(AutoConstants::PATHS.at(path),0);
-  }
-  path = m_auto2.GetSelected();
-  if(AutoConstants::PATHS.find(path) != AutoConstants::PATHS.end()){
-    m_auto.SetPath(AutoConstants::PATHS.at(path),1);
+  std::string path;
+  for(uint i = 0; i < AUTO_LENGTH; i++){
+    path = m_autoChoosers[i].GetSelected();
+    if(AutoConstants::PATHS.find(path) != AutoConstants::PATHS.end()){
+      m_auto.SetPath(AutoConstants::PATHS.at(path),i);
+    }
   }
 }
 
@@ -256,12 +256,14 @@ void Robot::ShuffleboardInit() {
   frc::SmartDashboard::PutBoolean("Logging", false);
 
   // Auto
-  m_auto1.SetDefaultOption("Nothing")
   for (auto path : AutoConstants::PATHS) {
-    m_auto1.AddOption(path.first, path.first);
-    m_auto2.AddOption(path.first, path.first);
+    for (auto& chooser: m_autoChoosers){
+      chooser.AddOption(path.first, path.first);
+    }
   }
-  frc::SmartDashboard::PutData("Auto Spline Chooser", &m_auto1);
+  for(uint i = 0; i < AUTO_LENGTH; i++){
+    frc::SmartDashboard::PutData("Auto " + std::to_string(i+1), &m_autoChoosers[i]);
+  }
 }
 
 /**
@@ -291,6 +293,7 @@ void Robot::ShuffleboardPeriodic() {
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
   }
+
 
   // DEBUG
   {
