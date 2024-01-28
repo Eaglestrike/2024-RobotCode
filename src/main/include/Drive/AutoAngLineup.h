@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "Util/Odometry.h"
 #include "Util/simplevectors.hpp"
 
@@ -62,4 +64,6 @@ private:
     double GetSpeed();
     bool AtAngTarget() const;
     bool AtAngTarget(double posErrTol, double velErrTol) const;
+    std::string GetStateString() const;    
+    double CalcError() const;
 };

@@ -16,12 +16,13 @@ using namespace Actions;
 
 Robot::Robot() :
   m_swerveController{true, false},
-  m_client{"10.1.14.46", 5590, 300, 5000},
+  m_client{"10.1.14.46", 5590, 500, 5000},
   m_isSecondTag{false},
-  m_odom{true},
+  m_odom{false},
   m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
   m_prevIsLogging{false},
-  m_autoPath{true, m_swerveController, m_odom}
+  m_autoPath{false, m_swerveController, m_odom},
+  m_autoLineup{false, m_odom}
   {
   // navx
   try
@@ -81,6 +82,7 @@ void Robot::RobotInit() {
   ShuffleboardInit();
   m_autoPath.ShuffleboardInit();
   m_odom.ShuffleboardInit();
+  m_autoLineup.ShuffleboardInit();
 
   m_navx->Reset();
   m_navx->ZeroYaw();
@@ -107,6 +109,7 @@ void Robot::RobotPeriodic() {
   ShuffleboardPeriodic();
   m_autoPath.ShuffleboardPeriodic();
   m_odom.ShuffleboardPeriodic();
+  m_autoLineup.ShuffleboardPeriodic();
 
   if (m_controller.getPressedOnce(ZERO_YAW)) {
     m_navx->Reset();
@@ -175,7 +178,19 @@ void Robot::TeleopPeriodic() {
   m_logger.LogNum("ang input", rx);
   m_logger.LogNum("navX ang", m_odom.GetAng());
 
-  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
+  if (m_controller.getPressedOnce(AUTO_LINEUP)) {
+    m_autoLineup.Start();
+  }
+
+  if (m_controller.getPressed(AUTO_LINEUP)) {
+    double angVel = m_autoLineup.GetAngVel(); 
+    m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
+  } else {
+    m_autoLineup.Stop();
+    m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng); 
+  }
+
+  m_autoLineup.Periodic();
   m_swerveController.Periodic();
 }
 

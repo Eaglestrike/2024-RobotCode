@@ -17,6 +17,7 @@
 #include "FFAutotuner/FFAutotuner.h"
 
 #include "Controller/Controller.h"
+#include "Drive/AutoAngLineup.h"
 #include "Drive/SwerveControl.h"
 #include "Util/Logger.h"
 #include "Util/Odometry.h"
@@ -77,5 +78,8 @@ private:
   frc::SendableChooser<std::string> m_chooser;
 
   Shooter shooter_{"Shooter", true, true};
+
+  // auto lineup
+  AutoAngLineup m_autoLineup;
   // double m_wheelAng = 0;
 };

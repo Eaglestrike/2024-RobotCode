@@ -13,6 +13,7 @@ namespace Actions{
         ZERO_DRIVE_PID,
         ZERO_YAW,
         SLOW_MODE,
+        AUTO_LINEUP,
         ACTION_COUNT //Just the number of actions, as it is at the end of a enum
     };
 
@@ -39,7 +40,7 @@ namespace ControllerMapData{
     const std::vector<ControlMapElement> ButtonMap = {
         {{LJOY, X_AXIS},        SWERVE_STRAFEX},
         {{LJOY, Y_AXIS},        SWERVE_STRAFEY},
-        {{LJOY, TRIGGER},       NONE},
+        {{LJOY, TRIGGER},       AUTO_LINEUP},
         {{LJOY, B_4},           NONE},
         {{LJOY, B_2},           NONE},
         {{RJOY, B_3},           NONE},

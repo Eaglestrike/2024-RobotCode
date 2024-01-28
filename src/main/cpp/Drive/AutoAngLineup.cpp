@@ -2,6 +2,7 @@
 
 #include <climits>
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <iostream>
 
 #include "Constants/AutoLineupConstants.h"
 #include "Util/Utils.h"
@@ -14,9 +15,9 @@
 */
 AutoAngLineup::AutoAngLineup(bool shuffleboard, Odometry &odom)
     : m_shuffleboard{shuffleboard}, m_odom{odom}, m_angTimes{0, 0, 0, 0},
-    m_state{NOT_EXECUTING}, m_maxSpeed{0}, m_maxAccel{0},
+    m_state{NOT_EXECUTING}, m_maxSpeed{AutoLineupConstants::MAX_SPEED}, m_maxAccel{AutoLineupConstants::MAX_ACCEL},
     m_kP{AutoLineupConstants::ANG_P}, m_kI{AutoLineupConstants::ANG_I}, m_kD{AutoLineupConstants::ANG_D},
-    m_targetAng{0}, m_curExpectedAng{0}, m_prevAngErr{0}, m_totalAngErr{0},
+    m_targetAng{0}, m_curExpectedAng{0}, m_curExpectedAngVel{0}, m_prevAngErr{0}, m_totalAngErr{0},
     m_angVecDir{0}, m_prevTime{0}, m_curAngVel{0}
     {}
 
@@ -92,12 +93,12 @@ void AutoAngLineup::CalcTimes(double dist) {
   m_angTimes.descentT = curT + increaseT + maintainT;
   m_angTimes.endT = curT + increaseT * 2 + maintainT;
 
-  // std::cout << "max speed" << config.maxSpeed << std::endl;
-  // std::cout << "max ac" << config.maxSpeed << std::endl;
-  // std::cout << "startT: " << times.startT << std::endl;
-  // std::cout << "maxSpeedT: " << times.maxSpeedT << std::endl;
-  // std::cout << "descentT: " << times.descentT << std::endl;
-  // std::cout << "endT: " << times.endT << std::endl;
+  // std::cout << "max speed" << m_maxSpeed << std::endl;
+  // std::cout << "max ac" << m_maxAccel << std::endl;
+  // std::cout << "startT: " << m_angTimes.startT << std::endl;
+  // std::cout << "maxSpeedT: " << m_angTimes.maxSpeedT << std::endl;
+  // std::cout << "descentT: " << m_angTimes.descentT << std::endl;
+  // std::cout << "endT: " << m_angTimes.endT << std::endl;
 }
 
 /**
@@ -148,26 +149,7 @@ void AutoAngLineup::SetPID(double kP, double kI, double kD) {
  * @returns Velcoity from PID
 */
 double AutoAngLineup::CalcPID(double deltaT) {
-  double err;
-  double dir;
-  double curAng = m_odom.GetAngNorm();
-  if (std::abs(m_curExpectedAng - curAng) < M_PI) {
-    if (curAng < m_curExpectedAng) {
-      dir = 1;
-    } else {
-      dir = -1;
-    }
-    err = std::abs(m_curExpectedAng - curAng);
-  } else {
-    if (curAng < m_curExpectedAng) {
-      dir = -1;
-    } else {
-      dir = 1;
-    }
-    err = 2 * M_PI - std::abs(m_curExpectedAng - curAng);
-  }
-
-  err = dir * err;
+  double err = CalcError();
 
   // double deltaErr = (err - m_prevAngErr) / deltaT;
   double deltaErr = (m_curExpectedAngVel - m_odom.GetAngVel()) / deltaT;
@@ -177,6 +159,12 @@ double AutoAngLineup::CalcPID(double deltaT) {
   m_prevAngErr = err;
 
   return res;
+}
+
+double AutoAngLineup::CalcError() const {
+  double err, dir;
+  double curAng = m_odom.GetAngNorm();
+  return Utils::NormalizeAng(m_curExpectedAng - curAng);
 }
 
 /**
@@ -200,8 +188,11 @@ void AutoAngLineup::Periodic() {
       m_curExpectedAng += ffAngVel * deltaT;
       m_curExpectedAng = Utils::NormalizeAng(m_curExpectedAng);
 
+      // double correctionVel = 0;
       double correctionVel = CalcPID(deltaT);
       double totalVel = ffAngVel + correctionVel;
+
+      // std::cout << "ang vel: " << m_angVecDir << std::endl;
 
       // frc::SmartDashboard::PutNumber("taarget ang", m_targetAng);
       // frc::SmartDashboard::PutNumber("cur speed", angSpeed);
@@ -220,12 +211,13 @@ void AutoAngLineup::Periodic() {
     {
       m_curAngVel = 0;
       if (!AtAngTarget()) {
-        m_state = NOT_EXECUTING;
+        m_state = EXECUTING_TARGET;
       }
 
       break;
     }
   }
+  m_prevTime = curTime;
 }
 
 /**
@@ -295,6 +287,7 @@ void AutoAngLineup::ShuffleboardInit() {
   frc::SmartDashboard::PutNumber("targ ang", m_targetAng);
   frc::SmartDashboard::PutNumber("pos error", 0);
   frc::SmartDashboard::PutNumber("vel error", 0);
+  frc::SmartDashboard::PutString("state", GetStateString());
 }
 
 /**
@@ -316,7 +309,11 @@ void AutoAngLineup::ShuffleboardPeriodic() {
   SetPID(kP, kI, kD);
   SetTarget(targAng);
 
-  frc::SmartDashboard::PutNumber("pos error", m_curExpectedAng - m_odom.GetAngNorm());
+  frc::SmartDashboard::PutNumber("pos error", CalcError());
+  frc::SmartDashboard::PutNumber("cur ang", m_odom.GetAngNorm());
+  frc::SmartDashboard::PutNumber("exp ang", m_curExpectedAng);
+  frc::SmartDashboard::PutNumber("cur vel", m_curAngVel);
+  frc::SmartDashboard::PutString("state", GetStateString());
 }
 
 /**
@@ -331,4 +328,19 @@ double AutoAngLineup::GetAngVel() const {
 */
 AutoAngLineup::ExecuteState AutoAngLineup::GetState() const {
   return m_state;
+}
+
+/**
+ * Gets state string
+*/
+std::string AutoAngLineup::GetStateString() const {
+  switch (m_state) {
+    case NOT_EXECUTING:
+      return "Not executing";
+    case EXECUTING_TARGET:
+      return "Executing target";
+    case AT_TARGET:
+      return "At Target";
+  }
+  return "Error";
 }
