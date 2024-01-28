@@ -161,6 +161,11 @@ double AutoAngLineup::CalcPID(double deltaT) {
   return res;
 }
 
+/**
+ * Calculates angle error
+ * 
+ * @returns Angle error
+*/
 double AutoAngLineup::CalcError() const {
   double err, dir;
   double curAng = m_odom.GetAngNorm();
