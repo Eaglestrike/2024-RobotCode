@@ -33,10 +33,12 @@ void Climb::CoreTeleopPeriodic(){
             break;
         case MANUAL:
             voltage = m_manualVolts;
-            if (m_braking)
+            if (m_braking){
                 Brake();
-            else 
+            }
+            else{
                 ReleaseBrake();
+            }
             break;
     }
 
@@ -105,6 +107,7 @@ void Climb::SetManualInput(double ctrlr){
     ctrlr = std::clamp(ctrlr, -1.0, 1.0);
     ctrlr *= MAX_VOLTS;
     m_manualVolts = ctrlr;
+    m_state = MANUAL;
 }
 
 void Climb::Zero(){

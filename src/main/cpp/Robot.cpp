@@ -233,7 +233,7 @@ void Robot::TeleopPeriodic() {
     m_climb.Extend();
   } 
 
-
+  m_climb.TeleopPeriodic();
   m_intake.TeleopPeriodic();
 }
 
