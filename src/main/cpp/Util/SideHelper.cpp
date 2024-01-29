@@ -95,19 +95,17 @@ double SideHelper::GetAngVel(double blueAngVel) {
 /**
  * Gets starting positions
  * 
- * @param idx index (0 is L, 1 is M, 2 is R), if out of bounds, chooses M
+ * @param idx index if out of bounds, chooses 1
+ * 
+ * @note On blue, [0, 1, 2] are [L, M, R] respectively, but on red, [0, 1, 2] are [R, M, L] respectively
  * 
  * @returns Start pose
 */
-AutoConstants::StartPose SideHelper::GetStartingPos(int idx) {
+AutoConstants::StartPose SideHelper::GetStartingPose(int idx) {
   if (idx < 0 || idx > 2) {
     idx = 1;
   }
 
-  if (IsBlue()) {
-    idx = 2 - idx;
-  }
-  
   switch (idx) {
     case 0:
       return {SideHelper::GetPos(AutoConstants::BLUE_L.pos), SideHelper::GetAng(AutoConstants::BLUE_L.ang)};
@@ -118,6 +116,42 @@ AutoConstants::StartPose SideHelper::GetStartingPos(int idx) {
   } 
 
   return {SideHelper::GetPos(AutoConstants::BLUE_M.pos), SideHelper::GetAng(AutoConstants::BLUE_M.ang)};
+}
+
+/**
+ * Gets starting positions from string
+ * 
+ * @param pos Starting position, either "Left", "Middle", "Right," converts to correct starting position no matter which side
+ * 
+ * @returns Start pose
+*/
+AutoConstants::StartPose SideHelper::GetStartingPose(std::string pos) {
+  int idx = 1;
+
+  if (pos == "Left") {
+    idx = 0;
+  } else if (pos == "Right") {
+    idx = 2;
+  }
+
+  if (!IsBlue()) {
+    idx = 2 - idx;
+  }
+
+  return GetStartingPose(idx);
+}
+
+/**
+ * Gets joystick ang based on side
+ * 
+ * @returns Joystick ang, in rad
+*/
+double SideHelper::GetJoystickAng() {
+  if (IsBlue()) {
+    return 0;
+  }
+
+  return M_PI;
 }
 
 /**
