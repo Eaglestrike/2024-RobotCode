@@ -89,7 +89,6 @@ void Robot::RobotInit() {
   m_navx->Reset();
   m_navx->ZeroYaw();
   m_odom.Reset();
-  m_odom.SetStartingConfig({1.113015879415296,4.955401908989121}, M_PI, 0);
 
   m_intake.Init();
   m_client.Init();
