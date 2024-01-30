@@ -12,34 +12,39 @@ Channel::ChannelState Channel::GetState() {
 
 Channel::Channel(bool enabled, bool dbg){
     Mechanism("Channel", enabled, dbg);
-    m_channelMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
+    // m_channelMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
 }
 
 void Channel::CoreTeleopPeriodic() {
-    double setVolts = 0;
+    double kickerV = 0;
+    double channelV = 0;
 
     switch (m_state) {
         case ON:
-            setVolts = IN_VOLTS;
+            kickerV = m_kickerInfo.IN_VOLTS;
+            channelV = m_channelInfo.IN_VOLTS;
             break;
         case RETAIN:
-            setVolts = KEEP_VOLTS;
-            break;
-        case STOP:
-            setVolts = 0;
+            kickerV = m_kickerInfo.KEEP_VOLTS;
+            channelV = m_channelInfo.KEEP_VOLTS;
             break;
     }
 
-    m_channelMotor.SetVoltage(units::volt_t{setVolts});
+    m_kickerMotor.SetVoltage(units::volt_t{std::clamp(kickerV, -m_kickerInfo.MAX_VOLTS, m_kickerInfo.MAX_VOLTS)});
+    m_channelMotor.SetVoltage(units::volt_t{std::clamp(channelV, -m_channelInfo.MAX_VOLTS, m_channelInfo.MAX_VOLTS)});
 }
 
 void Channel::SetVoltage(){
-    m_voltReq = std::clamp(m_voltReq, -MAX_VOLTS, MAX_VOLTS);
-    m_channelMotor.SetVoltage(units::volt_t(m_voltReq));
+    m_cVoltReq = std::clamp(m_cVoltReq, -m_channelInfo.MAX_VOLTS, m_channelInfo.MAX_VOLTS);
+    m_channelMotor.SetVoltage(units::volt_t(m_cVoltReq));
+
+    m_kVoltReq = std::clamp(m_kVoltReq, -m_kickerInfo.MAX_VOLTS, m_kickerInfo.MAX_VOLTS);
+    m_kickerMotor.SetVoltage(units::volt_t(m_kVoltReq));
 }
 
 void Channel::CoreShuffleboardInit(){
-    m_shuff.add("Voltage", &m_voltReq, true);
+    m_shuff.add("kicker voltage", &m_kVoltReq, true);
+    m_shuff.add("channel voltage", &m_cVoltReq, true);
 }
 
 void Channel::CoreShuffleboardPeriodic(){

@@ -4,8 +4,10 @@
 #include "Util/Mechanism.h"
 #include "ShuffleboardSender/ShuffleboardSender.h"
 #include "Constants/IntakeConstants.h"
+#include <ctre/phoenix/motorcontrol/can/WPI_TalonSRX.h>
+#include <rev/CANSparkMax.h>
 
-using ctre::phoenix6::hardware::TalonFX;
+using ctre::phoenix::motorcontrol::can::WPI_TalonSRX;
 
 class Channel : public Mechanism{
     public:
@@ -25,14 +27,25 @@ class Channel : public Mechanism{
 private:
   void SetVoltage();
   ChannelState m_state{STOP};
-  TalonFX m_channelMotor{IntakeConstants::CHANNEL_MOTOR};
+  WPI_TalonSRX m_channelMotor{IntakeConstants::CHANNEL_MOTOR};
+  rev::CANSparkMax m_kickerMotor{IntakeConstants::KICKER_MOTOR, rev::CANSparkLowLevel::MotorType::kBrushless};
   ShuffleboardSender m_shuff {"Channel", false};
 
   //Constants
-  double MAX_VOLTS = 0.0;
-  double KEEP_VOLTS = 0.0;
-  double IN_VOLTS = 0.0;
+  struct motorV { 
+    double MAX_VOLTS;
+    double KEEP_VOLTS;
+    double IN_VOLTS;
+  };
+    motorV m_channelInfo = {8.0,
+                            0.0,
+                            0.0};
 
+    motorV m_kickerInfo =  {8.0,
+                            0.0,
+                            0.0};
+    
   //for dbg
-   double m_voltReq = 0.0;
+   double m_kVoltReq = 0.0;
+   double m_cVoltReq = 0.0;
 };
