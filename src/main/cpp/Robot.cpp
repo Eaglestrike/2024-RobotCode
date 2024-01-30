@@ -167,6 +167,11 @@ void Robot::TeleopPeriodic() {
 
   double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
 
+  int posVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
+  if (posVal) {
+    m_autoLineup.SetTarget(SideHelper::GetManualLineupAng(posVal - 1));
+  }
+
   double mult = SwerveConstants::NORMAL_SWERVE_MULT;
   if (m_controller.getPressed(SLOW_MODE)) {
     mult = SwerveConstants::SLOW_SWERVE_MULT;
