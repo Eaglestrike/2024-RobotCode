@@ -21,9 +21,10 @@ void Intake::CorePeriodic(){
     m_channel.Periodic();
 }
 
-Intake::ActionState Intake::GetState(){
-    return m_actionState;
-}
+
+
+//State machine
+
 
 void Intake::CoreTeleopPeriodic(){
     m_rollers.TeleopPeriodic();
@@ -34,6 +35,10 @@ void Intake::CoreTeleopPeriodic(){
     
     switch(m_actionState){
         case STOW:
+            if (m_wrist.GetState() == Wrist::AT_TARGET)
+                m_actionState = NONE;
+            break;
+         case HALF_STOW:
             if (m_wrist.GetState() == Wrist::AT_TARGET)
                 m_actionState = NONE;
             break;
@@ -92,6 +97,9 @@ void Intake::SetState(ActionState newAction){
             newWristPos = STOWED_POS;
             m_rollers.SetState(Rollers::STOP);
             break; 
+        case HALF_STOW:
+            newWristPos = HALF_STOW;
+            break; 
         case AMP_INTAKE:
             newWristPos = INTAKE_POS;
             m_rollers.SetState(Rollers::INTAKE);
@@ -116,29 +124,10 @@ void Intake::SetState(ActionState newAction){
     m_wrist.MoveTo(newWristPos);
 }
 
-void Intake::Stow(){
-    SetState(STOW);
-}
 
-void Intake::Passthrough(){
-    SetState(PASSTHROUGH);
-}
 
-void Intake::AmpOuttake(){
-    SetState(AMP_OUTTAKE);
-}
+// Beambreak stuff
 
-void Intake::KeepIntakeDown(bool keepIntakeDown){
-    m_keepIntakeDown = keepIntakeDown;
-}
-
-void Intake::AmpIntake(){
-    SetState(AMP_INTAKE);
-}
-
-void Intake::FeedIntoShooter(){
-    SetState(FEED_TO_SHOOTER);
-}
 
 bool Intake::HasGamePiece(){
     return (InChannel()||InIntake());
@@ -160,7 +149,7 @@ bool Intake::GetBeamBreak1() {
 
 bool Intake::DebounceBeamBreak1(){
      if (m_dbTimer == -1){
-        m_beam1broke = !m_beamBreak1.Get();
+        m_beam1broke = GetBeamBreak1();
         if (m_beam1broke){
             m_dbTimer= 0;
         }
@@ -173,6 +162,11 @@ bool Intake::DebounceBeamBreak1(){
     }   
     return m_beam1broke;
 }
+
+
+
+//DEBUG
+
 
 void Intake::CoreShuffleboardInit(){
     //State (row 0)
@@ -231,4 +225,41 @@ void Intake::CoreShuffleboardPeriodic(){
     m_shuff.PutBoolean("BeamBreak 1", m_beam1broke);
     m_shuff.PutNumber("debounce timer", m_dbTimer);
     m_shuff.update(true);
+}
+
+
+
+//State machine getters & setters
+
+
+Intake::ActionState Intake::GetState(){
+    return m_actionState;
+}
+
+void Intake::Stow(){
+    SetState(STOW);
+}
+
+void Intake::HalfStow(){
+    SetState(HALF_STOW);
+}
+
+void Intake::Passthrough(){
+    SetState(PASSTHROUGH);
+}
+
+void Intake::AmpOuttake(){
+    SetState(AMP_OUTTAKE);
+}
+
+void Intake::AmpIntake(){
+    SetState(AMP_INTAKE);
+}
+
+void Intake::FeedIntoShooter(){
+    SetState(FEED_TO_SHOOTER);
+}
+
+void Intake::KeepIntakeDown(bool keepIntakeDown){
+    m_keepIntakeDown = keepIntakeDown;
 }

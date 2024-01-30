@@ -188,6 +188,9 @@ void Robot::TeleopPeriodic() {
     m_autoLineup.Start();
   }
   //Intake
+  if(m_controller.getPressedOnce(HALF_STOW)){
+    m_intake.HalfStow();
+  }
   if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
     m_amp = true;
   }
