@@ -10,19 +10,22 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 
 #include "Constants/AutoConstants.h"
+#include "Constants/AutoLineupConstants.h"
 #include "Controller/ControllerMap.h"
+#include "Util/SideHelper.h"
 
 using namespace Actions;
 
 Robot::Robot() :
   m_swerveController{true, false},
   m_auto{true, m_swerveController, m_odom, m_intake},
-  m_client{"10.1.14.46", 5590, 300, 5000},
+  m_client{"10.1.14.46", 5590, 500, 5000},
   m_isSecondTag{false},
-  m_odom{true},
+  m_odom{false},
   m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
-  m_prevIsLogging{false}
-{
+  m_prevIsLogging{false},
+  m_autoLineup{false, m_odom}
+  {
   // navx
   try
   {
@@ -83,15 +86,17 @@ void Robot::RobotInit() {
   ShuffleboardInit();
   m_auto.ShuffleboardInit();
   m_odom.ShuffleboardInit();
+  m_autoLineup.ShuffleboardInit();
 
   m_navx->Reset();
   m_navx->ZeroYaw();
   m_odom.Reset();
-  m_odom.SetStartingConfig({1.3374878369040135, 5.704795059447731}, 0.0, 0);
 
   m_intake.Init();
   m_client.Init();
   m_swerveController.Init();
+
+  // shooter_.Init();
 }
 
 /**
@@ -103,9 +108,12 @@ void Robot::RobotInit() {
  * LiveWindow and SmartDashboard integrated updating.
  */
 void Robot::RobotPeriodic() {
+  // shooter_.Periodic();
+
   ShuffleboardPeriodic();
   m_auto.ShuffleboardPeriodic();
   m_odom.ShuffleboardPeriodic();
+  m_autoLineup.ShuffleboardPeriodic();
 
   if (m_controller.getPressedOnce(ZERO_YAW)) {
     m_navx->Reset();
@@ -161,6 +169,11 @@ void Robot::TeleopPeriodic() {
 
   double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
 
+  int posVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
+  if (posVal) {
+    m_autoLineup.SetTarget(SideHelper::GetManualLineupAng(posVal - 1));
+  }
+
   double mult = SwerveConstants::NORMAL_SWERVE_MULT;
   if (m_controller.getPressed(SLOW_MODE)) {
     mult = SwerveConstants::SLOW_SWERVE_MULT;
@@ -176,9 +189,11 @@ void Robot::TeleopPeriodic() {
   m_logger.LogNum("ang input", rx);
   m_logger.LogNum("navX ang", m_odom.GetAng());
 
-  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
-  m_swerveController.Periodic();
-
+  // auto lineup to amp
+  if (m_controller.getPressedOnce(AMP_AUTO_LINEUP)) {
+    m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
+    m_autoLineup.Start();
+  }
   //Intake
   if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
     m_amp = true;
@@ -203,12 +218,31 @@ void Robot::TeleopPeriodic() {
   } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
     m_intake.Stow();
   }
+
+  if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
+    double angVel = m_autoLineup.GetAngVel();
+    m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
+  } else {
+    m_autoLineup.Stop();
+    m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
+  }
+
   m_intake.TeleopPeriodic();
+  m_swerveController.Periodic();
+  m_autoLineup.Periodic();
 }
 
 void Robot::DisabledInit() {}
 
 void Robot::DisabledPeriodic() {
+  // STARTING POS
+  {
+    std::string selected = m_startChooser.GetSelected();
+    AutoConstants::StartPose startPos = SideHelper::GetStartingPose(selected);
+    double joystickAng = SideHelper::GetJoystickAng();
+    m_odom.SetStartingConfig(startPos.pos, startPos.ang, joystickAng);
+  }
+
   // AUTO
   std::string path;
   for(uint i = 0; i < AUTO_LENGTH; i++){
@@ -263,6 +297,26 @@ void Robot::ShuffleboardInit() {
   }
   for(uint i = 0; i < AUTO_LENGTH; i++){
     frc::SmartDashboard::PutData("Auto " + std::to_string(i+1), &m_autoChoosers[i]);
+  }
+  // STARTING POS
+  {
+    m_startChooser.SetDefaultOption("Middle", "Middle");
+    m_startChooser.AddOption("Left", "Left");
+    m_startChooser.AddOption("Middle", "Middle");
+    m_startChooser.AddOption("Right", "Right");
+  }
+
+  // DEBUG
+  {
+    // double navXAngVel = m_odom.GetAngVel();
+    // double wheelAngVel = m_swerveController.GetRobotAngularVel();
+
+    // frc::SmartDashboard::PutNumber("navX Ang Vel", navXAngVel);
+    // frc::SmartDashboard::PutNumber("wheel Ang Vel", m_swerveController.GetRobotAngularVel());
+    // frc::SmartDashboard::PutNumber("diff Ang Vel", navXAngVel - wheelAngVel);
+
+    // frc::SmartDashboard::PutNumber("wheel ang", m_wheelAng);
+    // frc::SmartDashboard::PutNumber("error ang", 0);
   }
 }
 

@@ -5,8 +5,17 @@
 #include <map>
 
 #include "Util/Utils.h"
+#include "Util/simplevectors.hpp"
+
+namespace vec = svector;
+
 
 namespace AutoConstants {
+  struct StartPose {
+    vec::Vector2D pos;
+    double ang;
+  };
+
   // Translational PID after FF
   const double DRIVE_P = 15;
   const double DRIVE_I = 0.001;
@@ -84,4 +93,9 @@ namespace AutoConstants {
   const double INTAKE_PADDING = 0.5;
   const double STOW_PADDING = 0.5;
   const double SHOOT_PADDING = 0.0;
+
+  // starting positions
+  const StartPose BLUE_L = {{0.666, 6.838}, 4.126271};
+  const StartPose BLUE_M = {{1.265, 5.811}, 3.141592};
+  const StartPose BLUE_R = {{0.597, 4.635}, 2.062718};
 }

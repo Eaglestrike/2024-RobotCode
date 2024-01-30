@@ -16,6 +16,7 @@ namespace Actions{
         INTAKE,
         INTAKE_TO_AMP,
         INTAKE_TO_CHANNEL,
+        AMP_AUTO_LINEUP,
         SHOOT,
         ACTION_COUNT //Just the number of actions, as it is at the end of a enum
     };
@@ -57,7 +58,7 @@ namespace ControllerMapData{
         {XBOX_RJOY_X,           NONE},
         {XBOX_RJOY_Y,           NONE},
         {XBOX_A_BUTTON ,        INTAKE_TO_AMP},
-        {XBOX_B_BUTTON ,        NONE},
+        {XBOX_B_BUTTON ,        AMP_AUTO_LINEUP},
         {XBOX_X_BUTTON ,        NONE},
         {XBOX_Y_BUTTON ,        INTAKE_TO_CHANNEL},
         {XBOX_L_BUMPER ,        NONE},
