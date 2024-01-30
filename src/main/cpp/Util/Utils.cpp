@@ -225,3 +225,22 @@ double Utils::GetAngBetweenVec(const vec::Vector2D v1, const vec::Vector2D v2) {
 vec::Vector2D Utils::MultiplyComps(const vec::Vector2D v1, const vec::Vector2D v2) {
   return {v1.x() * v2.x(), v1.y() * v2.y()};
 }
+
+/**
+ * Gets the sign of a value
+ * 
+ * @param x number
+ * 
+ * @returns the sign (-1.0, 0.0, 1.0)
+*/
+double Utils::Sign(double x){
+  if(x > 0.0){
+    return 1.0;
+  }
+  else if(x < 0.0){
+    return -1.0;
+  }
+  else{
+    return 0.0;
+  }
+}
