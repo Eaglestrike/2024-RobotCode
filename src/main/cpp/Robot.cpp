@@ -236,6 +236,7 @@ void Robot::TeleopPeriodic() {
     m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   }
 
+  m_climb.TeleopPeriodic();
   m_intake.TeleopPeriodic();
   m_swerveController.Periodic();
   m_autoLineup.Periodic();
