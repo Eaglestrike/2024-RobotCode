@@ -115,9 +115,6 @@ void Robot::RobotPeriodic() {
     m_swerveController.ResetFF();
   }
 
-  m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng());
-  m_shooter.Periodic();
-
   #if SWERVE_AUTOTUNING
   m_swerveXTuner.ShuffleboardUpdate();
   m_swerveYTuner.ShuffleboardUpdate();
@@ -125,6 +122,9 @@ void Robot::RobotPeriodic() {
 
   m_logger.Periodic(Utils::GetCurTimeS());
   m_intake.Periodic();
+
+  m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng());
+  m_shooter.Periodic();
 }
 
 /**
@@ -158,22 +158,6 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-  // double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.1);
-  // double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.1);
-
-  // double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.1);
-
-  // double mult = SwerveConstants::NORMAL_SWERVE_MULT;
-  // double vx = std::clamp(lx, -1.0, 1.0) * mult;
-  // double vy = std::clamp(ly, -1.0, 1.0) * mult;
-  // double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
-
-  // vec::Vector2D setVel = {-vy, -vx};
-  // double curYaw = m_navx->GetYaw();
-
-  // m_swerveController.SetRobotVelocityTele(setVel, w, 0, 0);
-  // m_swerveController.Periodic();
-
   //Swerve
   double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
   double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
@@ -205,13 +189,17 @@ void Robot::TeleopPeriodic() {
   if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
     m_amp = false;
   }
+
+  //Shooting (amp or speaker)
   if (m_controller.getPressedOnce(SHOOT)){
     if (m_amp) {
       m_intake.AmpOuttake();
-    } else {
-      // code shooter later
-      // if somehow switched from shooter to amp when in channel
-      // HANDLE THIS CASE
+    }
+    else {
+      m_shooter.Prepare(true); //TODO use utils
+      if(m_shooter.CanShoot()){
+        m_intake.FeedIntoShooter(); //Shoot when ready
+      }
     }
   }
   else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
@@ -223,6 +211,8 @@ void Robot::TeleopPeriodic() {
     m_intake.Stow();
   }
   m_intake.TeleopPeriodic();
+
+  m_shooter.TeleopPeriodic();
 }
 
 void Robot::DisabledInit() {}
