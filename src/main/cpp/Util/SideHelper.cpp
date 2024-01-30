@@ -205,7 +205,7 @@ hm::Hermite<1> SideHelper::GetSplineAng(hm::Hermite<1> inp) {
  * @returns Manual lineup angle
 */
 double SideHelper::GetManualLineupAng(int idx) {
-  if (idx < 0 || idx >= AutoLineupConstants::BLUE_SHOOT_LOCATIONS.size()) {
+  if (idx < 0 || idx >= (int) AutoLineupConstants::BLUE_SHOOT_LOCATIONS.size()) {
     return 0;
   }
 
