@@ -162,6 +162,7 @@ void Pivot::CoreShuffleboardInit(){
                         },
                     {1,1,2,0}
                     );
+    shuff_.addButton("Stop", [&](){Stop();}, {1,1,3,0});
 
     //Info (middle-right)
     shuff_.PutString("State", StateToString(state_), {2,1,4,0});
