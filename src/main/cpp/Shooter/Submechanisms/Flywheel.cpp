@@ -15,9 +15,12 @@ Flywheel::Flywheel(ShooterConstants::FlywheelConfig config, bool enabled, bool s
     state_{State::STOP},
     profile_{ShooterConstants::FLYWHEEL_MAX_A},
     feedforward_{ShooterConstants::FLYWHEEL_FF},
+    pid_{ShooterConstants::FLYWHEEL_PID},
     shuff_{config.name, shuffleboard}
 {
     motor_.SetInverted(config.inverted);
+
+    prevT_ = Utils::GetCurTimeS();
 }
 
 //Core Functions
@@ -29,6 +32,8 @@ void Flywheel::CorePeriodic(){
 };
 
 void Flywheel::CoreTeleopPeriodic(){
+    double t = Utils::GetCurTimeS();
+    double dt = t - prevT_;
     switch(state_){
         case State::STOP:
             volts_ = 0.0;
@@ -37,11 +42,21 @@ void Flywheel::CoreTeleopPeriodic(){
             if(profile_.isFinished()){
                 state_ = State::AT_TARGET;
             }
-            [[fallthrough]];
+            [[fallthrough]]; //FF + PID always
         case State::AT_TARGET:
         {
             Poses::Pose1D targetPose = profile_.GetPose();
-            volts_ = (Utils::Sign(targetPose.vel) * feedforward_.ks) + (targetPose.vel * feedforward_.kv) + (targetPose.acc * feedforward_.ka);
+            double ff = (Utils::Sign(targetPose.vel) * feedforward_.ks) + (targetPose.vel * feedforward_.kv) + (targetPose.acc * feedforward_.ka);
+            Poses::Pose1D error = targetPose - currPose_;
+            accum_ += error.vel * dt;
+            double pid = (error.vel*pid_.kp) + (accum_*pid_.ki) + (error.acc*pid_.kd);
+            volts_ = ff + pid;
+
+            //Shuffleboard errors (row 2 right side)
+            if(shuff_.isEnabled()){
+                shuff_.PutNumber("Vel error", error.vel, {1,1,5,2});
+                shuff_.PutNumber("Acc error", error.acc, {1,1,6,2});
+            }
             break;
         }
         case State::JUST_VOLTAGE:
@@ -51,6 +66,7 @@ void Flywheel::CoreTeleopPeriodic(){
     }
     volts_ = std::clamp(volts_, -maxVolts_, maxVolts_);
     motor_.SetVoltage(units::volt_t{volts_});
+    prevT_ = t;
 };
 
 void Flywheel::Stop(){
@@ -65,6 +81,7 @@ void Flywheel::Stop(){
 */
 void Flywheel::SetTarget(double vel){
     profile_.SetTarget(vel, currPose_);
+    accum_ = 0.0;
     state_ = State::RAMPING;
 }
 
@@ -84,6 +101,9 @@ Flywheel::State Flywheel::GetState(){
     return state_;
 }
 
+/**
+ * If the flywheel is at the target speed
+*/
 bool Flywheel::AtTarget(){
     return state_ == State::AT_TARGET;
 }
@@ -112,6 +132,7 @@ void Flywheel::CoreShuffleboardInit(){
                         },
                     {1,1,2,0}
                     );
+    shuff_.addButton("Stop", [&](){Stop();}, {1,1,3,0});
 
     //Info (middle-right)
     shuff_.PutString("State", StateToString(state_), {2,1,4,0});
@@ -137,6 +158,12 @@ void Flywheel::CoreShuffleboardInit(){
     shuff_.add("kS", &feedforward_.ks, {1,1,0,3}, true);
     shuff_.add("kV", &feedforward_.kv, {1,1,1,3}, true);
     shuff_.add("kA", &feedforward_.ka, {1,1,2,3}, true);
+
+    //PID (row 4)
+    shuff_.add("kP", &pid_.kp, {1,1,0,4}, true);
+    shuff_.add("kI", &pid_.ki, {1,1,1,4}, true);
+    shuff_.add("kD", &pid_.kd, {1,1,2,4}, true);
+    shuff_.add("accum", &accum_, {1,1,3,4}, false);
 };
 
 void Flywheel::CoreShuffleboardPeriodic(){

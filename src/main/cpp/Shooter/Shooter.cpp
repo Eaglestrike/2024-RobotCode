@@ -299,6 +299,6 @@ void Shooter::CoreShuffleboardInit(){
 
 void Shooter::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
-
+    
     shuff_.update(true);
 }

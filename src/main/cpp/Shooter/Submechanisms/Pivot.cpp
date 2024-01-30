@@ -48,6 +48,8 @@ void Pivot::CorePeriodic(){
 }
 
 void Pivot::CoreTeleopPeriodic(){
+    double t = Utils::GetCurTimeS();
+    double dt = t - prevT_;
     switch(state_){
         case STOP:
             volts_ = 0.0;
@@ -62,11 +64,16 @@ void Pivot::CoreTeleopPeriodic(){
             Poses::Pose1D target = profile_.currentPose();
             double ff = ff_.ks*Utils::Sign(target.vel) + ff_.kv*target.vel + ff_.ka*target.acc + ff_.kg*cos(target.pos);
 
-            double error = target.pos - currPose_.pos;
-            double velError = target.vel - currPose_.vel;
-            double pid = pid_.kp*error + pid_.ki*accum_ + pid_.kd*velError;
+            Poses::Pose1D error = target - currPose_;
+            accum_ += error.pos * dt;
+            double pid = pid_.kp*error.pos + pid_.ki*accum_ + pid_.kd*error.vel;
 
             volts_ = ff + pid;
+
+            if(shuff_.isEnabled()){
+                shuff_.PutNumber("pos error", error.vel, {1,1,5,2});
+                shuff_.PutNumber("vel error", error.acc, {1,1,6,2});
+            }
             break;
         }
         case JUST_VOLTAGE:
@@ -74,6 +81,8 @@ void Pivot::CoreTeleopPeriodic(){
     }
     volts_ = std::clamp(volts_, -maxVolts_, maxVolts_);
     motor_.SetVoltage(units::volt_t{volts_});
+
+    prevT_ = t;
 }
 
 /**
