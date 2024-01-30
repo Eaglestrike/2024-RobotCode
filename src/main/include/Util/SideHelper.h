@@ -21,6 +21,7 @@ namespace SideHelper {
   AutoConstants::StartPose GetStartingPose(int idx);
   AutoConstants::StartPose GetStartingPose(std::string pos);
   double GetJoystickAng();
+  double GetManualLineupAng(int idx);
 
   // TODO check if these work
   hm::Hermite<2> GetSplinePos(hm::Hermite<2> inp);

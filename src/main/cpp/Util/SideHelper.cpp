@@ -4,6 +4,7 @@
 
 #include <frc/DriverStation.h>
 
+#include "Constants/AutoLineupConstants.h"
 #include "Constants/FieldConstants.h"
 #include "Util/Utils.h"
 
@@ -194,4 +195,24 @@ hm::Hermite<1> SideHelper::GetSplineAng(hm::Hermite<1> inp) {
   }
 
   return res;
+}
+
+/**
+ * Gets manual lineup angle
+ * 
+ * @param idx Index of lineup
+ * 
+ * @returns Manual lineup angle
+*/
+double SideHelper::GetManualLineupAng(int idx) {
+  if (idx < 0 || idx >= AutoLineupConstants::BLUE_SHOOT_LOCATIONS.size()) {
+    return 0;
+  }
+
+  vec::Vector2D shootPos = GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[idx]);
+  vec::Vector2D speakerPos = GetPos(FieldConstants::BLUE_SPEAKER);
+
+  vec::Vector2D shootToSpeaker = speakerPos - shootPos;
+  
+  return shootToSpeaker.angle();
 }
