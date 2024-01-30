@@ -8,11 +8,13 @@
 #include <ctre/phoenix6/CANcoder.hpp>
 #include <frc/DigitalOutput.h>
 #include <ctre/phoenix6/controls/Follower.hpp>
+#include <ctre/phoenix/motorcontrol/can/WPI_TalonSRX.h>
 #include <numeric>
 
 using ctre::phoenix6::hardware::CANcoder;
 using ctre::phoenix6::hardware::TalonFX;
 using ctre::phoenix6::controls::Follower;
+using ctre::phoenix::motorcontrol::can::WPI_TalonSRX;
 
 class Climb : public Mechanism{
     public:
@@ -52,8 +54,8 @@ class Climb : public Mechanism{
         ShuffleboardSender m_shuff {"Climb", true};
 
         TalonFX m_master {Ids::MASTER_CLIMB_MOTOR};//, m_slave {Ids::SLAVE_CLIMB_MOTOR};
-        frc::DigitalOutput m_actuatorPin1{Ids::ACTUATOR_PIN_1};
-        frc::DigitalOutput m_actuatorPin2{Ids::ACTUATOR_PIN_2};
+        
+        WPI_TalonSRX m_brake{Ids::BRAKE};
 
         double m_pos;
         Target m_targ = STOWED;

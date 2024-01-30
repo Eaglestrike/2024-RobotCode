@@ -46,14 +46,12 @@ void Climb::CoreTeleopPeriodic(){
 }
 
 void Climb::Brake(){
-    m_actuatorPin1.Set(BREAK); //brake on
-    m_actuatorPin2.Set(!BREAK); 
+    m_brake.SetVoltage(units::volt_t(12));
     m_braking = true;
 }
 
 void Climb::ReleaseBrake(){
-    m_actuatorPin1.Set(!BREAK); //brake off
-    m_actuatorPin2.Set(BREAK); 
+    m_brake.SetVoltage(units::volt_t(-12));
     m_braking = false;
 }
 
