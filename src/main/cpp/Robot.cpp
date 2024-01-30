@@ -21,7 +21,7 @@ Robot::Robot() :
   m_odom{true},
   m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
   m_prevIsLogging{false},
-  m_autoPath{true, m_swerveController, m_odom}
+  m_autoPath{false, m_swerveController, m_odom}
   {
   // navx
   try
@@ -87,6 +87,7 @@ void Robot::RobotInit() {
   m_odom.Reset();
   m_odom.SetStartingConfig({1.113015879415296,4.955401908989121}, M_PI, 0);
 
+  m_intake.Init();
   m_client.Init();
   m_swerveController.Init();
 
@@ -123,6 +124,7 @@ void Robot::RobotPeriodic() {
   #endif
 
   m_logger.Periodic(Utils::GetCurTimeS());
+  m_intake.Periodic();
 }
 
 /**
@@ -156,6 +158,23 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
+  // double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.1);
+  // double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.1);
+
+  // double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.1);
+
+  // double mult = SwerveConstants::NORMAL_SWERVE_MULT;
+  // double vx = std::clamp(lx, -1.0, 1.0) * mult;
+  // double vy = std::clamp(ly, -1.0, 1.0) * mult;
+  // double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
+
+  // vec::Vector2D setVel = {-vy, -vx};
+  // double curYaw = m_navx->GetYaw();
+
+  // m_swerveController.SetRobotVelocityTele(setVel, w, 0, 0);
+  // m_swerveController.Periodic();
+
+  //Swerve
   double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
   double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
 
@@ -178,6 +197,32 @@ void Robot::TeleopPeriodic() {
 
   m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   m_swerveController.Periodic();
+
+  //Intake
+  if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
+    m_amp = true;
+  }
+  if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
+    m_amp = false;
+  }
+  if (m_controller.getPressedOnce(SHOOT)){
+    if (m_amp) {
+      m_intake.AmpOuttake();
+    } else {
+      // code shooter later
+      // if somehow switched from shooter to amp when in channel
+      // HANDLE THIS CASE
+    }
+  }
+  else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
+    if (m_amp)
+    m_intake.AmpIntake();
+    else
+    m_intake.Passthrough();
+  } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
+    m_intake.Stow();
+  }
+  m_intake.TeleopPeriodic();
 }
 
 void Robot::DisabledInit() {}
