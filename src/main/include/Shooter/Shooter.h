@@ -25,7 +25,6 @@ class Shooter : public Mechanism{
         enum State{
             STOP,
             PREPARING,
-            PREPARED,
             STROLL //Set to low speed
         };
   

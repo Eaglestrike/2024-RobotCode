@@ -48,11 +48,6 @@ void Shooter::CoreTeleopPeriodic(){
         case STOP:
             break;
         case PREPARING:
-            if(lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget()){
-                state_ = PREPARED;
-            }
-            break;
-        case PREPARED:
             break;
         default:
             break;
@@ -228,7 +223,7 @@ Shooter::IKRes Shooter::CalculateInverseKinematics(vec::Vector2D target){
  * Returns if you can shoot
 */
 bool Shooter::CanShoot(){
-    return state_ == PREPARED;
+    return lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget();
 }
 
 /**
@@ -242,7 +237,6 @@ std::string Shooter::StateToString(State state){
     switch(state){
         case STOP: return "Stop";
         case PREPARING: return "Preparing";
-        case PREPARED: return "Prepared";
         case STROLL: return "Stroll";
         default: return "Unknown";
     }
@@ -299,6 +293,6 @@ void Shooter::CoreShuffleboardInit(){
 
 void Shooter::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
-    
+
     shuff_.update(true);
 }
