@@ -12,6 +12,7 @@
 #include "Constants/AutoConstants.h"
 #include "Constants/AutoLineupConstants.h"
 #include "Controller/ControllerMap.h"
+#include "Util/SideHelper.h"
 
 using namespace Actions;
 
@@ -88,7 +89,6 @@ void Robot::RobotInit() {
   m_navx->Reset();
   m_navx->ZeroYaw();
   m_odom.Reset();
-  m_odom.SetStartingConfig({1.113015879415296,4.955401908989121}, M_PI, 0);
 
   m_intake.Init();
   m_client.Init();
@@ -167,6 +167,11 @@ void Robot::TeleopPeriodic() {
 
   double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
 
+  int posVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
+  if (posVal) {
+    m_autoLineup.SetTarget(SideHelper::GetManualLineupAng(posVal - 1));
+  }
+
   double mult = SwerveConstants::NORMAL_SWERVE_MULT;
   if (m_controller.getPressed(SLOW_MODE)) {
     mult = SwerveConstants::SLOW_SWERVE_MULT;
@@ -228,9 +233,17 @@ void Robot::TeleopPeriodic() {
 void Robot::DisabledInit() {}
 
 void Robot::DisabledPeriodic() {
+  // STARTING POS
+  {
+    std::string selected = m_startChooser.GetSelected();
+    AutoConstants::StartPose startPos = SideHelper::GetStartingPose(selected);
+    double joystickAng = SideHelper::GetJoystickAng();
+    m_odom.SetStartingConfig(startPos.pos, startPos.ang, joystickAng);
+  }
+
   // AUTO
   {
-    std::string selected = m_chooser.GetSelected();
+    std::string selected = m_autoPathChooser.GetSelected();
     selected += ".csv";
     m_autoPath.SetAutoPath(selected);
   }
@@ -272,15 +285,24 @@ void Robot::SimulationPeriodic() {}
 void Robot::ShuffleboardInit() {
   frc::SmartDashboard::PutBoolean("Logging", false);
 
+  // STARTING POS
+  {
+    m_startChooser.SetDefaultOption("Middle", "Middle");
+    m_startChooser.AddOption("Left", "Left");
+    m_startChooser.AddOption("Middle", "Middle");
+    m_startChooser.AddOption("Right", "Right");
+    frc::SmartDashboard::PutData("Starting Position", &m_startChooser);
+  }
+
   // DEBUG
   {
     if (AutoConstants::DEPLOY_FILES.size() > 0) {
-      m_chooser.SetDefaultOption(AutoConstants::DEPLOY_FILES[0], AutoConstants::DEPLOY_FILES[0]);
+      m_autoPathChooser.SetDefaultOption(AutoConstants::DEPLOY_FILES[0], AutoConstants::DEPLOY_FILES[0]);
     }
     for (std::string fname : AutoConstants::DEPLOY_FILES) {
-      m_chooser.AddOption(fname, fname);
+      m_autoPathChooser.AddOption(fname, fname);
     }
-    frc::SmartDashboard::PutData("Auto Spline Chooser", &m_chooser);
+    frc::SmartDashboard::PutData("Auto Spline Chooser", &m_autoPathChooser);
 
     // double navXAngVel = m_odom.GetAngVel();
     // double wheelAngVel = m_swerveController.GetRobotAngularVel();
