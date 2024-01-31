@@ -270,7 +270,8 @@ void SocketClient::m_SocketLoop(std::string host, int port)
     std::regex exp(regexp);
     std::string inp(buff);
 
-    std::cout << "inp: " << inp << std::endl;
+    // std::cout << "inp: " << inp << std::endl;
+    Log("inp: %s", inp);
     if (inp[0] == '0')
     {
       // store time
