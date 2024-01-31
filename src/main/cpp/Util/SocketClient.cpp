@@ -154,12 +154,15 @@ void SocketClient::m_SocketLoop(std::string host, int port)
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = IPPROTO_TCP;
 
-  const int status = getaddrinfo(host.c_str(), std::to_string(port).c_str(), &hints, &addrs);
-  if (status != 0)
+  int status = getaddrinfo(host.c_str(), std::to_string(port).c_str(), &hints, &addrs);
+  while (status != 0)
   {
     // std::cout << "getaddrinfo fail " << status << "\n";
     Log("getaddrinfo fail %s", gai_strerror(status));
-    return;
+
+    // try again until good
+    status = getaddrinfo(host.c_str(), std::to_string(port).c_str(), &hints, &addrs);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
   // std::cout << "getaddrinfo success\n";
   Log("getaddrinfo success");
