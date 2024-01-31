@@ -291,6 +291,7 @@ void Robot::ShuffleboardInit() {
     m_startChooser.AddOption("Left", "Left");
     m_startChooser.AddOption("Middle", "Middle");
     m_startChooser.AddOption("Right", "Right");
+    frc::SmartDashboard::PutData("Starting Position", &m_startChooser);
   }
 
   // DEBUG
