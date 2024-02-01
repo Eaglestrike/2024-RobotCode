@@ -55,6 +55,8 @@ namespace ShooterConstants{
         .ka = 0.0
     };
 
+    const double FLYWHEEL_VEL_TOL = 0.0;
+
     //Pivot Constants
     const int PIVOT_ID = 0;
     const int PIVOT_CHILD_ID = 0;
@@ -81,6 +83,9 @@ namespace ShooterConstants{
 
     const double PIVOT_MAX_V = 0.0;
     const double PIVOT_MAX_A = 0.0;
+
+    const double PIVOT_POS_TOL = 0.0;
+    const double PIVOT_VEL_TOL = 0.0;
 
     //Shooter data
     struct ShootConfig{

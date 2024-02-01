@@ -16,6 +16,7 @@ Flywheel::Flywheel(ShooterConstants::FlywheelConfig config, bool enabled, bool s
     profile_{ShooterConstants::FLYWHEEL_MAX_A},
     feedforward_{ShooterConstants::FLYWHEEL_FF},
     pid_{ShooterConstants::FLYWHEEL_PID},
+    velTol_{ShooterConstants::FLYWHEEL_VEL_TOL},
     shuff_{config.name, shuffleboard}
 {
     motor_.SetInverted(config.inverted);
@@ -39,9 +40,9 @@ void Flywheel::CoreTeleopPeriodic(){
             volts_ = 0.0;
             break;
         case State::RAMPING:
-            if(profile_.isFinished()){
-                state_ = State::AT_TARGET;
-            }
+            // if(profile_.isFinished()){
+            //     state_ = State::AT_TARGET;
+            // }
             [[fallthrough]]; //FF + PID always
         case State::AT_TARGET:
         {
@@ -51,6 +52,19 @@ void Flywheel::CoreTeleopPeriodic(){
             accum_ += error.vel * dt;
             double pid = (error.vel*pid_.kp) + (accum_*pid_.ki) + (error.acc*pid_.kd);
             volts_ = ff + pid;
+
+            bool atTarget = (std::abs(error.vel) < velTol_); //TODO check if need acc tol
+            if(state_ == State::RAMPING){ //if case deal with fallthrough
+                if(atTarget){
+                    state_ = State::AT_TARGET; //At target due to tolerances
+                }
+            }
+            else{
+                if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
+                    profile_.Regenerate(currPose_);
+                    state_ = State::RAMPING;
+                }
+            }
 
             //Shuffleboard errors (row 2 right side)
             if(shuff_.isEnabled()){
@@ -155,6 +169,8 @@ void Flywheel::CoreShuffleboardInit(){
                         },
                     {1,1,2,2}
                     );
+    shuff_.add("vel tol", &velTol_, {1,1,3,2});
+
     shuff_.add("kS", &feedforward_.ks, {1,1,0,3}, true);
     shuff_.add("kV", &feedforward_.kv, {1,1,1,3}, true);
     shuff_.add("kA", &feedforward_.ka, {1,1,2,3}, true);

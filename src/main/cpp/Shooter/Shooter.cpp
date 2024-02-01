@@ -223,6 +223,9 @@ Shooter::IKRes Shooter::CalculateInverseKinematics(vec::Vector2D target){
  * Returns if you can shoot
 */
 bool Shooter::CanShoot(){
+    if(state_ != PREPARING){
+        return false;
+    }
     return lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget();
 }
 

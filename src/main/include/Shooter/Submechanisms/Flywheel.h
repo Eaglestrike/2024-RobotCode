@@ -60,6 +60,8 @@ class Flywheel : public Mechanism{
         double accum_;
         double prevT_;
 
+        double velTol_;
+
         //Shuffleboard
         std::string StateToString(State state);
 

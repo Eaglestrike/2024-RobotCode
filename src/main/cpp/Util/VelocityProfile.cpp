@@ -63,6 +63,13 @@ bool VelocityProfile::isFinished(){
     return Utils::GetCurTimeS() > finalTime_;
 }
 
+/**
+ * Regenerates the profile starting at a current pose
+*/
+void VelocityProfile::Regenerate(Poses::Pose1D pose){
+    SetTarget(finalPose_.vel, pose);
+}
+
 double VelocityProfile::GetDuration(){
     return finalTime_ - startTime_;
 }
