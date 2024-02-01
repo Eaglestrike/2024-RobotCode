@@ -17,6 +17,7 @@
 #include "FFAutotuner/FFAutotuner.h"
 
 #include "Controller/Controller.h"
+#include "Drive/AutoAngLineup.h"
 #include "Drive/SwerveControl.h"
 #include "Intake/Intake.h"
 #include "Auto/Auto.h"
@@ -25,6 +26,8 @@
 #include "Util/SocketClient.h"
 
 #include "Constants/AutoConstants.h"
+
+#include "Shooter/Shooter.h"
 
 class Robot : public frc::TimedRobot {
   const static uint AUTO_LENGTH = 4;
@@ -79,6 +82,14 @@ class Robot : public frc::TimedRobot {
     // Logger
     FRCLogger m_logger;
     bool m_prevIsLogging;
+
+    // STARTING POS
+    frc::SendableChooser<std::string> m_startChooser;
+
+    // Shooter shooter_{"Shooter", true, true};
+
+    // auto lineup
+    AutoAngLineup m_autoLineup;
 
     bool m_amp = true;
 };
