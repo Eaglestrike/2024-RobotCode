@@ -301,9 +301,9 @@ void Robot::ShuffleboardInit() {
   // STARTING POS
   {
     m_startChooser.SetDefaultOption("Middle", "Middle");
-    m_startChooser.AddOption("Left", "Left");
-    m_startChooser.AddOption("Middle", "Middle");
-    m_startChooser.AddOption("Right", "Right");
+    m_startChooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+    m_startChooser.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_startChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
     frc::SmartDashboard::PutData("Starting Position", &m_startChooser);
   }
 
