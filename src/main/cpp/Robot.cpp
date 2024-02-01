@@ -203,14 +203,14 @@ void Robot::TeleopPeriodic() {
   }
 
   //Shooting (amp or speaker)
+  m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng());
   if (m_controller.getPressedOnce(SHOOT)){
     if (m_amp) {
       m_intake.AmpOuttake();
     }
     else {
-      m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng());
-      m_shooter.Prepare(true); //TODO use utils
-      if(m_shooter.CanShoot()){
+      m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue()); //TODO use utils
+      if(m_shooter.CanShoot(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng())){
         m_intake.FeedIntoShooter(); //Shoot when ready
       }
     }

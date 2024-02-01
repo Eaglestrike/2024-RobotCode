@@ -79,5 +79,6 @@ class Auto{
 
         double SHOOT_POS_TOL = AutoConstants::SHOOT_POS_TOL;
 
+        std::string ElementToString(const AutoConstants::AutoElement element);
         ShuffleboardSender shuff_;
 };

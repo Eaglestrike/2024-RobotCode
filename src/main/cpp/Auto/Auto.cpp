@@ -1,5 +1,7 @@
 #include "Auto/Auto.h"
 
+#include <string>
+
 #include "Util/Utils.h"
 #include "Util/SideHelper.h"
 
@@ -160,9 +162,8 @@ bool Auto::ShooterPeriodic(double t){
     }
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
-        bool inTol = (shootPos_ - pos).magn() < SHOOT_POS_TOL;
         //Feed into shooter when can shoot
-        if((shooter_.CanShoot() && inTol) || (t > shooterTiming_.end + SHOOT_PADDING)){ 
+        if(shooter_.CanShoot(pos, odometry_.GetVel(), odometry_.GetAng()) || (t > shooterTiming_.end + SHOOT_PADDING)){ 
             intake_.FeedIntoShooter();
         }
         
@@ -177,13 +178,13 @@ bool Auto::ShooterPeriodic(double t){
             }
         }
 
-        if(inTol){ //Constantly prepare to current position if within some distance to the target
-            shooter_.SetOdometry(pos, odometry_.GetVel(), odometry_.GetAng());
+        if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target
+            shooter_.Prepare(pos, odometry_.GetVel(), SideHelper::IsBlue());
         }
         else{
-            shooter_.SetOdometry(shootPos_, {0,0}, odometry_.GetAng()); //Prepare for the target shot
+            shooter_.Prepare(shootPos_, {0,0}, SideHelper::IsBlue()); //Prepare for the target shot
         }
-        shooter_.Prepare(SideHelper::IsBlue());
+        
     }
     else{
         shooter_.Stroll();
@@ -402,6 +403,26 @@ void Auto::LoadPath(const AutoPath& path){
     }
 }
 
+std::string Auto::ElementToString(const AutoElement element){
+    std::string str = "";
+    switch(element.type){
+        case DRIVE:     str += "DRIVE    "; break;
+        case INTAKE:    str += "INTAKE   "; break;
+        case STOW:      str += "STOW     "; break;
+        case SHOOT:     str += "SHOOTING "; break;
+        default:        str += "UNKNOWN  ";
+    }
+    switch(element.action){
+        case AFTER:     str += "AFTER     ,"; break;
+        case AT_START:  str += "AT_START  ,"; break;
+        case BEFORE_END:str += "BEFORE_END,"; break;
+        default:        str += "UNKNOWN   ,";
+    }
+    str += " " + element.data + " ";
+    str += std::to_string(element.offset);
+    return str;
+}
+
 void Auto::ShuffleboardInit(){
     if(!shuff_.isEnabled()){
         return;
@@ -442,6 +463,16 @@ void Auto::ShuffleboardInit(){
     
     shuff_.add("Intake Padding", &INTAKE_PADDING, {1,1,4,3}, true);
     shuff_.add("Intake Time", &INTAKE_TIME, {1,1,5,3}, true);
+
+    //Print Pathing
+    shuff_.addButton("Print Path", [&]{
+        for(int i = 0; i < paths_.size(); i++){
+            std::cout<<"Path "<<i<<std::endl;
+            for(AutoElement element : paths_[i]){
+                std::cout<<ElementToString(element)<<std::endl;
+            }
+        };
+    });
 }
 
 void Auto::ShuffleboardPeriodic(){
