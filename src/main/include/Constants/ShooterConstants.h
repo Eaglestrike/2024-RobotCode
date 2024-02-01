@@ -101,6 +101,11 @@ namespace ShooterConstants{
 
     const double STROLL_SPEED = 0.0; //Voltage of strolling
 
+    //Tolerances
+    const double SHOOT_POS_TOL = 0.3;
+    const double SHOOT_VEL_TOL = 0.3;
+    const double SHOOT_YAW_TOL = 0.05;
+
     //Kinematics calc (Field Data + robot stats)
     const vec::Vector2D RED_SPEAKER = {17.0, 5.74};
     const vec::Vector2D BLUE_SPEAKER = {0.0, 5.74};
