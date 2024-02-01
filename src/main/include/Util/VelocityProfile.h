@@ -14,6 +14,8 @@ class VelocityProfile{
         void SetTarget(double finalVel, Poses::Pose1D startPose);
         Poses::Pose1D GetPose();
 
+        void Regenerate(Poses::Pose1D pose);
+
         bool isFinished();
         double GetDuration();
 

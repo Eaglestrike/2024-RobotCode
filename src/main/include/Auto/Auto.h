@@ -6,6 +6,7 @@
 
 #include "Intake/Intake.h"
 #include "Drive/SwerveControl.h"
+#include "Shooter/Shooter.h"
 #include "Util/Odometry.h"
 #include "AutoPathSegment.h"
 
@@ -13,8 +14,10 @@
 
 class Auto{
     public:
-        Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, Intake &intake);
+        Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, Intake &intake, Shooter &shooter);
         void SetPath(AutoConstants::AutoPath path, uint index);
+        void SetSegment(std::string to, std::string back, uint index); //Drive -> Intake -> Drive -> Shoot
+        void SetSegment(std::string path, uint index); //Just Drives
 
         void AutoInit();
         void AutoPeriodic();
@@ -30,11 +33,11 @@ class Auto{
         void LoadPath(const AutoConstants::AutoPath& path);
         AutoPathSegment segments_; //Drive segments
         Intake &intake_;
-
-        //Shooter &shooter_;
-        //Intake &intake_;
+        Shooter &shooter_;
 
         std::vector<AutoConstants::AutoPath> paths_; //Path instructions
+
+        double autoStart_;
 
         int pathNum_;
         int index_;

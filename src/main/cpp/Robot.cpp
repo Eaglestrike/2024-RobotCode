@@ -18,7 +18,7 @@ using namespace Actions;
 
 Robot::Robot() :
   m_swerveController{true, false},
-  m_auto{true, m_swerveController, m_odom, m_intake},
+  m_auto{true, m_swerveController, m_odom, m_intake, m_shooter},
   m_client{"10.1.14.46", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
@@ -96,7 +96,7 @@ void Robot::RobotInit() {
   m_client.Init();
   m_swerveController.Init();
 
-  // shooter_.Init();
+  m_shooter.Init();
 }
 
 /**
@@ -108,8 +108,6 @@ void Robot::RobotInit() {
  * LiveWindow and SmartDashboard integrated updating.
  */
 void Robot::RobotPeriodic() {
-  // shooter_.Periodic();
-
   ShuffleboardPeriodic();
   m_auto.ShuffleboardPeriodic();
   m_odom.ShuffleboardPeriodic();
@@ -130,6 +128,9 @@ void Robot::RobotPeriodic() {
 
   m_logger.Periodic(Utils::GetCurTimeS());
   m_intake.Periodic();
+
+  m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng());
+  m_shooter.Periodic();
 }
 
 /**
@@ -201,13 +202,17 @@ void Robot::TeleopPeriodic() {
   if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
     m_amp = false;
   }
+
+  //Shooting (amp or speaker)
   if (m_controller.getPressedOnce(SHOOT)){
     if (m_amp) {
       m_intake.AmpOuttake();
-    } else {
-      // code shooter later
-      // if somehow switched from shooter to amp when in channel
-      // HANDLE THIS CASE
+    }
+    else {
+      m_shooter.Prepare(true); //TODO use utils
+      if(m_shooter.CanShoot()){
+        m_intake.FeedIntoShooter(); //Shoot when ready
+      }
     }
   }
   else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
@@ -230,6 +235,8 @@ void Robot::TeleopPeriodic() {
   m_intake.TeleopPeriodic();
   m_swerveController.Periodic();
   m_autoLineup.Periodic();
+
+  m_shooter.TeleopPeriodic();
 }
 
 void Robot::DisabledInit() {}

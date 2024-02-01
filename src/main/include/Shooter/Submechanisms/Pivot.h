@@ -61,7 +61,10 @@ class Pivot : public Mechanism{
 
         ShooterConstants::PID pid_;
         double accum_;
+        double prevT_;
         ShooterConstants::Feedforward ff_;
+        double posTol_;
+        double velTol_;
 
         double maxV_;
         double maxA_;
