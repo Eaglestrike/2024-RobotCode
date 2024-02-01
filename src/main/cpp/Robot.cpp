@@ -18,7 +18,7 @@ using namespace Actions;
 
 Robot::Robot() :
   m_swerveController{true, false},
-  m_auto{true, m_swerveController, m_odom, m_intake, m_shooter},
+  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter},
   m_client{"10.1.14.46", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
