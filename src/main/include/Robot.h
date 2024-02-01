@@ -17,6 +17,7 @@
 #include "FFAutotuner/FFAutotuner.h"
 
 #include "Controller/Controller.h"
+#include "Drive/AutoAngLineup.h"
 #include "Drive/SwerveControl.h"
 #include "Intake/Wrist.h"
 #include "Intake/Channel.h"
@@ -87,8 +88,14 @@ private:
 
   // DEBUG ONLY
   AutoPathSegment m_autoPath;
-  frc::SendableChooser<std::string> m_chooser;
+  frc::SendableChooser<std::string> m_autoPathChooser;
 
-  Shooter shooter_{"Shooter", true, true};
+  // STARTING POS
+  frc::SendableChooser<std::string> m_startChooser;
+
+  // Shooter shooter_{"Shooter", true, true};
+
+  // auto lineup
+  AutoAngLineup m_autoLineup;
   // double m_wheelAng = 0;
 };
