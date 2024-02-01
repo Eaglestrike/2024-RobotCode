@@ -31,22 +31,22 @@ void AutoChooser::ProcessChoosers(std::vector<std::string> positions) {
   for (unsigned int i = 1; i <= 3; i++) {
     std::string rPos = positions[i]; // ring pos
     if (rPos == AutoConstants::S_NAME) {
-      // SetSegment(i, "", "");
+      m_auto.SetSegment(i, "", "");
       continue;
     }
 
     std::string path1 = SideHelper::GetPath(prevPos + "Score_to_" + rPos + "Intake.csv"); // get path from prevPos -> rPos
     std::string path2 = SideHelper::GetPath(rPos + "Intake_to_" + rPos + "Score.csv"); // get path from rPos -> sPos
-    // setSegment(i, path1, path2);
+    m_auto.SetSegment(i, path1, path2);
     prevPos = rPos;
   }
 
-  std::string endPositions = positions[AutoConstants::POS_ARR_SIZE - 1];
-  if (endPositions == AutoConstants::S_NAME) {
+  std::string endPosition = positions[AutoConstants::POS_ARR_SIZE - 1];
+  if (endPosition == AutoConstants::S_NAME || endPosition == AutoConstants::M_NAME) {
     return;
   }
-  // std::string endPath = // get path from prevPos -> endPos
-  // SetSegment(AutoConstants::POS_ARR_SIZE - 1, endPath)
+  std::string endPath = SideHelper::GetPath(prevPos + "Score_to_" + endPosition + "End"); // get path from prevPos -> endPos
+  m_auto.SetSegment(AutoConstants::POS_ARR_SIZE - 1, endPath);
 }
 
 /**
