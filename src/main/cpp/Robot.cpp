@@ -307,11 +307,27 @@ void Robot::ShuffleboardInit() {
   }
   // STARTING POS
   {
-    m_startChooser.SetDefaultOption("Middle", "Middle");
+    m_startChooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
     m_startChooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
     m_startChooser.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
     m_startChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
     frc::SmartDashboard::PutData("Starting Position", &m_startChooser);
+
+    for (int i = 1; i < AutoConstants::POS_ARR_SIZE - 1; i++) {
+      auto &chooser = m_autoPieceChoosers[i - 1];
+      chooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+      chooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+      chooser.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+      chooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
+      chooser.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
+      frc::SmartDashboard::PutData("Piece " + i, &chooser);
+    }
+
+    m_autoEndChooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_autoEndChooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+    m_autoEndChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
+    m_autoEndChooser.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
+    frc::SmartDashboard::PutData("End Position", &m_startChooser);
   }
 
   // DEBUG

@@ -86,8 +86,10 @@ class Robot : public frc::TimedRobot {
     FRCLogger m_logger;
     bool m_prevIsLogging;
 
-    // STARTING POS
+    // STARTING POS + AUTO CHOOSERS
     frc::SendableChooser<std::string> m_startChooser;
+    frc::SendableChooser<std::string> m_autoPieceChoosers[AutoConstants::POS_ARR_SIZE - 2];
+    frc::SendableChooser<std::string> m_autoEndChooser;
 
     // Shooter shooter_{"Shooter", true, true};
 

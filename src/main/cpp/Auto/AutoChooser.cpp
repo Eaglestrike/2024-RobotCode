@@ -49,12 +49,18 @@ void AutoChooser::ProcessChoosers(std::vector<std::string> positions) {
   // SetSegment(AutoConstants::POS_ARR_SIZE - 1, endPath)
 }
 
+/**
+ * Shuffleboard init
+*/
 void AutoChooser::ShuffleboardInit() {
   if (!m_shuffleboard) {
     return;
   }
 }
 
+/**
+ * Shuffleboard periodic
+*/
 void AutoChooser::ShuffleboardPeriodic() {
   if (!m_shuffleboard) {
     return;
