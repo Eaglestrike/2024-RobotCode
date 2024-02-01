@@ -1,5 +1,5 @@
 // if logs from vision should be printed to stdout
-#define LOGGING_ENABLED true
+#define LOGGING_ENABLED false
 // if you are on windows and are simulating robot code
 #define SIMULATION_ON_WINDOWS false
 
@@ -273,8 +273,10 @@ void SocketClient::m_SocketLoop(std::string host, int port)
     std::regex exp(regexp);
     std::string inp(buff);
 
-    // std::cout << "inp: " << inp << std::endl;
-    Log("inp: %s", inp);
+#if LOGGING_ENABLED
+    std::cout << "inp: " << inp << std::endl;
+    // Log("inp: %s", inp);
+#endif
     if (inp[0] == '0')
     {
       // store time
