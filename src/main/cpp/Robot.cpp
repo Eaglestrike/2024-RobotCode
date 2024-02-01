@@ -5,6 +5,8 @@
 #include "Robot.h"
 
 #include <iostream>
+#include <string>
+#include <vector>
 
 #include <fmt/core.h>
 #include <frc/smartdashboard/SmartDashboard.h>
@@ -17,14 +19,15 @@
 using namespace Actions;
 
 Robot::Robot() :
+  m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
   m_swerveController{true, false},
-  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter},
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
-  m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
   m_prevIsLogging{false},
-  m_autoLineup{false, m_odom}
+  m_autoLineup{false, m_odom},
+  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter},
+  m_autoChooser{true, m_auto}
   {
   // navx
   try
@@ -242,12 +245,25 @@ void Robot::TeleopPeriodic() {
 void Robot::DisabledInit() {}
 
 void Robot::DisabledPeriodic() {
-  // STARTING POS
+  // STARTING POS + AUTO CHOOSER
   {
-    std::string selected = m_startChooser.GetSelected();
-    AutoConstants::StartPose startPos = SideHelper::GetStartingPose(selected);
+    std::string selectedStart = m_startChooser.GetSelected();
+    AutoConstants::StartPose startPos = SideHelper::GetStartingPose(selectedStart);
     double joystickAng = SideHelper::GetJoystickAng();
     m_odom.SetStartingConfig(startPos.pos, startPos.ang, joystickAng);
+
+    std::string piece1 = m_autoPiece1.GetSelected();
+    std::string piece2 = m_autoPiece2.GetSelected();
+    std::string piece3 = m_autoPiece3.GetSelected();
+    std::string end = m_autoEndChooser.GetSelected();
+
+    std::vector<std::string> selects;
+    selects.push_back(selectedStart);
+    selects.push_back(piece1);
+    selects.push_back(piece2);
+    selects.push_back(piece3);
+    selects.push_back(end);
+    m_autoChooser.ProcessChoosers(selects);
   }
 
   // AUTO
@@ -313,16 +329,28 @@ void Robot::ShuffleboardInit() {
     m_startChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
     frc::SmartDashboard::PutData("Starting Position", &m_startChooser);
 
-    for (int i = 1; i < AutoConstants::POS_ARR_SIZE - 1; i++) {
-      auto &chooser = m_autoPieceChoosers[i - 1];
-      chooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-      chooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
-      chooser.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-      chooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
-      chooser.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
-      frc::SmartDashboard::PutData("Piece " + i, &chooser);
-    }
+    // sorry for bad code, couldn't get array of sendablechoosers working
+    m_autoPiece1.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_autoPiece1.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+    m_autoPiece1.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_autoPiece1.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
+    m_autoPiece1.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
+    frc::SmartDashboard::PutData("Piece 1", &m_autoPiece1);
 
+    m_autoPiece2.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_autoPiece2.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+    m_autoPiece2.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_autoPiece2.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
+    m_autoPiece2.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
+    frc::SmartDashboard::PutData("Piece 2", &m_autoPiece2);
+
+    m_autoPiece3.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_autoPiece3.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+    m_autoPiece3.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_autoPiece3.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
+    m_autoPiece3.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
+    frc::SmartDashboard::PutData("Piece 3", &m_autoPiece3);
+    
     m_autoEndChooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
     m_autoEndChooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
     m_autoEndChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
