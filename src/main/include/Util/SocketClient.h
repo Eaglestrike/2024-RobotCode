@@ -4,6 +4,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <queue>
 
 class SocketClient
 {
@@ -11,6 +12,9 @@ public:
   SocketClient(std::string host, int port, unsigned long long staleTime, unsigned long long deadTime);
 
   void Init();
+
+  template <typename... Args>
+  void Log(const char *format, Args... args);
 
   bool HasConn();
   bool IsStale();
@@ -39,4 +43,7 @@ private:
   std::atomic<double> m_angZ;
   std::atomic<long long> m_age;
   std::atomic<unsigned long long> m_count;
+
+public:
+  std::queue<std::string> m_logQueue;
 };

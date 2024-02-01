@@ -19,7 +19,7 @@ using namespace Actions;
 Robot::Robot() :
   m_swerveController{true, false},
   m_auto{true, m_swerveController, m_odom, m_intake},
-  m_client{"10.1.14.46", 5590, 500, 5000},
+  m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
   m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
@@ -304,6 +304,7 @@ void Robot::ShuffleboardInit() {
     m_startChooser.AddOption("Left", "Left");
     m_startChooser.AddOption("Middle", "Middle");
     m_startChooser.AddOption("Right", "Right");
+    frc::SmartDashboard::PutData("Starting Position", &m_startChooser);
   }
 
   // DEBUG
@@ -361,6 +362,15 @@ void Robot::ShuffleboardPeriodic() {
     // frc::SmartDashboard::PutNumber("diff Ang Vel", navXAngVel - wheelAngVel);
     // frc::SmartDashboard::PutNumber("wheel ang", m_wheelAng);
     // frc::SmartDashboard::PutNumber("error ang", m_odom.GetAng() - m_wheelAng);
+  }
+
+  // SOCKET LOGGING (only if enabled)
+  {
+    while (!m_client.m_logQueue.empty())
+    {
+      std::cout << m_client.m_logQueue.front() << "\n";
+      m_client.m_logQueue.pop();
+    }
   }
 }
 

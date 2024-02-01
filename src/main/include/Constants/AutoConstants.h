@@ -95,7 +95,7 @@ namespace AutoConstants {
   const double SHOOT_PADDING = 0.0;
 
   // starting positions
-  const StartPose BLUE_L = {{0.666, 6.838}, 4.126271};
-  const StartPose BLUE_M = {{1.265, 5.811}, 3.141592};
-  const StartPose BLUE_R = {{0.597, 4.635}, 2.062718};
+  const StartPose BLUE_L = {{0.666, 6.721}, 4.126271};
+  const StartPose BLUE_M = {{1.265, 5.526}, 3.141592};
+  const StartPose BLUE_R = {{0.597, 4.41}, 2.062718};
 }
