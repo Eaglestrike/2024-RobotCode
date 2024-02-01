@@ -54,23 +54,20 @@ namespace AutoConstants {
   };
 
   using AutoPath = std::vector<AutoElement>;
-  const AutoPath INTAKE1 = {
-    {DRIVE, AFTER, "testIntake1.csv"},
+  const AutoPath FOUR_PIECE = {
+    {SHOOT, AFTER},
+    {DRIVE, AFTER, "RightScore_to_RightIntake.csv"},
     {INTAKE, BEFORE_END},
-    {DRIVE, AFTER, "testBackFromIntake.csv"},
-    {SHOOT, AFTER, "", 1.0}
-  };
-  const AutoPath INTAKE2 = {
-    {DRIVE, AFTER, "testIntake2.csv"},
+    {DRIVE, AFTER, "RightIntake_to_MidScore.csv"},
+    {SHOOT, AFTER},
+    {DRIVE, AFTER, "MidScore_to_MidIntake.csv"},
     {INTAKE, BEFORE_END},
-    {DRIVE, AFTER, "testBackFromIntake.csv"},
-    {SHOOT, AFTER, "", 1.0}
-  };
-  const AutoPath INTAKE3 = {
-    {DRIVE, AFTER, "testIntake3.csv"},
+    {DRIVE, AFTER, "MidIntake_to_MidScore.csv"},
+    {SHOOT, AFTER},
+    {DRIVE, AFTER, "MidScore_to_LeftIntake.csv"},
     {INTAKE, BEFORE_END},
-    {DRIVE, AFTER, "testBackFromIntake.csv"},
-    {SHOOT, AFTER, "", 1.0}
+    {DRIVE, AFTER, "LeftIntake_to_MidScore.csv"},
+    {SHOOT, AFTER}
   };
 
   const AutoPath NOTHING = {
@@ -78,9 +75,7 @@ namespace AutoConstants {
 
   //Shuffleboard paths
   const std::map<std::string, AutoPath> PATHS = {
-      {"intake 1", INTAKE1},
-      {"intake 2", INTAKE2},
-      {"intake 3", INTAKE3},
+      {"Four Piece", FOUR_PIECE},
       {"Nothing", NOTHING}
   };
 
@@ -92,7 +87,10 @@ namespace AutoConstants {
   const double DRIVE_PADDING = 0.5;
   const double INTAKE_PADDING = 0.5;
   const double STOW_PADDING = 0.5;
-  const double SHOOT_PADDING = 0.0;
+  const double SHOOT_PADDING = -0.5; //Shoot earlier bc channel
+
+  //Pos tol for shoot aiming
+  const double SHOOT_POS_TOL = 0.3;
 
   // starting positions
   const StartPose BLUE_L = {{0.666, 6.721}, 4.126271};

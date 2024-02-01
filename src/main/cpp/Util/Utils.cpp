@@ -227,11 +227,9 @@ vec::Vector2D Utils::MultiplyComps(const vec::Vector2D v1, const vec::Vector2D v
 }
 
 /**
- * Gets the sign of a value
+ * Returns the sign of the double
  * 
- * @param x number
- * 
- * @returns the sign (-1.0, 0.0, 1.0)
+ * @returns -1.0, 0.0, or 1.0
 */
 double Utils::Sign(double x){
   if(x > 0.0){

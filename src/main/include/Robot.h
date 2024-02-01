@@ -79,6 +79,9 @@ class Robot : public frc::TimedRobot {
     // Odometry
     Odometry m_odom;
 
+    // Shooter
+    Shooter m_shooter{"Shooter", true, true};
+
     // Logger
     FRCLogger m_logger;
     bool m_prevIsLogging;

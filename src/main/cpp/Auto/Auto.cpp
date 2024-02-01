@@ -1,6 +1,7 @@
 #include "Auto/Auto.h"
 
 #include "Util/Utils.h"
+#include "Util/SideHelper.h"
 
 using AutoPath = AutoConstants::AutoPath;
 using AutoElement = AutoConstants::AutoElement;
@@ -12,9 +13,11 @@ using enum AutoConstants::AutoAction;
  * 
  * @note does not call periodic calls of mechanisms
 */
-Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, Intake &intake):
+Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, Intake &intake, Shooter &shooter):
     segments_{shuffleboard, swerve, odom},
+    odometry_{odom},
     intake_{intake},
+    shooter_{shooter},
     shuff_{"Auto", shuffleboard}
 {
     ResetTiming(intakeTiming_);
@@ -25,12 +28,59 @@ Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, Intake &int
 /**
  * Sets the path to run at some index
 */
-void Auto::SetPath(AutoPath path, uint index){
+void Auto::SetPath(uint index, AutoPath path){
     for(uint i = paths_.size(); i <= index; i++){
         paths_.push_back({});
     }
     paths_[index] = path;
     LoadPath(path);
+}
+
+/**
+ * Sets an auto segment to get a piece and shoot
+ * 
+ * @param to filename of path to gamepiece (ex: to.csv)
+ * @param back filename of path back from gamepiece (ex: back.csv)
+ * @param index index of the path (starting at 1)
+*/
+void Auto::SetSegment(uint index, std::string to, std::string back){
+    if(index == 0){
+        std::cout<<"bad index 0 Auto::SetSegment"<<std::endl;
+        return;
+    }
+    if((to == "") || (back  == "")){ //Check if it's an empty path
+        SetPath(index, {});
+        return;
+    }
+    SetPath(
+        index,
+        {
+            {DRIVE, AFTER, to},
+            {INTAKE, BEFORE_END}, //Can keep intake down if needed (then use stow)
+            {DRIVE, AFTER, back},
+            {SHOOT, BEFORE_END},
+        }
+    );
+}
+
+/**
+ * Sets an auto segment to get a piece and shoot
+ * 
+ * @param path filename of drive path (ex: to.csv)
+*/
+void Auto::SetSegment(uint index, std::string path){
+    if(index == 0){
+        std::cout<<"bad index 0 Auto::SetSegment"<<std::endl;
+        return;
+    }
+    if(path == ""){ //Check if it's an empty path
+        SetPath(index, {});
+        return;
+    }
+    SetPath(
+        index,
+        {{DRIVE, AFTER, path}}
+    );
 }
 
 /**
@@ -46,15 +96,16 @@ void Auto::AutoInit(){
     ResetTiming(shooterTiming_);
     ResetTiming(driveTiming_);
     
-    std::cout<<"init next"<<std::endl;
     NextBlock();
+
+    autoStart_ = Utils::GetCurTimeS();
 }
 
 /**
  * Autonomous Periodic
 */
 void Auto::AutoPeriodic(){
-    double t = Utils::GetCurTimeS();
+    double t = Utils::GetCurTimeS() - autoStart_;
 
     if(driveTiming_.finished && shooterTiming_.finished && intakeTiming_.finished){
         NextBlock();
@@ -79,7 +130,7 @@ void Auto::DrivePeriodic(double t){
         driveTiming_.finished = true;
     }
 
-    if(t > driveTiming_.end + AutoConstants::DRIVE_PADDING){
+    if(t > driveTiming_.end + DRIVE_PADDING){
         driveTiming_.finished = true;
     }
 }
@@ -89,15 +140,27 @@ void Auto::DrivePeriodic(double t){
 */
 void Auto::ShooterPeriodic(double t){
     if(!shooterTiming_.hasStarted && t > shooterTiming_.start){
-        //shooter_.shoot()
         shooterTiming_.hasStarted = true;
-        intake_.AmpOuttake();
     }
 
-    if(t > shooterTiming_.end + AutoConstants::SHOOT_PADDING){
+    if(shooter_.CanShoot() || (t > shooterTiming_.end + SHOOT_PADDING)){
+        intake_.FeedIntoShooter();
+    }
+
+    if(!intake_.HasGamePiece()){ //Don't use timer bc need to clear game piece
         shooterTiming_.finished = true;
     }
-    //shooter_.prepare();
+
+    if(shooterTiming_.finished){ //Might need to wait a bit
+        shooter_.Stroll();
+    }
+    else{
+        // if((segments_.getPos(shooterTiming_.end) - odometry_.GetPos()).magn() < ){
+
+        // }
+        shooter_.Prepare(SideHelper::IsBlue());
+        //Might want to prepare always (or)
+    }
 }
 
 /**
@@ -116,13 +179,13 @@ void Auto::IntakePeriodic(double t){
     }
     //Check if finished
     if(intaking_){
-        if( (intake_.HasGamePiece()) ||
-            (t > intakeTiming_.end + AutoConstants::INTAKE_PADDING)){
+        if( (intake_.HasGamePiece()) || // End intake if has game piece
+            (t > intakeTiming_.end + INTAKE_PADDING)){ 
             intakeTiming_.finished = true;
         }
     }
     else{
-        if(t > intakeTiming_.end + AutoConstants::STOW_PADDING){
+        if(t > intakeTiming_.end + STOW_PADDING){
             intakeTiming_.finished = true;
         }
     }
@@ -148,7 +211,7 @@ void Auto::NextBlock(){
     ResetTiming(shooterTiming_);
     ResetTiming(driveTiming_);
 
-    blockStart_ = Utils::GetCurTimeS() + firstElement.offset;
+    blockStart_ = Utils::GetCurTimeS() - autoStart_ + firstElement.offset;
 
     //Figure out the block duration/initialize the first element
     switch(firstElement.action){
@@ -157,13 +220,13 @@ void Auto::NextBlock(){
             blockEnd_ = blockStart_ + segments_.GetDuration();
             break;
         case SHOOT:
-            blockEnd_ = blockStart_ + AutoConstants::SHOOT_TIME;
+            blockEnd_ = blockStart_ + SHOOT_TIME;
             break;
         case INTAKE:
-            blockEnd_ = blockStart_ + AutoConstants::INTAKE_TIME;
+            blockEnd_ = blockStart_ + INTAKE_TIME;
             break;
         case STOW:
-            blockEnd_ = blockStart_ + AutoConstants::STOW_TIME;
+            blockEnd_ = blockStart_ + STOW_TIME;
             break;
         default:
             std::cout<<"Did not deal with auto action case NB "<< firstElement.action <<std::endl;
@@ -240,7 +303,7 @@ void Auto::EvaluateShootElement(AutoConstants::AutoElement element){
             shooterTiming_.start = blockStart_ + element.offset;
             break;
         case BEFORE_END:
-            shooterTiming_.start = blockEnd_ - AutoConstants::SHOOT_TIME - element.offset;
+            shooterTiming_.start = blockEnd_ - SHOOT_TIME - element.offset;
             break;
         case AFTER:
             shooterTiming_.start = blockStart_;
@@ -248,7 +311,7 @@ void Auto::EvaluateShootElement(AutoConstants::AutoElement element){
         default:
             std::cout<<"forgor deal with case ESE "<< element.action <<std::endl;
     }
-    shooterTiming_.end = shooterTiming_.start + AutoConstants::SHOOT_TIME;
+    shooterTiming_.end = shooterTiming_.start + SHOOT_TIME;
 }
 
 /**
@@ -265,10 +328,10 @@ void Auto::EvaluateIntakeElement(AutoConstants::AutoElement element){
             break;
         case BEFORE_END:
             if(intaking_){
-                intakeTiming_.start = blockEnd_ - AutoConstants::INTAKE_TIME - element.offset;
+                intakeTiming_.start = blockEnd_ - INTAKE_TIME - element.offset;
             }
             else{
-                intakeTiming_.start = blockEnd_ - AutoConstants::STOW_TIME - element.offset;
+                intakeTiming_.start = blockEnd_ - STOW_TIME - element.offset;
             }
             break;
         case AFTER:
@@ -278,10 +341,10 @@ void Auto::EvaluateIntakeElement(AutoConstants::AutoElement element){
             std::cout<<"forgor deal with case EIE "<< element.action <<std::endl;
     }
     if(intaking_){
-        intakeTiming_.end = intakeTiming_.start + AutoConstants::INTAKE_TIME;
+        intakeTiming_.end = intakeTiming_.start + INTAKE_TIME;
     }
     else{
-        intakeTiming_.end = intakeTiming_.start + AutoConstants::STOW_TIME;
+        intakeTiming_.end = intakeTiming_.start + STOW_TIME;
     }
 }
 
@@ -323,7 +386,10 @@ void Auto::ShuffleboardInit(){
     shuff_.add("Drive End", &driveTiming_.end, {1,1,1,1});
     shuff_.add("Drive Has Started", &driveTiming_.hasStarted, {1,1,2,1});
     shuff_.add("Drive Has Finished", &driveTiming_.finished, {1,1,3,1});
-    shuff_.PutNumber("Drive Progress", 0.0, {1,1,4,1});
+
+    shuff_.add("Drive Padding", &DRIVE_PADDING, {1,1,4,1}, true);
+
+    shuff_.PutNumber("Drive Progress", 0.0, {1,1,5,1});
 
     //Shooter Timing (row 2)
     shuff_.add("Shooter Start", &shooterTiming_.start, {1,1,0,2});
@@ -331,11 +397,18 @@ void Auto::ShuffleboardInit(){
     shuff_.add("Shooter Has Started", &shooterTiming_.hasStarted, {1,1,2,2});
     shuff_.add("Shooter Has Finished", &shooterTiming_.finished, {1,1,3,2});
     
+    shuff_.add("Shooter Padding", &SHOOT_PADDING, {1,1,4,2}, true);
+    shuff_.add("Shooter Time", &SHOOT_TIME, {1,1,5,2}, true);
+    shuff_.add("Shoot pos tol", &SHOOT_POS_TOL, {1,1,6,2}, true);
+
     //Intake Timing (row 3)
     shuff_.add("Intake Start", &intakeTiming_.start, {1,1,0,3});
     shuff_.add("Intake End", &intakeTiming_.end, {1,1,1,3});
     shuff_.add("Intake Has Started", &intakeTiming_.hasStarted, {1,1,2,3});
     shuff_.add("Intake Has Finished", &intakeTiming_.finished, {1,1,3,3});
+    
+    shuff_.add("Intake Padding", &INTAKE_PADDING, {1,1,4,3}, true);
+    shuff_.add("Intake Time", &INTAKE_TIME, {1,1,5,3}, true);
 }
 
 void Auto::ShuffleboardPeriodic(){
@@ -343,7 +416,9 @@ void Auto::ShuffleboardPeriodic(){
         return;
     }
     segments_.ShuffleboardPeriodic();
-    shuff_.PutNumber("time", Utils::GetCurTimeS());
+
+    shuff_.PutNumber("time", Utils::GetCurTimeS() - autoStart_);
     shuff_.PutNumber("Drive Progress", segments_.GetProgress());
-    shuff_.update(false); //No tuning for auto
+
+    shuff_.update(true);
 }

@@ -25,19 +25,21 @@ class Shooter : public Mechanism{
         enum State{
             STOP,
             PREPARING,
-            PREPARED,
             STROLL //Set to low speed
         };
   
         Shooter(std::string name, bool enabled, bool shuffleboard);
+        void SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);
 
         void Stop();
         void Stroll();
 
         void SetUp(double vel, double spin, double ang);
-        void Prepare(vec::Vector2D toSpeaker);
+        void Prepare(bool blueSpeaker);
 
         bool CanShoot();
+
+        double GetTargetRobotYaw();
 
     private:
         void CoreInit() override;
@@ -58,6 +60,31 @@ class Shooter : public Mechanism{
         std::map<double, ShooterConstants::ShootConfig> shootData_;
         double kSpin_;
 
+        ShooterConstants::ShootConfig shot_;
+        double spin_;
+
+        //Odometry
+        vec::Vector2D robotPos_;
+        vec::Vector2D robotVel_;
+        double robotYaw_;
+
+        double targetYaw_;
+
+        //Kinematic calculations
+        struct FKRes{
+            bool score; //If the shot will score
+            bool aimed; //if the robot is actually aiming at the target
+            vec::Vector2D error; //width, height
+        };
+        FKRes CalculateForwardKinematics(vec::Vector2D target, ShooterConstants::ShootConfig shot);
+
+        struct IKRes{
+            double targRobotYaw;
+            ShooterConstants::ShootConfig shot;
+        };
+        IKRes CalculateInverseKinematics(vec::Vector2D target);
+
+        //ShuffleboardSender
         std::string StateToString(State state);
         ShuffleboardSender shuff_;
 

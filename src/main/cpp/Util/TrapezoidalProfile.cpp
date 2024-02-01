@@ -1,5 +1,7 @@
 #include "Util/TrapezoidalProfile.h"
 
+#include <iostream>
+
 #include "Util/Utils.h"
 
 TrapezoidalProfile::TrapezoidalProfile(double maxVel, double maxAcc):
@@ -44,8 +46,9 @@ bool TrapezoidalProfile::setTarget(Poses::Pose1D currPose, Poses::Pose1D finalPo
     timer_.Reset();
     timer_.Start();
     startPose_ = currPose;
-    if((maxAcc_ == 0) || (maxVel_ == 0) || (std::abs(currPose.vel) > maxVel_) || (std::abs(finalPose.vel) > maxVel_)){
+    if((maxAcc_ == 0) || (maxVel_ == 0) || /*(std::abs(currPose.vel) > maxVel_) || */(std::abs(finalPose.vel) > maxVel_)){
         Zero(currPose); //Should stop if profile is bad
+        std::cout<<"Bad profile"<<std::endl;
         return false; 
     }
 
@@ -109,8 +112,22 @@ bool TrapezoidalProfile::setTarget(Poses::Pose1D currPose, Poses::Pose1D finalPo
     return true;
 }
 
+/**
+ * Returns if the profile is finished
+*/
 bool TrapezoidalProfile::isFinished(){
     return timer_.Get().value() > calcTimes_.deaccTime;
+}
+
+/**
+ * Regenerates the profile to the target, starting at a new position
+ * 
+ * @param pose new starting pose
+ * 
+ * @returns if it did so successfully
+*/
+bool TrapezoidalProfile::regenerate(Poses::Pose1D pose){
+    return setTarget(pose, finalPose_);
 }
 
 double TrapezoidalProfile::getTime(){

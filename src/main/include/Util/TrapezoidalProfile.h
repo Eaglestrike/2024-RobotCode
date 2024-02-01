@@ -11,6 +11,8 @@ class TrapezoidalProfile{
         bool setTarget(Poses::Pose1D currPose, Poses::Pose1D finalPose);
         bool isFinished();
 
+        bool regenerate(Poses::Pose1D currPose);
+
         double getTime();
         double getDuration();
         double getDisplacement();
