@@ -29,17 +29,18 @@ class Shooter : public Mechanism{
         };
   
         Shooter(std::string name, bool enabled, bool shuffleboard);
-        void SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);
 
         void Stop();
         void Stroll();
 
         void SetUp(double vel, double spin, double ang);
-        void Prepare(bool blueSpeaker);
+        void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker);
 
-        bool CanShoot();
+        bool CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);
 
         double GetTargetRobotYaw();
+
+        void SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);//Debug info passing in
 
     private:
         void CoreInit() override;
@@ -55,20 +56,28 @@ class Shooter : public Mechanism{
         Flywheel rflywheel_;
         Pivot pivot_;
 
-        double strollSpeed_;
+        //Shooter config
+        double strollSpeed_ = ShooterConstants::STROLL_SPEED;
 
-        std::map<double, ShooterConstants::ShootConfig> shootData_;
-        double kSpin_;
+        std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;
+        double kSpin_ = ShooterConstants::K_SPIN;
 
         ShooterConstants::ShootConfig shot_;
         double spin_;
 
-        //Odometry
+        //Odometry Targets
+        vec::Vector2D targetPos_;
+        vec::Vector2D targetVel_;
+        double targetYaw_;
+
+        double posTol_ = ShooterConstants::SHOOT_POS_TOL;
+        double velTol_ = ShooterConstants::SHOOT_VEL_TOL;
+        double yawTol_ = ShooterConstants::SHOOT_YAW_TOL;
+
+        //Debug odom vals
         vec::Vector2D robotPos_;
         vec::Vector2D robotVel_;
         double robotYaw_;
-
-        double targetYaw_;
 
         //Kinematic calculations
         struct FKRes{
@@ -76,7 +85,7 @@ class Shooter : public Mechanism{
             bool aimed; //if the robot is actually aiming at the target
             vec::Vector2D error; //width, height
         };
-        FKRes CalculateForwardKinematics(vec::Vector2D target, ShooterConstants::ShootConfig shot);
+        FKRes CalculateForwardKinematics(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw, vec::Vector2D target, ShooterConstants::ShootConfig shot);
 
         struct IKRes{
             double targRobotYaw;

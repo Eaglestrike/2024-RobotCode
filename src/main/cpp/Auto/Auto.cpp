@@ -1,5 +1,7 @@
 #include "Auto/Auto.h"
 
+#include <string>
+
 #include "Util/Utils.h"
 #include "Util/SideHelper.h"
 
@@ -13,9 +15,10 @@ using enum AutoConstants::AutoAction;
  * 
  * @note does not call periodic calls of mechanisms
 */
-Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, Intake &intake, Shooter &shooter):
+Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autolineup, Intake &intake, Shooter &shooter):
     segments_{shuffleboard, swerve, odom},
     odometry_{odom},
+    autoLineup_{autolineup},
     intake_{intake},
     shooter_{shooter},
     shuff_{"Auto", shuffleboard}
@@ -92,6 +95,7 @@ void Auto::AutoInit(){
 
     segments_.Clear();
 
+    ResetTiming(channelTiming_);
     ResetTiming(intakeTiming_);
     ResetTiming(shooterTiming_);
     ResetTiming(driveTiming_);
@@ -112,7 +116,15 @@ void Auto::AutoPeriodic(){
     }
 
     DrivePeriodic(t);
-    segments_.Periodic();
+    if(shooterTiming_.hasStarted && (!shooterTiming_.finished)){
+        autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
+        autoLineup_.Start();
+        autoLineup_.Periodic();
+        segments_.Periodic(autoLineup_.GetAngVel());
+    }
+    else{
+        segments_.Periodic();
+    }
     ShooterPeriodic(t);
     IntakePeriodic(t);
 }
@@ -137,29 +149,45 @@ void Auto::DrivePeriodic(double t){
 
 /**
  * Execution for shooter
+ * 
+ * @returns if it needs to autolineup
 */
-void Auto::ShooterPeriodic(double t){
+bool Auto::ShooterPeriodic(double t){
     if(!shooterTiming_.hasStarted && t > shooterTiming_.start){
         shooterTiming_.hasStarted = true;
     }
 
-    if(shooter_.CanShoot() || (t > shooterTiming_.end + SHOOT_PADDING)){
-        intake_.FeedIntoShooter();
-    }
-
-    if(!intake_.HasGamePiece()){ //Don't use timer bc need to clear game piece
-        shooterTiming_.finished = true;
-    }
-
-    if(shooterTiming_.finished){ //Might need to wait a bit
+    if(shooterTiming_.finished){
         shooter_.Stroll();
     }
-    else{
-        // if((segments_.getPos(shooterTiming_.end) - odometry_.GetPos()).magn() < ){
+    else if(shooterTiming_.hasStarted){
+        vec::Vector2D pos{odometry_.GetPos()};
+        //Feed into shooter when can shoot
+        if(shooter_.CanShoot(pos, odometry_.GetVel(), odometry_.GetAng()) || (t > shooterTiming_.end + SHOOT_PADDING)){ 
+            intake_.FeedIntoShooter();
+        }
+        
+        //Finish shooting when can't see piece for a bit
+        if(!intake_.HasGamePiece()){ 
+            if(!channelTiming_.hasStarted){ //Start channel timer
+                channelTiming_.end = t + CHANNEL_TIME;
+                channelTiming_.hasStarted = true;
+            }
+            else if(t > channelTiming_.end){ 
+                shooterTiming_.finished = true;
+            }
+        }
 
-        // }
-        shooter_.Prepare(SideHelper::IsBlue());
-        //Might want to prepare always (or)
+        if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target
+            shooter_.Prepare(pos, odometry_.GetVel(), SideHelper::IsBlue());
+        }
+        else{
+            shooter_.Prepare(shootPos_, {0,0}, SideHelper::IsBlue()); //Prepare for the target shot
+        }
+        
+    }
+    else{
+        shooter_.Stroll();
     }
 }
 
@@ -207,6 +235,7 @@ void Auto::NextBlock(){
     }
     AutoElement firstElement = path[index_];
 
+    ResetTiming(channelTiming_);
     ResetTiming(intakeTiming_);
     ResetTiming(shooterTiming_);
     ResetTiming(driveTiming_);
@@ -241,6 +270,11 @@ void Auto::NextBlock(){
             break;
         }
         EvaluateElement(element);
+    }
+
+    //Get the shooter position target
+    if(!shooterTiming_.finished){
+        shootPos_ = segments_.GetPos(shooterTiming_.end + autoStart_); 
     }
 
     if(index_ >= (int)path.size()){//Finished this path
@@ -369,6 +403,26 @@ void Auto::LoadPath(const AutoPath& path){
     }
 }
 
+std::string Auto::ElementToString(const AutoElement element){
+    std::string str = "";
+    switch(element.type){
+        case DRIVE:     str += "DRIVE    "; break;
+        case INTAKE:    str += "INTAKE   "; break;
+        case STOW:      str += "STOW     "; break;
+        case SHOOT:     str += "SHOOTING "; break;
+        default:        str += "UNKNOWN  ";
+    }
+    switch(element.action){
+        case AFTER:     str += "AFTER     ,"; break;
+        case AT_START:  str += "AT_START  ,"; break;
+        case BEFORE_END:str += "BEFORE_END,"; break;
+        default:        str += "UNKNOWN   ,";
+    }
+    str += " " + element.data + " ";
+    str += std::to_string(element.offset);
+    return str;
+}
+
 void Auto::ShuffleboardInit(){
     if(!shuff_.isEnabled()){
         return;
@@ -409,6 +463,16 @@ void Auto::ShuffleboardInit(){
     
     shuff_.add("Intake Padding", &INTAKE_PADDING, {1,1,4,3}, true);
     shuff_.add("Intake Time", &INTAKE_TIME, {1,1,5,3}, true);
+
+    //Print Pathing
+    shuff_.addButton("Print Path", [&]{
+        for(int i = 0; i < paths_.size(); i++){
+            std::cout<<"Path "<<i<<std::endl;
+            for(AutoElement element : paths_[i]){
+                std::cout<<ElementToString(element)<<std::endl;
+            }
+        };
+    });
 }
 
 void Auto::ShuffleboardPeriodic(){

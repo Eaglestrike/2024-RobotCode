@@ -24,6 +24,7 @@ public:
 
   void Start();
   void Periodic();
+  void Periodic(double angVel);
   void Stop();
   void Clear();
 
@@ -36,6 +37,7 @@ public:
 
   double GetProgress() const;
   double GetDuration() const;
+  vec::Vector2D GetPos(double t) const;
   bool IsDoneHermite() const;
   bool AtPosTarget() const;
   bool AtAngTarget() const;

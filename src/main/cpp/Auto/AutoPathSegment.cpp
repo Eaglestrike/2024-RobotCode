@@ -134,61 +134,80 @@ void AutoPathSegment::SetAngTol(double tol) {
 }
 
 /**
- * Periodic
+ * Periodic (angular and linear motion)
 */
-void AutoPathSegment::Periodic() {
+void AutoPathSegment::Periodic(){
+  // get relative time
+  double curTimeRel = Utils::GetCurTimeS() - m_startTime;
+  curTimeRel = curTimeRel < 0 ? 0 : (curTimeRel > m_spline.pos.getHighestTime() ? m_spline.pos.getHighestTime() : curTimeRel);
+  
+  //Deal with angular correction
+  const double curExpectedAng = m_spline.ang(curTimeRel)[0];
+  const double curExpectedAngVel = m_spline.ang.getVel(curTimeRel)[0]; // only feedback -> set to 0
+
+  const double curAng = m_odom.GetAng();
+  const double curAngVel = m_swerve.GetRobotAngularVel();
+  
+  Poses::Pose1D angPose = {curAng, curAngVel, 0.0};
+  const double correctAngVel = m_angCorrect.Calculate(angPose, {curExpectedAng, curExpectedAngVel, 0.0});
+
+  if(m_shuffleboard){
+    m_shuff.PutNumber("error ang", curExpectedAng - curAng, {1,1,6,4});
+  }
+  
+  double setAngVel = curExpectedAngVel + correctAngVel;
+
+  if (AtAngTarget()) {
+    setAngVel = 0;
+  }
+
+  Periodic(setAngVel);
+}
+
+/**
+ * Periodic (only linear motion)
+*/
+void AutoPathSegment::Periodic(double angVel) {
   if(!m_hasStarted){
     return;
   }
-
   // get relative time
   double curTimeRel = Utils::GetCurTimeS() - m_startTime;
   curTimeRel = curTimeRel < 0 ? 0 : (curTimeRel > m_spline.pos.getHighestTime() ? m_spline.pos.getHighestTime() : curTimeRel);
 
   // get current expected position
   const vec::Vector2D curExpectedPos = m_spline.pos(curTimeRel);
-  const double curExpectedAng = m_spline.ang(curTimeRel)[0];
 
   // get feed forward velocity 
   const vec::Vector2D curExpectedVel = m_spline.pos.getVel(curTimeRel);
-  const double curExpectedAngVel = m_spline.ang.getVel(curTimeRel)[0]; // only feedback -> set to 0
 
   // get current pos
-  const vec::Vector2D curPos = m_odom.GetPos();
   const double curAng = m_odom.GetAng();
+  const vec::Vector2D curPos = m_odom.GetPos();
 
   const vec::Vector2D curVel = m_swerve.GetRobotVelocity(curAng);
-  const double curAngVel = m_swerve.GetRobotAngularVel();
 
   Poses::Pose1D xPose = {curPos.x(), curVel.x(), 0.0};
   Poses::Pose1D yPose = {curPos.y(), curVel.y(), 0.0};
-  Poses::Pose1D angPose = {curAng, curAngVel, 0.0};
 
   // get correction velocity
   const double correctVelX = m_posCorrectX.Calculate(xPose, {curExpectedPos.x(), curExpectedVel.x(), 0.0});
   const double correctVelY = m_posCorrectY.Calculate(yPose, {curExpectedPos.y(), curExpectedVel.y(), 0.0});
-  const double correctAngVel = m_angCorrect.Calculate(angPose, {curExpectedAng, curExpectedAngVel, 0.0});
   const vec::Vector2D correctVel = {correctVelX, correctVelY};
 
   if (m_shuffleboard) {
     m_shuff.PutNumber("error x", curExpectedPos.x() - curPos.x(), {1,1,4,4});
     m_shuff.PutNumber("error y", curExpectedPos.y() - curPos.y(), {1,1,5,4});
-    m_shuff.PutNumber("error ang", curExpectedAng - curAng, {1,1,6,4});
   }
 
   // set velocity to swerve
   vec::Vector2D setVel = curExpectedVel + correctVel;
-  double setAngVel = curExpectedAngVel + correctAngVel;
 
   if (AtPosTarget()) {
     setVel = {0, 0};
   }
 
-  if (AtAngTarget()) {
-    setAngVel = 0;
-  }
-
-  m_swerve.SetRobotVelocity(setVel, setAngVel, curAng);
+  m_swerve.SetRobotVelocity(setVel, angVel, curAng);
 }
 
 /**
@@ -211,6 +230,18 @@ double AutoPathSegment::GetProgress() const {
 */
 double AutoPathSegment::GetDuration() const {
   return m_spline.pos.getHighestTime() - m_spline.pos.getLowestTime();
+}
+
+/**
+ * Gets the position at time t
+ * 
+ * @param t non-relative time (utils frame)
+*/
+vec::Vector2D AutoPathSegment::GetPos(double t) const{
+  
+  double timeRel = t - m_startTime;
+  timeRel = timeRel < 0 ? 0 : (timeRel > m_spline.pos.getHighestTime() ? m_spline.pos.getHighestTime() : timeRel);
+  return m_spline.pos.getVel(timeRel);
 }
 
 /**

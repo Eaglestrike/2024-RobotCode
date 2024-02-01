@@ -1,4 +1,5 @@
 #include "Shooter/Shooter.h"
+#include "Util/SideHelper.h"
 
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
@@ -6,9 +7,6 @@ Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     lflywheel_{ShooterConstants::LEFT_FLYWHEEL, enabled, shuffleboard},
     rflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, shuffleboard},
     pivot_{"Pivot", enabled, shuffleboard},
-    strollSpeed_{ShooterConstants::STROLL_SPEED},
-    shootData_{ShooterConstants::SHOOT_DATA},
-    kSpin_{ShooterConstants::K_SPIN},
     shuff_{name, shuffleboard}
 
     #if SHOOTER_AUTO_TUNE
@@ -74,15 +72,6 @@ void Shooter::CoreTeleopPeriodic(){
 }
 
 /**
- * Set the field-oriented position and velocity
-*/
-void Shooter::SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw){
-    robotPos_ = robotPos;
-    robotVel_ = robotVel;
-    robotYaw_ = robotYaw;
-}
-
-/**
  * Turns off (no voltage)
 */
 void Shooter::Stop(){
@@ -109,13 +98,16 @@ void Shooter::Stroll(){
  * 
  * @param toSpeaker field-oriented vector to the speaker 
 */
-void Shooter::Prepare(bool blueSpeaker){
+void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
+    targetPos_ = robotPos;
+    targetVel_ = robotVel;
+
     vec::Vector2D toSpeaker;
     if(blueSpeaker){
-        toSpeaker = ShooterConstants::BLUE_SPEAKER - robotPos_;
+        toSpeaker = ShooterConstants::BLUE_SPEAKER - targetPos_;
     }
     else{
-        toSpeaker = ShooterConstants::RED_SPEAKER - robotPos_;
+        toSpeaker = ShooterConstants::RED_SPEAKER - targetPos_;
     }
 
     double dist = toSpeaker.magn();
@@ -174,7 +166,7 @@ void Shooter::SetUp(double vel, double spin, double pivot){
  * 
  * Returns if it will make the shot and how much off
 */
-Shooter::FKRes Shooter::CalculateForwardKinematics(vec::Vector2D target, ShooterConstants::ShootConfig shot){
+Shooter::FKRes Shooter::CalculateForwardKinematics(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw, vec::Vector2D target, ShooterConstants::ShootConfig shot){
     const FKRes miss{
         .score = false,
         .aimed = false,
@@ -182,11 +174,11 @@ Shooter::FKRes Shooter::CalculateForwardKinematics(vec::Vector2D target, Shooter
     };
 
     FKRes res;
-    vec::Vector2D toTarget = target - robotPos_;
+    vec::Vector2D toTarget = target - robotPos;
 
-    vec::Vector2D shotVel{cos(robotYaw_), sin(robotYaw_)};
+    vec::Vector2D shotVel{cos(robotYaw), sin(robotYaw)};
     shotVel *= shot.vel * cos(shot.ang);
-    shotVel += robotVel_;
+    shotVel += robotVel;
 
     if(shotVel.x() == 0.0){
         return miss;
@@ -222,8 +214,17 @@ Shooter::IKRes Shooter::CalculateInverseKinematics(vec::Vector2D target){
 /**
  * Returns if you can shoot
 */
-bool Shooter::CanShoot(){
+bool Shooter::CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw){
     if(state_ != PREPARING){
+        return false;
+    }
+    if((robotPos - targetPos_).magn() < posTol_){
+        return false;
+    }
+    if((robotVel - targetVel_).magn() < velTol_){
+        return false;
+    }
+    if((robotYaw - targetYaw_) < yawTol_){
         return false;
     }
     return lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget();
@@ -234,6 +235,15 @@ bool Shooter::CanShoot(){
 */
 double Shooter::GetTargetRobotYaw(){
     return targetYaw_;
+}
+
+/**
+ * Debug odometry
+*/
+void Shooter::SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw){
+    robotPos_ = robotPos;
+    robotVel_ = robotVel;
+    robotYaw_ = robotYaw;
 }
 
 std::string Shooter::StateToString(State state){
@@ -261,6 +271,10 @@ void Shooter::CoreShuffleboardInit(){
 
     //State (rightside)
     shuff_.PutString("State", StateToString(state_), {2,1,4,0});
+    shuff_.PutBoolean("Can Shoot", false, {1,1,5,0});
+    shuff_.PutBoolean("FK make it", false, {1,1,6,0});
+    shuff_.PutBoolean("Aimed", false, {1,1,7,0});
+    shuff_.PutString("Shot Error", "", {2,1,6,1});
 
     #if SHOOTER_AUTO_TUNE
     shuff_.add("Lfly Autotune", &lflyTuning_, {1,1,3,1}, true);
@@ -292,10 +306,23 @@ void Shooter::CoreShuffleboardInit(){
 
     //KSpin (row 3)
     shuff_.add("kSpin", &kSpin_, {1,1,0,3}, true);
+
+    //Tolerance (row 4)
+    shuff_.add("pos tol", &posTol_, {1,1,0,4}, true);
+    shuff_.add("vel tol", &velTol_, {1,1,1,4}, true);
+    shuff_.add("yaw tol", &yawTol_, {1,1,2,4}, true);
+
 }
 
 void Shooter::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
+    shuff_.PutBoolean("Can Shoot", CanShoot(robotPos_, robotVel_, robotYaw_));
+    
+    vec::Vector2D targ = SideHelper::IsBlue? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
+    FKRes fk = CalculateForwardKinematics(robotPos_, robotVel_, robotYaw_, targ, shot_);
+    shuff_.PutBoolean("FK make it", fk.score);
+    shuff_.PutBoolean("Aimed", fk.aimed);
+    shuff_.PutString("Shot Error", fk.error.toString());
 
     shuff_.update(true);
 }
