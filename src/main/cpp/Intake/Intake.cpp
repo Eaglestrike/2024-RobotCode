@@ -54,15 +54,13 @@ void Intake::CoreTeleopPeriodic(){
         case PASSTHROUGH:
             if (m_wrist.GetState() == Wrist::AT_TARGET)
                 m_wrist.Coast();
-            else if (m_wrist.GetState() == Wrist::COAST){    
-                /* if (beambreak2){
-                    if (!keepIntakeDown) {
-                        m_wrist.MoveTo(STOWED_POS);   
-                    }
-                    m_rollers.SetState(Rollers::STOP); // idk if this goes here or in the if
-                    m_channel.SetState(Channel::RETAIN)
-                    m_actionState = NONE
-                }*/ 
+            else if (m_wrist.GetState() == Wrist::COAST && InChannel()){    
+                if (!m_keepIntakeDown) {
+                    m_wrist.MoveTo(STOWED_POS);
+                }
+                m_rollers.SetState(Rollers::STOP);
+                m_channel.SetState(Channel::RETAIN);
+                m_actionState = NONE;
             }
             break; 
         case AMP_OUTTAKE:
