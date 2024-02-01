@@ -15,9 +15,9 @@
 class Auto{
     public:
         Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, Intake &intake, Shooter &shooter);
-        void SetPath(AutoConstants::AutoPath path, uint index);
-        void SetSegment(std::string to, std::string back, uint index); //Drive -> Intake -> Drive -> Shoot
-        void SetSegment(std::string path, uint index); //Just Drives
+        void SetPath(uint index, AutoConstants::AutoPath path);
+        void SetSegment(uint index, std::string to, std::string back); //Drive -> Intake -> Drive -> Shoot
+        void SetSegment(uint index, std::string path); //Just Drives
 
         void AutoInit();
         void AutoPeriodic();
@@ -32,6 +32,7 @@ class Auto{
 
         void LoadPath(const AutoConstants::AutoPath& path);
         AutoPathSegment segments_; //Drive segments
+        Odometry &odometry_;
         Intake &intake_;
         Shooter &shooter_;
 
@@ -61,6 +62,17 @@ class Auto{
         SubsystemTiming shooterTiming_;
         bool intaking_; //If the intake should be intaking or stowed on this block
         SubsystemTiming intakeTiming_;
+
+        double SHOOT_TIME = AutoConstants::SHOOT_TIME;
+        double INTAKE_TIME = AutoConstants::INTAKE_TIME;
+        double STOW_TIME = AutoConstants::STOW_TIME;
+
+        double DRIVE_PADDING = AutoConstants::DRIVE_PADDING;
+        double INTAKE_PADDING = AutoConstants::INTAKE_PADDING;
+        double STOW_PADDING = AutoConstants::STOW_PADDING;
+        double SHOOT_PADDING = AutoConstants::SHOOT_PADDING;
+
+        double SHOOT_POS_TOL = AutoConstants::SHOOT_POS_TOL;
 
         ShuffleboardSender shuff_;
 };

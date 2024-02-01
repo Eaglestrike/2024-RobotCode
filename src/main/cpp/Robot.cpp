@@ -129,7 +129,6 @@ void Robot::RobotPeriodic() {
   m_logger.Periodic(Utils::GetCurTimeS());
   m_intake.Periodic();
 
-  m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng());
   m_shooter.Periodic();
 }
 
@@ -209,6 +208,7 @@ void Robot::TeleopPeriodic() {
       m_intake.AmpOuttake();
     }
     else {
+      m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng());
       m_shooter.Prepare(true); //TODO use utils
       if(m_shooter.CanShoot()){
         m_intake.FeedIntoShooter(); //Shoot when ready
@@ -255,7 +255,7 @@ void Robot::DisabledPeriodic() {
   for(uint i = 0; i < AUTO_LENGTH; i++){
     path = m_autoChoosers[i].GetSelected();
     if(AutoConstants::PATHS.find(path) != AutoConstants::PATHS.end()){
-      m_auto.SetPath(AutoConstants::PATHS.at(path),i);
+      m_auto.SetPath(i, AutoConstants::PATHS.at(path));
     }
   }
 }
