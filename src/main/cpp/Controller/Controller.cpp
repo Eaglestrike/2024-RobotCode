@@ -19,6 +19,9 @@ Controller::Controller(){
         }
         else{
             joysticks_[joystickID] = new frc::Joystick(map.second);
+            if(!joysticks_[joystickID]){
+                std::cout<<"No Joystick "<<joystickID<<std::endl;
+            }
         }
     }
     //check if any joysticks are nullptr
@@ -125,22 +128,27 @@ inline double Controller::Deadband(double value, double deadbandVal){
 Controller::Output Controller::get(Action action){
     Output o;
     Button button = actionMap_[action];
-    switch(button.data.type){
-        case AXIS_BUTTON:
-            o.doubleVal = joysticks_[button.joystick]->GetRawAxis(button.data.id);
-            break;
-        case BUTTON_BUTTON:
-            o.boolVal = joysticks_[button.joystick]->GetRawButtonPressed(button.data.id);
-            break;
-        case TRIGGER_BUTTON:
-            o.boolVal = joysticks_[button.joystick]->GetTriggerPressed();
-            break;
-        case POV_BUTTON:
-            o.boolVal = joysticks_[button.joystick]->GetPOV(); //Returns [0, 360) for POV
-            break;
-        default:
-            std::cout<<"Bad Button Mapping for Action"<< action << std::endl;
-    };
+    try{
+        switch(button.data.type){
+            case AXIS_BUTTON:
+                o.doubleVal = joysticks_[button.joystick]->GetRawAxis(button.data.id);
+                break;
+            case BUTTON_BUTTON:
+                o.boolVal = joysticks_[button.joystick]->GetRawButtonPressed(button.data.id);
+                break;
+            case TRIGGER_BUTTON:
+                o.boolVal = joysticks_[button.joystick]->GetTriggerPressed();
+                break;
+            case POV_BUTTON:
+                o.boolVal = joysticks_[button.joystick]->GetPOV(); //Returns [0, 360) for POV
+                break;
+            default:
+                std::cout<<"Bad Button Mapping for Action"<< action << std::endl;
+        };
+    }
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
+    }
     return o;
 }
 
@@ -156,17 +164,22 @@ Controller::Output Controller::get(Action action){
 */
 double Controller::getRawAxis(Action action){
     Button button = actionMap_[action];
-    switch(button.data.type){
-        case AXIS_BUTTON:
-            return joysticks_[button.joystick]->GetRawAxis(button.data.id);
-        case BUTTON_BUTTON:
-        case TRIGGER_BUTTON:
-            std::cout<<"Not applicable for getRawAxis: ";
-            break;
-        default:
-            std::cout<<"Bad Button Mapping for ";
-    };
-    std::cout<<"Action " << action << " call"<<std::endl;
+    try{
+        switch(button.data.type){
+            case AXIS_BUTTON:
+                return joysticks_[button.joystick]->GetRawAxis(button.data.id);
+            case BUTTON_BUTTON:
+            case TRIGGER_BUTTON:
+                std::cout<<"Not applicable for getRawAxis: ";
+                break;
+            default:
+                std::cout<<"Bad Button Mapping for ";
+        };
+        std::cout<<"Action " << action << " call"<<std::endl;
+    }
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
+    }
     return 0.0;
 }
 
@@ -182,20 +195,25 @@ double Controller::getRawAxis(Action action){
  * @returns a double in the range [-1.0, 1.0] (not enforced)
 */
 double Controller::getWithDeadband(Action action, double deadbandVal){
-    Button button = actionMap_[action];
-    double raw;
-    switch(button.data.type){
-        case AXIS_BUTTON:
-            raw = joysticks_[button.joystick]->GetRawAxis(button.data.id);
-            return Deadband(raw, deadbandVal);
-        case BUTTON_BUTTON:
-        case TRIGGER_BUTTON:
-            std::cout<<"Not applicable for getWithDeadband: ";
-            break;
-        default:
-            std::cout<<"Bad Button Mapping for ";
-    };
-    std::cout<<"Action " << action << " call"<<std::endl;
+    try{
+        Button button = actionMap_[action];
+        double raw;
+        switch(button.data.type){
+            case AXIS_BUTTON:
+                raw = joysticks_[button.joystick]->GetRawAxis(button.data.id);
+                return Deadband(raw, deadbandVal);
+            case BUTTON_BUTTON:
+            case TRIGGER_BUTTON:
+                std::cout<<"Not applicable for getWithDeadband: ";
+                break;
+            default:
+                std::cout<<"Bad Button Mapping for ";
+        };
+        std::cout<<"Action " << action << " call"<<std::endl;
+    }
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
+    }
     return 0.0;
 }
 
@@ -215,25 +233,30 @@ double Controller::getWithDeadband(Action action, double deadbandVal){
  * @returns a double in the range [-1.0, 1.0] (not enforced)
 */
 double Controller::getWithDeadContinuous(Action action, double deadbandVal){
-    Button button = actionMap_[action];
-    double raw, dead;
-    switch(button.data.type){
-        case AXIS_BUTTON:
-            raw = joysticks_[button.joystick]->GetRawAxis(button.data.id);
-            dead = Deadband(raw, deadbandVal);
-            if(dead == 0.0){
-                return 0.0;
-            }
-            dead += (dead>0.0)?(-deadbandVal):(deadbandVal);//Shift ranges to meet at 0
-            return dead/(1.0-deadbandVal); //Scale to [-1,1] range
-        case BUTTON_BUTTON:
-        case TRIGGER_BUTTON:
-            std::cout<<"Not applicable for getDeadband: ";
-            break;
-        default:
-            std::cout<<"Bad Button Mapping for ";
-    };
-    std::cout<<"Action " << action << " call"<<std::endl;
+    try{
+        Button button = actionMap_[action];
+        double raw, dead;
+        switch(button.data.type){
+            case AXIS_BUTTON:
+                raw = joysticks_[button.joystick]->GetRawAxis(button.data.id);
+                dead = Deadband(raw, deadbandVal);
+                if(dead == 0.0){
+                    return 0.0;
+                }
+                dead += (dead>0.0)?(-deadbandVal):(deadbandVal);//Shift ranges to meet at 0
+                return dead/(1.0-deadbandVal); //Scale to [-1,1] range
+            case BUTTON_BUTTON:
+            case TRIGGER_BUTTON:
+                std::cout<<"Not applicable for getDeadband: ";
+                break;
+            default:
+                std::cout<<"Bad Button Mapping for ";
+        };
+        std::cout<<"Action " << action << " call"<<std::endl;
+    }
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
+    }
     return 0.0;   
 }
 
@@ -246,19 +269,24 @@ double Controller::getWithDeadContinuous(Action action, double deadbandVal){
  * @returns an int in the [0, 360] range
 */
 int Controller::getPOV(Action action){
-    Button button = actionMap_[action];
-    switch(button.data.type){
-        case POV_BUTTON:
-            return joysticks_[button.joystick]->GetPOV();
-        case AXIS_BUTTON:
-        case BUTTON_BUTTON:
-        case TRIGGER_BUTTON:
-            std::cout<<"Not applicable for getPOV: ";
-            break;
-        default:
-            std::cout<<"Bad Button Mapping for ";
-    };
-    std::cout<<"Action " << action << " call"<<std::endl;
+    try{
+        Button button = actionMap_[action];
+        switch(button.data.type){
+            case POV_BUTTON:
+                return joysticks_[button.joystick]->GetPOV();
+            case AXIS_BUTTON:
+            case BUTTON_BUTTON:
+            case TRIGGER_BUTTON:
+                std::cout<<"Not applicable for getPOV: ";
+                break;
+            default:
+                std::cout<<"Bad Button Mapping for ";
+        };
+        std::cout<<"Action " << action << " call"<<std::endl;
+    }
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
+    }
     return 0.0;
 }
 
@@ -271,26 +299,32 @@ int Controller::getPOV(Action action){
  * @returns if the pov values is in the range
 */
 bool Controller::getPOVDown(POVAction action){
-    Button pov = actionMapPOV_[action].first;
-    int value;
-    switch(pov.data.type){
-        case POV_BUTTON:
-            value = joysticks_[pov.joystick]->GetPOV();
-            break;
-        default:
-            std::cout<<"Bad Button Mapping for ";
-            return false;
+    try{
+        Button pov = actionMapPOV_[action].first;
+        int value;
+        switch(pov.data.type){
+            case POV_BUTTON:
+                value = joysticks_[pov.joystick]->GetPOV();
+                break;
+            default:
+                std::cout<<"Bad Button Mapping for ";
+                return false;
+        }
+        POVRange range = actionMapPOV_[action].second;
+        bool isPressed;
+        if(range.min > range.max){ //If it wraps around 0
+            isPressed = ((value < range.max && value >= 0) || (value <= 360 && value > range.min));
+        }
+        else{
+            isPressed = (value > range.min) && (value < range.max);
+        }
+        wasPressedPOV[action] = isPressed;
+        return isPressed;
     }
-    POVRange range = actionMapPOV_[action].second;
-    bool isPressed;
-    if(range.min > range.max){ //If it wraps around 0
-        isPressed = ((value < range.max && value >= 0) || (value <= 360 && value > range.min));
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
+        return false;
     }
-    else{
-        isPressed = (value > range.min) && (value < range.max);
-    }
-    wasPressedPOV[action] = isPressed;
-    return isPressed;
 }
 
 /**
@@ -302,30 +336,36 @@ bool Controller::getPOVDown(POVAction action){
  * @returns if the pov values is in the range
 */
 bool Controller::getPOVDownOnce(POVAction action){
-    Button pov = actionMapPOV_[action].first;
-    int value;
-    switch(pov.data.type){
-        case POV_BUTTON:
-            value = joysticks_[pov.joystick]->GetPOV();
-            break;
-        default:
-            std::cout<<"Bad Button Mapping for ";
+    try{
+        Button pov = actionMapPOV_[action].first;
+        int value;
+        switch(pov.data.type){
+            case POV_BUTTON:
+                value = joysticks_[pov.joystick]->GetPOV();
+                break;
+            default:
+                std::cout<<"Bad Button Mapping for ";
+                return false;
+        }
+        POVRange range = actionMapPOV_[action].second;
+        bool isPressed;
+        if(range.min > range.max){ //If it wraps around 0
+            isPressed = ((value < range.max && value >= 0) || (value <= 360 && value > range.min));
+        }
+        else{
+            isPressed = (value > range.min) && (value < range.max);
+        }
+        if(!wasPressedPOV[action] && isPressed){
+            wasPressedPOV[action] = true;
+            return true;
+        }
+        else{
+            wasPressedPOV[action] = isPressed;
             return false;
+        }
     }
-    POVRange range = actionMapPOV_[action].second;
-    bool isPressed;
-    if(range.min > range.max){ //If it wraps around 0
-        isPressed = ((value < range.max && value >= 0) || (value <= 360 && value > range.min));
-    }
-    else{
-        isPressed = (value > range.min) && (value < range.max);
-    }
-    if(!wasPressedPOV[action] && isPressed){
-        wasPressedPOV[action] = true;
-        return true;
-    }
-    else{
-        wasPressedPOV[action] = isPressed;
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
         return false;
     }
 }
@@ -339,23 +379,29 @@ bool Controller::getPOVDownOnce(POVAction action){
  * @returns if the button is pressed
 */
 bool Controller::getPressed(Action action){
-    Button button = actionMap_[action];
-    bool isPressed;
-    switch(button.data.type){
-        case BUTTON_BUTTON:
-            isPressed = joysticks_[button.joystick]->GetRawButton(button.data.id);
-            break;
-        case TRIGGER_BUTTON:
-            isPressed = joysticks_[button.joystick]->GetTrigger();
-            break;
-        case AXIS_BUTTON:
-            std::cout<<"Not applicable for getPressed:";
-            [[fallthrough]];
-        default:
-            std::cout<<"Action"<< action << " bad mapping" << std::endl;
-            return false;
-    };
-    return isPressed;
+    try{
+        Button button = actionMap_[action];
+        bool isPressed;
+        switch(button.data.type){
+            case BUTTON_BUTTON:
+                isPressed = joysticks_[button.joystick]->GetRawButton(button.data.id);
+                break;
+            case TRIGGER_BUTTON:
+                isPressed = joysticks_[button.joystick]->GetTrigger();
+                break;
+            case AXIS_BUTTON:
+                std::cout<<"Not applicable for getPressed:";
+                [[fallthrough]];
+            default:
+                std::cout<<"Action"<< action << " bad mapping" << std::endl;
+                return false;
+        };
+        return isPressed;
+    }
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
+        return false;
+    }
 }
 
 /**
@@ -367,31 +413,36 @@ bool Controller::getPressed(Action action){
  * @returns if the button is pressed
 */
 bool Controller::getPressedOnce(Action action){
-    Button button = actionMap_[action];
-    bool isPressed;
-    switch(button.data.type){
-        case BUTTON_BUTTON:
-            isPressed = joysticks_[button.joystick]->GetRawButton(button.data.id);
-            break;
-        case TRIGGER_BUTTON:
-            isPressed = joysticks_[button.joystick]->GetTrigger();
-            break;
-        case AXIS_BUTTON:
-            std::cout<<"Not applicable for getPressedOnce:";
-            [[fallthrough]];
-        default:
-            std::cout<<"Action"<< action << " bad mapping" << std::endl;
+    try{
+        Button button = actionMap_[action];
+        bool isPressed;
+        switch(button.data.type){
+            case BUTTON_BUTTON:
+                isPressed = joysticks_[button.joystick]->GetRawButton(button.data.id);
+                break;
+            case TRIGGER_BUTTON:
+                isPressed = joysticks_[button.joystick]->GetTrigger();
+                break;
+            case AXIS_BUTTON:
+                std::cout<<"Not applicable for getPressedOnce:";
+                [[fallthrough]];
+            default:
+                std::cout<<"Action"<< action << " bad mapping" << std::endl;
+                return false;
+        };
+        if(!wasPressed[action] && isPressed){
+            wasPressed[action] = true;
+            return true;
+        }
+        else{
+            wasPressed[action] = isPressed;
             return false;
-    };
-    if(!wasPressed[action] && isPressed){
-        wasPressed[action] = true;
-        return true;
+        }
     }
-    else{
-        wasPressed[action] = isPressed;
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
         return false;
     }
-    
 }
 
 /**
@@ -405,19 +456,25 @@ bool Controller::getPressedOnce(Action action){
  * @returns if the button is pressed
 */
 bool Controller::getButtonPressed(Button button){
-    switch(button.data.type){
-        case AXIS_BUTTON:
-            std::cout<<"Not applicable for getPressed: ";
-            break;
-        case BUTTON_BUTTON:
-            return joysticks_[button.joystick]->GetRawButton(button.data.id);
-        case TRIGGER_BUTTON:
-            return joysticks_[button.joystick]->GetTrigger();
-        default:
-            std::cout<<"Bad Button Mapping for ";
-    };
-    std::cout<<"Button "<<button.data.id<<" from joystick "<<button.joystick<<"; type: "<<button.data.type<<std::endl;
-    return false;
+    try{
+        switch(button.data.type){
+            case AXIS_BUTTON:
+                std::cout<<"Not applicable for getPressed: ";
+                break;
+            case BUTTON_BUTTON:
+                return joysticks_[button.joystick]->GetRawButton(button.data.id);
+            case TRIGGER_BUTTON:
+                return joysticks_[button.joystick]->GetTrigger();
+            default:
+                std::cout<<"Bad Button Mapping for ";
+        };
+        std::cout<<"Button "<<button.data.id<<" from joystick "<<button.joystick<<"; type: "<<button.data.type<<std::endl;
+        return false;
+    }
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
+        return false;
+    }
 }
 
 /**
@@ -431,19 +488,25 @@ bool Controller::getButtonPressed(Button button){
  * @returns if the button is pressed
 */
 bool Controller::getButtonPressedOnce(Button button){
-    switch(button.data.type){
-        case AXIS_BUTTON:
-            std::cout<<"Not applicable for getPressed: ";
-            break;
-        case BUTTON_BUTTON:
-            return joysticks_[button.joystick]->GetRawButtonPressed(button.data.id);
-        case TRIGGER_BUTTON:
-            return joysticks_[button.joystick]->GetTriggerPressed();
-        default:
-            std::cout<<"Bad Button Mapping for ";
-    };
-    std::cout<<"Button "<<button.data.id<<" from joystick "<<button.joystick<<"; type: "<<button.data.type<<std::endl;
-    return false;
+    try{
+        switch(button.data.type){
+            case AXIS_BUTTON:
+                std::cout<<"Not applicable for getPressed: ";
+                break;
+            case BUTTON_BUTTON:
+                return joysticks_[button.joystick]->GetRawButtonPressed(button.data.id);
+            case TRIGGER_BUTTON:
+                return joysticks_[button.joystick]->GetTriggerPressed();
+            default:
+                std::cout<<"Bad Button Mapping for ";
+        };
+        std::cout<<"Button "<<button.data.id<<" from joystick "<<button.joystick<<"; type: "<<button.data.type<<std::endl;
+        return false;
+    }
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
+        return false;
+    }
 }
 
 /**
@@ -459,21 +522,27 @@ bool Controller::getButtonPressedOnce(Button button){
 */
 
 bool Controller::getTriggerDown(Action action, double defaultDown){
-    Button button = actionMap_[action];
-    double value;
-    switch(button.data.type){
-        case AXIS_BUTTON:
-            value = joysticks_[button.joystick]->GetRawAxis(button.data.id);
-            return value > defaultDown;
-        case TRIGGER_BUTTON:
-            return joysticks_[button.joystick]->GetTrigger();
-        case BUTTON_BUTTON:
-            std::cout<<"Not applicable for getTriggerDown: Action " << action << std::endl;
-            break;
-        default:
-            std::cout<<"Bad Button Mapping for Action" << action << std::endl;
-    };
-    return false;
+    try{
+        Button button = actionMap_[action];
+        double value;
+        switch(button.data.type){
+            case AXIS_BUTTON:
+                value = joysticks_[button.joystick]->GetRawAxis(button.data.id);
+                return value > defaultDown;
+            case TRIGGER_BUTTON:
+                return joysticks_[button.joystick]->GetTrigger();
+            case BUTTON_BUTTON:
+                std::cout<<"Not applicable for getTriggerDown: Action " << action << std::endl;
+                break;
+            default:
+                std::cout<<"Bad Button Mapping for Action" << action << std::endl;
+        };
+        return false;
+    }
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
+        return false;
+    }
 }
 
 
@@ -491,5 +560,9 @@ void Controller::stopBuffer(){
             default:
                 break;
         };
+    }
+    }
+    catch(const std::exception &e){
+        std::cerr << e.what() << std::endl;
     }
 }
