@@ -62,7 +62,7 @@ private:
   SwerveControl m_swerveController{true, false};
 
   //intake
-  Intake m_intake {true, false};
+  Intake m_intake {true, true};
 
   // Jetson
   #if SWERVE_AUTOTUNING

@@ -58,8 +58,8 @@ namespace ShooterConstants{
     const double FLYWHEEL_VEL_TOL = 0.0;
 
     //Pivot Constants
-    const int PIVOT_ID = 21;
-    const int PIVOT_CHILD_ID = 22;
+    const int PIVOT_ID = 0;
+    const int PIVOT_CHILD_ID = 1;
 
     const int PIVOT_ENCODER_ID = 15;
     

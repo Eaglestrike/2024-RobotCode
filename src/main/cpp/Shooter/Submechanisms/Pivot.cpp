@@ -36,6 +36,9 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     currPose_{0.0, 0.0, 0.0},
     shuff_{name, shuffleboard}
 {
+    motor_.RestoreFactoryDefaults();
+    motorChild_.RestoreFactoryDefaults();
+    
     motor_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
     motorChild_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
 
