@@ -548,19 +548,20 @@ bool Controller::getTriggerDown(Action action, double defaultDown){
 
 //Calls all buttons and triggers to not buffer (disabledPeriodic)
 void Controller::stopBuffer(){
-    for(int i = 0; i < Actions::Action::ACTION_COUNT; i++){
-        Button button = actionMap_[i];
-        switch(button.data.type){
-            case BUTTON_BUTTON:
-                joysticks_[button.joystick]->GetRawButton(button.data.id);
-                break;
-            case TRIGGER_BUTTON:
-                joysticks_[button.joystick]->GetTrigger();
-                break;
-            default:
-                break;
-        };
-    }
+    try{
+        for(int i = 0; i < Actions::Action::ACTION_COUNT; i++){
+            Button button = actionMap_[i];
+            switch(button.data.type){
+                case BUTTON_BUTTON:
+                    joysticks_[button.joystick]->GetRawButton(button.data.id);
+                    break;
+                case TRIGGER_BUTTON:
+                    joysticks_[button.joystick]->GetTrigger();
+                    break;
+                default:
+                    break;
+            };
+        }
     }
     catch(const std::exception &e){
         std::cerr << e.what() << std::endl;
