@@ -26,8 +26,8 @@ Flywheel::Flywheel(ShooterConstants::FlywheelConfig config, bool enabled, bool s
 
 //Core Functions
 void Flywheel::CorePeriodic(){
-    double pos = 2*M_PI * motor_.GetPosition().GetValueAsDouble();
-    double vel = 2*M_PI * motor_.GetVelocity().GetValueAsDouble();
+    double pos = 2*M_PI * motor_.GetPosition().GetValueAsDouble() * ShooterConstants::FLYWHEEL_R;
+    double vel = 2*M_PI * motor_.GetVelocity().GetValueAsDouble() * ShooterConstants::FLYWHEEL_R;
     double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
     currPose_ = {pos, vel, acc};
 };

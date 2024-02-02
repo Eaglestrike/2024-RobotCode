@@ -81,7 +81,7 @@ class Robot : public frc::TimedRobot {
     Odometry m_odom;
 
     // Shooter
-    Shooter m_shooter{"Shooter", true, false};
+    // Shooter m_shooter{"Shooter", true, true};
 
     // STARTING POS + AUTO CHOOSERS
     frc::SendableChooser<std::string> m_startChooser;

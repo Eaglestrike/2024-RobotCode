@@ -15,6 +15,7 @@ class Intake: public Mechanism{
         Intake(bool enable, bool dbg);
         enum ActionState{
             STOW, 
+            HALF_STOW,
             AMP_INTAKE, 
             PASSTHROUGH, 
             AMP_OUTTAKE,
@@ -22,9 +23,9 @@ class Intake: public Mechanism{
             NONE
         };
         
-        void SetState(ActionState newAction);
         ActionState GetState();
         void Stow();
+        void HalfStow();
         void Passthrough();
         void AmpOuttake();
         void AmpIntake();
@@ -37,6 +38,7 @@ class Intake: public Mechanism{
         bool InIntake();
 
     private:
+        void SetState(ActionState newAction);
         void CoreInit() override;
         void CorePeriodic() override;
         void CoreTeleopPeriodic() override;
@@ -61,6 +63,7 @@ class Intake: public Mechanism{
         double m_dbTimer = -1;
 
         double STOWED_POS = M_PI / 2,
+        HALF_STOWED_POS = 1.0,
         INTAKE_POS = -0.7, 
         PASSTHROUGH_POS = INTAKE_POS,
         AMP_OUT_POS = 1.364; // 1.26 
@@ -70,6 +73,7 @@ class Intake: public Mechanism{
         double DEBOUNCE_WAIT_s = 2.0;
 
         frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
+        frc::DigitalInput m_beamBreak2{IntakeConstants::BEAM_BREAK2_ID};
 
         ShuffleboardSender m_shuff;
 };

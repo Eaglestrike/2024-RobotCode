@@ -1,8 +1,7 @@
 #pragma once
 
-#include <frc/DutyCycleEncoder.h>
-
-#include <ctre/phoenix6/TalonFX.hpp>
+#include <ctre/phoenix6/CANcoder.hpp>
+#include <rev/CANSparkMax.h>
 
 #include "FFAutotuner/FFAutotuner.h"
 
@@ -14,8 +13,7 @@
 
 #include "Constants/ShooterConstants.h"
 
-using ctre::phoenix6::hardware::TalonFX;
-
+using CANcoder = ctre::phoenix6::hardware::CANcoder;
 class Pivot : public Mechanism{
     public:
         enum State{
@@ -46,12 +44,12 @@ class Pivot : public Mechanism{
         void CoreShuffleboardPeriodic() override;
         State state_;
 
-        TalonFX motor_;
-        TalonFX motorChild_;
+        rev::CANSparkMax motor_;
+        rev::CANSparkMax motorChild_;
         double volts_;
         double maxVolts_;
 
-        frc::DutyCycleEncoder encoder_;
+        CANcoder encoder_;
         double offset_;
 
         struct Bounds{
