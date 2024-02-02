@@ -26,16 +26,21 @@ Robot::Robot() :
   m_autoPath{false, m_swerveController, m_odom},
   m_autoLineup{false, m_odom}
   {
+
+    std::cout << "hgere 1" << std::endl;
   // navx
   try
   {
     m_navx = new AHRS(frc::SerialPort::kUSB2);
+     std::cout << "navx success" << std::endl;
+
   }
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
   }
 
+ 
   m_logger.SetLogToConsole(true);
 
   AddPeriodic([&](){
@@ -81,19 +86,26 @@ Robot::Robot() :
 }
 
 void Robot::RobotInit() {
+  std::cout << "init start" << std::endl;
   ShuffleboardInit();
   m_autoPath.ShuffleboardInit();
   m_odom.ShuffleboardInit();
   m_autoLineup.ShuffleboardInit();
 
+  std::cout << "shuff init succ" << std::endl;
+
   m_navx->Reset();
   m_navx->ZeroYaw();
   m_odom.Reset();
 
-  m_intake.Init();
-  m_client.Init();
-  m_swerveController.Init();
+  std::cout << "odom init succ" << std::endl;
 
+  m_intake.Init();
+  std::cout << "inake init succ" << std::endl;
+  m_client.Init();
+  std::cout << "client init succ" << std::endl;
+  m_swerveController.Init();
+  std::cout << "init success " << std::endl; 
   m_shooter.Init();
 }
 
@@ -193,6 +205,9 @@ void Robot::TeleopPeriodic() {
     m_autoLineup.Start();
   }
   //Intake
+  if(m_controller.getPressedOnce(HALF_STOW)){
+    m_intake.HalfStow();
+  }
   if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
     m_amp = true;
   }
