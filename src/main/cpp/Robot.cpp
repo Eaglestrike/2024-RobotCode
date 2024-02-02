@@ -18,7 +18,7 @@ using namespace Actions;
 
 Robot::Robot() :
   m_swerveController{true, false},
-  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter},
+  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, /*m_shooter*/},
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
@@ -107,7 +107,7 @@ void Robot::RobotInit() {
   std::cout << "client init succ" << std::endl;
   m_swerveController.Init();
   std::cout << "init success " << std::endl; 
-  m_shooter.Init();
+  //m_shooter.Init();
 }
 
 /**
@@ -140,7 +140,7 @@ void Robot::RobotPeriodic() {
   m_logger.Periodic(Utils::GetCurTimeS());
   m_intake.Periodic();
 
-  m_shooter.Periodic();
+  //m_shooter.Periodic();
 }
 
 /**
@@ -217,16 +217,16 @@ void Robot::TeleopPeriodic() {
   }
 
   //Shooting (amp or speaker)
-  m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng());
+  //m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng());
   if (m_controller.getPressedOnce(SHOOT)){
     if (m_amp) {
       m_intake.AmpOuttake();
     }
     else {
-      m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue()); //TODO use utils
-      if(m_shooter.CanShoot(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng())){
-        m_intake.FeedIntoShooter(); //Shoot when ready
-      }
+      //m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue()); //TODO use utils
+      //if(m_shooter.CanShoot(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng())){
+      //  m_intake.FeedIntoShooter(); //Shoot when ready
+      //}
     }
   }
   else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
@@ -250,7 +250,7 @@ void Robot::TeleopPeriodic() {
   m_swerveController.Periodic();
   m_autoLineup.Periodic();
 
-  m_shooter.TeleopPeriodic();
+  //m_shooter.TeleopPeriodic();
 }
 
 void Robot::DisabledInit() {}
