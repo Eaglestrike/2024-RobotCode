@@ -73,6 +73,7 @@ class Intake: public Mechanism{
         double DEBOUNCE_WAIT_s = 2.0;
 
         frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
+        frc::DigitalInput m_beamBreak2{IntakeConstants::BEAM_BREAK2_ID};
 
         ShuffleboardSender m_shuff;
 };

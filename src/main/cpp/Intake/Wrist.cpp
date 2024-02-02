@@ -13,7 +13,7 @@ Wrist::Wrist(bool enabled, bool dbg):
 }
 
 void Wrist::Zero() {
-    m_absEncoderInit = GetAbsEncoderPos();
+    // m_absEncoderInit = GetAbsEncoderPos();
     m_wristMotor.SetPosition(units::turn_t(0));
 }
 
@@ -23,9 +23,9 @@ double Wrist::GetPos(){
 
 
 // absolute encoder pos in radians
-double Wrist::GetAbsEncoderPos() {
-    return -m_wristEncoder.GetAbsolutePosition().GetValueAsDouble() * 18.0 / 66.0 * 2.0 * M_PI + ENCODER_OFFSET;
-}
+// double Wrist::GetAbsEncoderPos() {
+//     return -m_wristEncoder.GetAbsolutePosition().GetValueAsDouble() * 18.0 / 66.0 * 2.0 * M_PI + ENCODER_OFFSET;
+// }
 
 
 // needs to be called INSTEAD of teleop periodic

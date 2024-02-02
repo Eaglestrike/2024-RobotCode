@@ -2,17 +2,20 @@
 
 Intake::Intake(bool enabled, bool dbg):
     Mechanism("intake", enabled, dbg),
-    m_rollers{true, dbg},
+    m_rollers{enabled, dbg},
     m_wrist{enabled, dbg},
-    m_channel{false, dbg},
+    m_channel{enabled, dbg},
     m_shuff{"intake", dbg}
 {
 }
 
 void Intake::CoreInit(){
     m_rollers.Init();
+    std::cout << "roller success" << std::endl;
     m_wrist.Init();
+    std::cout << "wrist success" << std::endl;
     m_channel.Init();
+    std::cout << "chanmel success" << std::endl;
 }
 
 void Intake::CorePeriodic(){
@@ -55,14 +58,14 @@ void Intake::CoreTeleopPeriodic(){
             if (m_wrist.GetState() == Wrist::AT_TARGET)
                 m_wrist.Coast();
             else if (m_wrist.GetState() == Wrist::COAST){    
-                /* if (beambreak2){
-                    if (!keepIntakeDown) {
+                if (GetBeamBreak2()){
+                    if (!m_keepIntakeDown) {
                         m_wrist.MoveTo(STOWED_POS);   
                     }
                     m_rollers.SetState(Rollers::STOP); // idk if this goes here or in the if
-                    m_channel.SetState(Channel::RETAIN)
-                    m_actionState = NONE
-                }*/ 
+                    m_channel.SetState(Channel::RETAIN);
+                    m_actionState = NONE;
+                }
             }
             break; 
         case AMP_OUTTAKE:
@@ -134,9 +137,7 @@ bool Intake::HasGamePiece(){
 }
 
 bool Intake::InChannel(){
-    // if(beam break 2 broken)
-    return false;
-    // else return false;
+    return GetBeamBreak2();
 }
 
 bool Intake::InIntake(){
@@ -145,6 +146,10 @@ bool Intake::InIntake(){
 
 bool Intake::GetBeamBreak1() {
     return !m_beamBreak1.Get();
+}
+
+bool Intake::GetBeamBreak2() {
+    return !m_beamBreak2.Get();
 }
 
 bool Intake::DebounceBeamBreak1(){
@@ -223,6 +228,7 @@ void Intake::CoreShuffleboardPeriodic(){
     }
             
     m_shuff.PutBoolean("BeamBreak 1", m_beam1broke);
+    m_shuff.PutBoolean("BeamBreak 2", GetBeamBreak2());
     m_shuff.PutNumber("debounce timer", m_dbTimer);
     m_shuff.update(true);
 }
