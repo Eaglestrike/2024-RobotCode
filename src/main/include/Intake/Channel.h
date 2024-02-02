@@ -27,9 +27,9 @@ class Channel : public Mechanism{
 private:
   void SetVoltage();
   ChannelState m_state{STOP};
-  WPI_TalonSRX m_channelMotor{IntakeConstants::CHANNEL_MOTOR};
-  rev::CANSparkMax m_kickerMotor{IntakeConstants::KICKER_MOTOR, rev::CANSparkLowLevel::MotorType::kBrushless};
-  ShuffleboardSender m_shuff {"Channel", false};
+  WPI_TalonSRX m_channelMotor;
+  rev::CANSparkMax m_kickerMotor;
+  ShuffleboardSender m_shuff;
 
   //Constants
   struct motorV { 
