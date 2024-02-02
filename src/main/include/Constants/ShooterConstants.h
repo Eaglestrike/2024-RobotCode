@@ -40,6 +40,7 @@ namespace ShooterConstants{
         .inverted = false
     };
 
+    const double FLYWHEEL_R = 0.0508;
     const double FLYWHEEL_MAX_A = 0.0; //Max Acceleration
     const double FLYWHEEL_MAX_VOLTS = 0.0;
 
@@ -51,24 +52,24 @@ namespace ShooterConstants{
 
     const Feedforward FLYWHEEL_FF = {
         .ks = 0.0,
-        .kv = 0.0,
-        .ka = 0.0
+        .kv = 0.29127,
+        .ka = 0.01142
     };
 
     const double FLYWHEEL_VEL_TOL = 0.0;
 
     //Pivot Constants
-    const int PIVOT_ID = 21;
-    const int PIVOT_CHILD_ID = 22;
+    const int PIVOT_ID = 1;
+    const int PIVOT_CHILD_ID = 3;
 
     const int PIVOT_ENCODER_ID = 15;
     
-    const double PIVOT_MIN = 0.0;
-    const double PIVOT_MAX = 0.0;
+    const double PIVOT_MIN = 0.35;
+    const double PIVOT_MAX = 1.5;
 
     const double PIVOT_MAX_VOLTS = 0.0;
 
-    const double PIVOT_OFFSET = 0.0;
+    const double PIVOT_OFFSET = -0.399;
 
     const PID PIVOT_PID = {
         .kp = 0.0,
@@ -77,10 +78,10 @@ namespace ShooterConstants{
     };
 
     const Feedforward PIVOT_FF = {
-        .ks = 0.0,
-        .kv = 0.0,
-        .ka = 0.0,
-        .kg = 0.0
+        .ks = 1.0,
+        .kv = 0.663,
+        .ka = 0.1579,
+        .kg = 0.297
     };
 
     const double PIVOT_MAX_V = 0.0;

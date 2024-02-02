@@ -55,10 +55,10 @@ class Wrist: public Mechanism{
         std::string DBGToString();
         void SetVoltage();
         double GetRelPos();
-        double GetAbsEncoderPos();
+        // double GetAbsEncoderPos();
         
         TalonFX m_wristMotor {IntakeConstants::WRIST_MOTOR};
-        CANcoder m_wristEncoder{IntakeConstants::WRIST_ENCODER_CAN_ID};
+        // CANcoder m_wristEncoder{IntakeConstants::WRIST_ENCODER_CAN_ID};
 
         //MEMBER VARS
         //state vars
