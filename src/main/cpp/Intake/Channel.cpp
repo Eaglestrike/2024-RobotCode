@@ -10,8 +10,14 @@ Channel::ChannelState Channel::GetState() {
     return m_state;
 }
 
-Channel::Channel(bool enabled, bool dbg): Mechanism("Channel", enabled, dbg){
+Channel::Channel(bool enabled, bool dbg): 
+Mechanism("Channel", enabled, dbg), 
+m_shuff{"Channel", dbg},
+m_channelMotor{IntakeConstants::CHANNEL_MOTOR}, 
+m_kickerMotor{IntakeConstants::KICKER_MOTOR, rev::CANSparkLowLevel::MotorType::kBrushless}{
+    m_kickerMotor.RestoreFactoryDefaults();
     m_kickerMotor.SetIdleMode(rev::CANSparkBase::IdleMode::kCoast);
+    m_kickerMotor.SetInverted(false);
     // m_channelMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
 }
 
