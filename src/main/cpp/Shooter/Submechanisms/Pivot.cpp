@@ -38,21 +38,22 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
 {
     motor_.RestoreFactoryDefaults();
     motorChild_.RestoreFactoryDefaults();
-    
+
     motor_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
     motorChild_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
 
-    motor_.SetInverted(false);
+    motor_.SetInverted(true);
+    motorChild_.SetInverted(false);
 
-    motorChild_.Follow(motor_, true);
+    //motorChild_.Follow(motor_, true);
 }
 
 /**
  * Core functions
 */
 void Pivot::CorePeriodic(){
-    double pos = 2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_;
-    double vel = 2*M_PI * encoder_.GetVelocity().GetValueAsDouble(); //Rotations -> Radians
+    double pos = (2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_);
+    double vel = (2*M_PI * encoder_.GetVelocity().GetValueAsDouble()); //Rotations -> Radians
     double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
     currPose_ = {pos, vel, acc};
 }
@@ -103,7 +104,14 @@ void Pivot::CoreTeleopPeriodic(){
             break; //Voltage already set through volts_
     }
     volts_ = std::clamp(volts_, -maxVolts_, maxVolts_);
+    if((currPose_.pos > bounds_.max) && (volts_ > 0.0)){
+        volts_ = 0.0;
+    }
+    else if((currPose_.pos < bounds_.min) && (volts_ < 0.0)){
+        volts_ = 0.0;
+    }
     motor_.SetVoltage(units::volt_t{volts_});
+    motorChild_.SetVoltage(units::volt_t{volts_});
 
     prevT_ = t;
 }
