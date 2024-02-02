@@ -18,11 +18,11 @@ using ctre::phoenix6::controls::Follower;
 Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     Mechanism(name, enabled, shuffleboard),
     state_{STOP},
-    motor_{ShooterConstants::PIVOT_ID, ShooterConstants::SHOOTER_CANBUS},
-    motorChild_{ShooterConstants::PIVOT_CHILD_ID, ShooterConstants::SHOOTER_CANBUS},
+    motor_{ShooterConstants::PIVOT_ID, rev::CANSparkMax::MotorType::kBrushless},
+    motorChild_{ShooterConstants::PIVOT_CHILD_ID, rev::CANSparkMax::MotorType::kBrushless},
     volts_{0.0},
     maxVolts_{ShooterConstants::PIVOT_MAX_VOLTS},
-    encoder_{ShooterConstants::PIVOT_ID},
+    encoder_{ShooterConstants::PIVOT_ENCODER_ID, ShooterConstants::SHOOTER_CANBUS},
     offset_{ShooterConstants::PIVOT_OFFSET},
     bounds_{
         .min = ShooterConstants::PIVOT_MIN,
@@ -36,15 +36,20 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     currPose_{0.0, 0.0, 0.0},
     shuff_{name, shuffleboard}
 {
-    motorChild_.SetControl(Follower(ShooterConstants::PIVOT_ID, true)); //Follow parent
+    motor_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
+    motorChild_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
+
+    motor_.SetInverted(false);
+
+    motorChild_.Follow(motor_, true);
 }
 
 /**
  * Core functions
 */
 void Pivot::CorePeriodic(){
-    double pos = (encoder_.GetAbsolutePosition() + offset_);
-    double vel = 2*M_PI * motor_.GetVelocity().GetValueAsDouble(); //Rotations -> Radians
+    double pos = 2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_;
+    double vel = 2*M_PI * encoder_.GetVelocity().GetValueAsDouble(); //Rotations -> Radians
     double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
     currPose_ = {pos, vel, acc};
 }
@@ -132,8 +137,7 @@ void Pivot::SetVoltage(double volts){
  * Zeros the encoder (should be level)
 */
 void Pivot::Zero(){
-    //motor_.SetPosition(units::turn_t{0.0}); //Reset relative encoder
-    offset_ = -encoder_.GetAbsolutePosition(); 
+    offset_ = -2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble(); 
 }
 
 /**

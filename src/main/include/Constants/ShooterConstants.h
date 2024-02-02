@@ -30,13 +30,13 @@ namespace ShooterConstants{
 
     const FlywheelConfig LEFT_FLYWHEEL{
         .name = "Left Flywheel",
-        .id = 0,
+        .id = 22,
         .inverted = true
     };
 
     const FlywheelConfig RIGHT_FLYWHEEL{
         .name = "Right Flywheel",
-        .id = 0,
+        .id = 30,
         .inverted = false
     };
 
@@ -58,8 +58,10 @@ namespace ShooterConstants{
     const double FLYWHEEL_VEL_TOL = 0.0;
 
     //Pivot Constants
-    const int PIVOT_ID = 0;
-    const int PIVOT_CHILD_ID = 0;
+    const int PIVOT_ID = 21;
+    const int PIVOT_CHILD_ID = 22;
+
+    const int PIVOT_ENCODER_ID = 15;
     
     const double PIVOT_MIN = 0.0;
     const double PIVOT_MAX = 0.0;
