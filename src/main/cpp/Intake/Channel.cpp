@@ -57,5 +57,17 @@ void Channel::CoreShuffleboardInit(){
 }
 
 void Channel::CoreShuffleboardPeriodic(){
+
+    switch(m_state){
+        case STOP:
+            m_shuff.PutString("State", "stop");
+            break;
+        case ON:
+            m_shuff.PutString("State", "on");
+            break;
+        case RETAIN:
+            m_shuff.PutString("State", "retain");
+            break;
+    }
     m_shuff.update(true);
 }
