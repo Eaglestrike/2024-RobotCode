@@ -368,6 +368,9 @@ void Robot::ShuffleboardPeriodic() {
 
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
+
+    m_field.SetRobotPose(frc::Pose2d{units::meter_t{x(pos)}, units::meter_t{y(pos)}, units::radian_t{ang}});
+    frc::SmartDashboard::PutData("Robot Field", &m_field);
   }
 
 

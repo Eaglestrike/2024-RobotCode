@@ -11,6 +11,7 @@
 #include <AHRS.h>
 #include <frc/TimedRobot.h>
 #include <frc/smartdashboard/SendableChooser.h>
+#include <frc/smartdashboard/Field2d.h>
 
 #include "ShuffleboardSender/ShuffleboardSender.h"
 
@@ -78,6 +79,7 @@ class Robot : public frc::TimedRobot {
     
     // Odometry
     Odometry m_odom;
+    frc::Field2d m_field;
 
     // Shooter
     // Shooter m_shooter{"Shooter", true, true};
