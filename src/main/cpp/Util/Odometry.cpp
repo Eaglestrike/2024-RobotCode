@@ -244,12 +244,13 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   double camTime = curTime - age / 1000.0 - OdometryConstants::CAM_TIME_OFFSET;
 
   if (curTime - camTime >= PoseEstimator::MAX_HISTORY_TIME) {
+    // std::cout << "too old" << std::endl;
     return;
   }
 
   // filter out repeats
   if (uniqueId == m_uniqueId) {
-    // std::cout << "too old" << std::endl;
+    // std::cout << "not unique" << std::endl;
     return;
   }
   m_uniqueId = uniqueId;
@@ -257,10 +258,10 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   // rotate relative cam pos to absolute
   // using angle from when camera data was read
   std::pair<bool, double> histAng = GetInterpolAng(camTime);
-  if (!histAng.first) {
-    return;
-  }
   double angNavX = histAng.second;
+  if (!histAng.first) {
+    angNavX = GetAng();
+  }
   const vec::Vector2D axisRelPos = {relPos.y(), -relPos.x()};
   vec::Vector2D vecRot = rotate(axisRelPos, angNavX);
   vec::Vector2D tagPos;

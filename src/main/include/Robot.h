@@ -80,6 +80,7 @@ class Robot : public frc::TimedRobot {
     // Odometry
     Odometry m_odom;
     frc::Field2d m_field;
+    std::string m_prevSelectedStart = "";
 
     // Shooter
     // Shooter m_shooter{"Shooter", true, true};

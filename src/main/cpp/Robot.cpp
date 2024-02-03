@@ -161,34 +161,34 @@ void Robot::TeleopInit() {
 }
 
 void Robot::TeleopPeriodic() {
-  //Swerve
-  // double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
-  // double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
+  // Swerve
+  double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
+  double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
 
-  // double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
+  double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
 
-  // int posVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
-  // if (posVal) {
-  //   m_autoLineup.SetTarget(SideHelper::GetManualLineupAng(posVal - 1));
-  // }
+  int posVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
+  if (posVal) {
+    m_autoLineup.SetTarget(SideHelper::GetManualLineupAng(posVal - 1));
+  }
 
-  // double mult = SwerveConstants::NORMAL_SWERVE_MULT;
-  // // // if (m_controller.getPressed(SLOW_MODE)) {
-  // // //   mult = SwerveConstants::SLOW_SWERVE_MULT;
-  // // // }
-  // double vx = std::clamp(lx, -1.0, 1.0) * mult;
-  // double vy = std::clamp(ly, -1.0, 1.0) * mult;
-  // double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
+  double mult = SwerveConstants::NORMAL_SWERVE_MULT;
+  if (m_controller.getPressed(SLOW_MODE)) {
+    mult = SwerveConstants::SLOW_SWERVE_MULT;
+  }
+  double vx = std::clamp(lx, -1.0, 1.0) * mult;
+  double vy = std::clamp(ly, -1.0, 1.0) * mult;
+  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
 
-  // vec::Vector2D setVel = {-vy, -vx};
-  // double curYaw = m_odom.GetAngNorm();
-  // double curJoystickAng = m_odom.GetJoystickAng();
+  vec::Vector2D setVel = {-vy, -vx};
+  double curYaw = m_odom.GetAngNorm();
+  double curJoystickAng = m_odom.GetJoystickAng();
 
   // auto lineup to amp
-  // if (m_controller.getPressedOnce(AMP_AUTO_LINEUP)) {
-  //   m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
-  //   m_autoLineup.Start();
-  // }
+  if (m_controller.getPressedOnce(AMP_AUTO_LINEUP)) {
+    m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
+    m_autoLineup.Start();
+  }
   //Intake
   if(m_controller.getPressedOnce(HALF_STOW)){
     m_intake.HalfStow();
@@ -207,10 +207,10 @@ void Robot::TeleopPeriodic() {
       m_intake.AmpOuttake();
     }
     else {
-      //m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue()); //TODO use utils
-      //if(m_shooter.CanShoot(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng())){
+      // m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue()); //TODO use utils
+      // if(m_shooter.CanShoot(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng())){
       //  m_intake.FeedIntoShooter(); //Shoot when ready
-      //}
+      // }
     }
   }
   else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
@@ -222,13 +222,13 @@ void Robot::TeleopPeriodic() {
     m_intake.Stow();
   }
 
-  // // if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
-  //   double angVel = m_autoLineup.GetAngVel();
-  //   m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
-  // } else {
-  //   m_autoLineup.Stop();
-  //   m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
-  // }
+  if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
+    double angVel = m_autoLineup.GetAngVel();
+    m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
+  } else {
+    m_autoLineup.Stop();
+    m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
+  }
 
   m_intake.TeleopPeriodic();
   m_swerveController.Periodic();
@@ -245,7 +245,10 @@ void Robot::DisabledPeriodic() {
     std::string selectedStart = m_startChooser.GetSelected();
     AutoConstants::StartPose startPos = SideHelper::GetStartingPose(selectedStart);
     double joystickAng = SideHelper::GetJoystickAng();
-    m_odom.SetStartingConfig(startPos.pos, startPos.ang, joystickAng);
+    if (selectedStart != m_prevSelectedStart) {
+      m_odom.SetStartingConfig(startPos.pos, startPos.ang, joystickAng);
+    }
+    m_prevSelectedStart = selectedStart;
 
     std::string end = m_autoEndChooser.GetSelected();
 
