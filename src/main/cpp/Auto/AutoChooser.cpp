@@ -1,7 +1,5 @@
 #include "Auto/AutoChooser.h"
 
-#include <iostream>
-
 #include "Constants/AutoConstants.h"
 #include "Util/SideHelper.h"
 
@@ -48,9 +46,10 @@ void AutoChooser::ProcessChoosers(std::vector<std::string> positions) {
 
   std::string endPosition = positions[AutoConstants::POS_ARR_SIZE - 1];
   if (endPosition == AutoConstants::S_NAME || endPosition == AutoConstants::M_NAME) {
+    m_auto.SetSegment(AutoConstants::POS_ARR_SIZE - 1, "");
     return;
   }
-  std::string endPath = SideHelper::GetPath(prevPos + "Score_to_" + endPosition + "End"); // get path from prevPos -> endPos
+  std::string endPath = SideHelper::GetPath(prevPos + "Score_to_" + endPosition + "End.csv"); // get path from prevPos -> endPos
   m_auto.SetSegment(AutoConstants::POS_ARR_SIZE - 1, endPath);
 }
 

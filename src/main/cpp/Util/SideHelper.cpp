@@ -191,7 +191,7 @@ std::string SideHelper::GetPath(std::string path) {
 
   path = std::regex_replace(path, std::regex{"Left"}, "^^^UNKNOWN&&&");
   path = std::regex_replace(path, std::regex{"Right"}, "Left");
-  path = std::regex_replace(path, std::regex{"^^^UNKNOWN&&&"}, "Right");
+  path = std::regex_replace(path, std::regex{"\\^\\^\\^UNKNOWN&&&"}, "Right");
 
   return path;
 }
