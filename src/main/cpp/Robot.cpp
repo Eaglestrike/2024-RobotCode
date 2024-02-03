@@ -5,6 +5,8 @@
 #include "Robot.h"
 
 #include <iostream>
+#include <string>
+#include <vector>
 
 #include <fmt/core.h>
 #include <frc/smartdashboard/SmartDashboard.h>
@@ -17,23 +19,21 @@
 using namespace Actions;
 
 Robot::Robot() :
+  m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
   m_swerveController{true, false},
-  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, /*m_shooter*/},
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
-  m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
   m_prevIsLogging{false},
-  m_autoLineup{false, m_odom}
+  m_autoLineup{false, m_odom},
+  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, /*m_shooter*/},
+  m_autoChooser{true, m_auto}
   {
 
-    std::cout << "hgere 1" << std::endl;
   // navx
   try
   {
     m_navx = new AHRS(frc::SerialPort::kUSB2);
-     std::cout << "navx success" << std::endl;
-
   }
   catch (const std::exception &e)
   {
@@ -87,26 +87,18 @@ Robot::Robot() :
 }
 
 void Robot::RobotInit() {
-  std::cout << "init start" << std::endl;
   ShuffleboardInit();
   m_auto.ShuffleboardInit();
   m_odom.ShuffleboardInit();
   m_autoLineup.ShuffleboardInit();
 
-  std::cout << "shuff init succ" << std::endl;
-
   m_navx->Reset();
   m_navx->ZeroYaw();
   m_odom.Reset();
 
-  std::cout << "odom init succ" << std::endl;
-
   m_intake.Init();
-  std::cout << "inake init succ" << std::endl;
   m_client.Init();
-  std::cout << "client init succ" << std::endl;
   m_swerveController.Init();
-  std::cout << "init success " << std::endl; 
   //m_shooter.Init();
 }
 
@@ -256,21 +248,23 @@ void Robot::TeleopPeriodic() {
 void Robot::DisabledInit() {}
 
 void Robot::DisabledPeriodic() {
-  // STARTING POS
+  // STARTING POS + AUTO CHOOSER
   {
-    std::string selected = m_startChooser.GetSelected();
-    AutoConstants::StartPose startPos = SideHelper::GetStartingPose(selected);
+    std::string selectedStart = m_startChooser.GetSelected();
+    AutoConstants::StartPose startPos = SideHelper::GetStartingPose(selectedStart);
     double joystickAng = SideHelper::GetJoystickAng();
     m_odom.SetStartingConfig(startPos.pos, startPos.ang, joystickAng);
-  }
 
-  // AUTO
-  std::string path;
-  for(uint i = 0; i < AUTO_LENGTH; i++){
-    path = m_autoChoosers[i].GetSelected();
-    if(AutoConstants::PATHS.find(path) != AutoConstants::PATHS.end()){
-      m_auto.SetPath(i, AutoConstants::PATHS.at(path));
+    std::string end = m_autoEndChooser.GetSelected();
+
+    std::vector<std::string> selects;
+    selects.push_back(selectedStart);
+    for(int i = 0; i < AutoConstants::POS_ARR_SIZE - 2; i++){
+      std::string path = m_autoChoosers[i].GetSelected();
+      selects.push_back(path);
     }
+    selects.push_back(end);
+    m_autoChooser.ProcessChoosers(selects);
   }
 }
 
@@ -310,22 +304,28 @@ void Robot::SimulationPeriodic() {}
 void Robot::ShuffleboardInit() {
   frc::SmartDashboard::PutBoolean("Logging", false);
 
-  // Auto
-  for (auto path : AutoConstants::PATHS) {
-    for (auto& chooser: m_autoChoosers){
-      chooser.AddOption(path.first, path.first);
-    }
-  }
-  for(uint i = 0; i < AUTO_LENGTH; i++){
-    frc::SmartDashboard::PutData("Auto " + std::to_string(i+1), &m_autoChoosers[i]);
-  }
   // STARTING POS
   {
-    m_startChooser.SetDefaultOption("Middle", "Middle");
-    m_startChooser.AddOption("Left", "Left");
-    m_startChooser.AddOption("Middle", "Middle");
-    m_startChooser.AddOption("Right", "Right");
+    m_startChooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_startChooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+    m_startChooser.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_startChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
     frc::SmartDashboard::PutData("Starting Position", &m_startChooser);
+
+    for(int i = 0; i < AutoConstants::POS_ARR_SIZE - 2; i++){
+      m_autoChoosers[i].SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
+      frc::SmartDashboard::PutData("Auto " + std::to_string(i+1), &(m_autoChoosers[i]));
+    }
+ 
+    m_autoEndChooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_autoEndChooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+    m_autoEndChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
+    m_autoEndChooser.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
+    frc::SmartDashboard::PutData("End Position", &m_autoEndChooser);
   }
 
   // DEBUG

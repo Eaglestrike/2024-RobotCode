@@ -405,14 +405,14 @@ void Auto::LoadPath(const AutoPath& path){
 
 std::string Auto::ElementToString(const AutoElement element){
     std::string str = "";
-    switch(element.type){
+    switch(element.action){
         case DRIVE:     str += "DRIVE    "; break;
         case INTAKE:    str += "INTAKE   "; break;
         case STOW:      str += "STOW     "; break;
         case SHOOT:     str += "SHOOTING "; break;
         default:        str += "UNKNOWN  ";
     }
-    switch(element.action){
+    switch(element.type){
         case AFTER:     str += "AFTER     ,"; break;
         case AT_START:  str += "AT_START  ,"; break;
         case BEFORE_END:str += "BEFORE_END,"; break;
@@ -472,7 +472,8 @@ void Auto::ShuffleboardInit(){
                 std::cout<<ElementToString(element)<<std::endl;
             }
         };
-    });
+        std::cout<<"Printed Path"<<std::endl;
+    },{3,1,0,6});
 }
 
 void Auto::ShuffleboardPeriodic(){

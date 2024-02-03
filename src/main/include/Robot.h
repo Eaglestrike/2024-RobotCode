@@ -16,11 +16,12 @@
 
 #include "FFAutotuner/FFAutotuner.h"
 
+#include "Auto/Auto.h"
+#include "Auto/AutoChooser.h"
 #include "Controller/Controller.h"
 #include "Drive/AutoAngLineup.h"
 #include "Drive/SwerveControl.h"
 #include "Intake/Intake.h"
-#include "Auto/Auto.h"
 #include "Util/Logger.h"
 #include "Util/Odometry.h"
 #include "Util/SocketClient.h"
@@ -30,7 +31,6 @@
 #include "Shooter/Shooter.h"
 
 class Robot : public frc::TimedRobot {
-  const static uint AUTO_LENGTH = 4;
   public:
     Robot();
     void RobotInit() override;
@@ -56,15 +56,15 @@ class Robot : public frc::TimedRobot {
     // navX (gyroscope)
     AHRS *m_navx;
 
+    // Logger
+    FRCLogger m_logger;
+    bool m_prevIsLogging;
+
     // Swerve
     SwerveControl m_swerveController{true, false};
 
     //intake
     Intake m_intake {true, false};
-
-    //Auto 
-    Auto m_auto;
-    frc::SendableChooser<std::string> m_autoChoosers[AUTO_LENGTH];
 
     // Jetson
     #if SWERVE_AUTOTUNING
@@ -82,17 +82,19 @@ class Robot : public frc::TimedRobot {
     // Shooter
     // Shooter m_shooter{"Shooter", true, true};
 
-    // Logger
-    FRCLogger m_logger;
-    bool m_prevIsLogging;
-
-    // STARTING POS
-    frc::SendableChooser<std::string> m_startChooser;
-
     // Shooter shooter_{"Shooter", true, true};
 
     // auto lineup
     AutoAngLineup m_autoLineup;
+
+    //Auto 
+    Auto m_auto;
+    AutoChooser m_autoChooser; 
+
+    // STARTING POS + AUTO CHOOSERS
+    frc::SendableChooser<std::string> m_startChooser;
+    frc::SendableChooser<std::string> m_autoChoosers[AutoConstants::POS_ARR_SIZE - 2];
+    frc::SendableChooser<std::string> m_autoEndChooser;
 
     bool m_amp = true;
 };

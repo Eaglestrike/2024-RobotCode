@@ -11,11 +11,8 @@ Intake::Intake(bool enabled, bool dbg):
 
 void Intake::CoreInit(){
     m_rollers.Init();
-    std::cout << "roller success" << std::endl;
     m_wrist.Init();
-    std::cout << "wrist success" << std::endl;
     m_channel.Init();
-    std::cout << "chanmel success" << std::endl;
 }
 
 void Intake::CorePeriodic(){
