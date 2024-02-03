@@ -472,7 +472,8 @@ void Auto::ShuffleboardInit(){
                 std::cout<<ElementToString(element)<<std::endl;
             }
         };
-    });
+        std::cout<<"Printed Path"<<std::endl;
+    },{3,1,0,6});
 }
 
 void Auto::ShuffleboardPeriodic(){

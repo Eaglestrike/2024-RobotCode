@@ -31,7 +31,6 @@
 #include "Shooter/Shooter.h"
 
 class Robot : public frc::TimedRobot {
-  const static uint AUTO_LENGTH = 4;
   public:
     Robot();
     void RobotInit() override;
@@ -83,13 +82,6 @@ class Robot : public frc::TimedRobot {
     // Shooter
     // Shooter m_shooter{"Shooter", true, true};
 
-    // STARTING POS + AUTO CHOOSERS
-    frc::SendableChooser<std::string> m_startChooser;
-    frc::SendableChooser<std::string> m_autoPiece1;
-    frc::SendableChooser<std::string> m_autoPiece2;
-    frc::SendableChooser<std::string> m_autoPiece3;
-    frc::SendableChooser<std::string> m_autoEndChooser;
-
     // Shooter shooter_{"Shooter", true, true};
 
     // auto lineup
@@ -98,7 +90,11 @@ class Robot : public frc::TimedRobot {
     //Auto 
     Auto m_auto;
     AutoChooser m_autoChooser; 
-    frc::SendableChooser<std::string> m_autoChoosers[AUTO_LENGTH];
+
+    // STARTING POS + AUTO CHOOSERS
+    frc::SendableChooser<std::string> m_startChooser;
+    frc::SendableChooser<std::string> m_autoChoosers[AutoConstants::POS_ARR_SIZE - 2];
+    frc::SendableChooser<std::string> m_autoEndChooser;
 
     bool m_amp = true;
 };

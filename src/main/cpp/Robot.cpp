@@ -30,13 +30,10 @@ Robot::Robot() :
   m_autoChooser{true, m_auto}
   {
 
-    std::cout << "hgere 1" << std::endl;
   // navx
   try
   {
     m_navx = new AHRS(frc::SerialPort::kUSB2);
-     std::cout << "navx success" << std::endl;
-
   }
   catch (const std::exception &e)
   {
@@ -90,26 +87,18 @@ Robot::Robot() :
 }
 
 void Robot::RobotInit() {
-  std::cout << "init start" << std::endl;
   ShuffleboardInit();
   m_auto.ShuffleboardInit();
   m_odom.ShuffleboardInit();
   m_autoLineup.ShuffleboardInit();
 
-  std::cout << "shuff init succ" << std::endl;
-
   m_navx->Reset();
   m_navx->ZeroYaw();
   m_odom.Reset();
 
-  std::cout << "odom init succ" << std::endl;
-
   m_intake.Init();
-  std::cout << "inake init succ" << std::endl;
   m_client.Init();
-  std::cout << "client init succ" << std::endl;
   m_swerveController.Init();
-  std::cout << "init success " << std::endl; 
   //m_shooter.Init();
 }
 
@@ -266,27 +255,16 @@ void Robot::DisabledPeriodic() {
     double joystickAng = SideHelper::GetJoystickAng();
     m_odom.SetStartingConfig(startPos.pos, startPos.ang, joystickAng);
 
-    std::string piece1 = m_autoPiece1.GetSelected();
-    std::string piece2 = m_autoPiece2.GetSelected();
-    std::string piece3 = m_autoPiece3.GetSelected();
     std::string end = m_autoEndChooser.GetSelected();
 
     std::vector<std::string> selects;
     selects.push_back(selectedStart);
-    selects.push_back(piece1);
-    selects.push_back(piece2);
-    selects.push_back(piece3);
+    for(int i = 0; i < AutoConstants::POS_ARR_SIZE - 2; i++){
+      std::string path = m_autoChoosers[i].GetSelected();
+      selects.push_back(path);
+    }
     selects.push_back(end);
     m_autoChooser.ProcessChoosers(selects);
-  }
-
-  // AUTO
-  std::string path;
-  for(uint i = 0; i < AUTO_LENGTH; i++){
-    path = m_autoChoosers[i].GetSelected();
-    if(AutoConstants::PATHS.find(path) != AutoConstants::PATHS.end()){
-      m_auto.SetPath(i, AutoConstants::PATHS.at(path));
-    }
   }
 }
 
@@ -326,15 +304,6 @@ void Robot::SimulationPeriodic() {}
 void Robot::ShuffleboardInit() {
   frc::SmartDashboard::PutBoolean("Logging", false);
 
-  // Auto
-  for (auto path : AutoConstants::PATHS) {
-    for (auto& chooser: m_autoChoosers){
-      chooser.AddOption(path.first, path.first);
-    }
-  }
-  for(uint i = 0; i < AUTO_LENGTH; i++){
-    frc::SmartDashboard::PutData("Auto " + std::to_string(i+1), &m_autoChoosers[i]);
-  }
   // STARTING POS
   {
     m_startChooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
@@ -343,33 +312,20 @@ void Robot::ShuffleboardInit() {
     m_startChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
     frc::SmartDashboard::PutData("Starting Position", &m_startChooser);
 
-    // sorry for bad code, couldn't get array of sendablechoosers working
-    m_autoPiece1.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-    m_autoPiece1.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
-    m_autoPiece1.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-    m_autoPiece1.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
-    m_autoPiece1.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
-    frc::SmartDashboard::PutData("Piece 1", &m_autoPiece1);
-
-    m_autoPiece2.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-    m_autoPiece2.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
-    m_autoPiece2.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-    m_autoPiece2.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
-    m_autoPiece2.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
-    frc::SmartDashboard::PutData("Piece 2", &m_autoPiece2);
-
-    m_autoPiece3.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-    m_autoPiece3.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
-    m_autoPiece3.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-    m_autoPiece3.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
-    m_autoPiece3.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
-    frc::SmartDashboard::PutData("Piece 3", &m_autoPiece3);
-    
+    for(int i = 0; i < AutoConstants::POS_ARR_SIZE - 2; i++){
+      m_autoChoosers[i].SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
+      frc::SmartDashboard::PutData("Auto " + std::to_string(i+1), &(m_autoChoosers[i]));
+    }
+ 
     m_autoEndChooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
     m_autoEndChooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
     m_autoEndChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
     m_autoEndChooser.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
-    frc::SmartDashboard::PutData("End Position", &m_startChooser);
+    frc::SmartDashboard::PutData("End Position", &m_autoEndChooser);
   }
 
   // DEBUG

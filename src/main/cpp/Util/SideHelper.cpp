@@ -1,6 +1,7 @@
 #include "Util/SideHelper.h"
 
 #include <cmath>
+#include <regex>
 
 #include <frc/DriverStation.h>
 
@@ -177,24 +178,6 @@ hm::Hermite<2> SideHelper::GetSplinePos(hm::Hermite<2> inp) {
 }
 
 /**
- * Replaces all occurences of find with replace
- * 
- * @param from Thing to find
- * @param to Thing to replace
- * 
- * @return Replaced string
-*/
-std::string ReplaceAll(std::string str, std::string from, std::string to) {
-  size_t start_pos = 0;
-  while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
-    str.replace(start_pos, from.length(), to);
-    start_pos +=
-        to.length(); // Handles case where 'to' is a substring of 'from'
-  }
-  return str;
-}
-
-/**
  * Gets path name depending on side
  * 
  * @param path Path
@@ -206,9 +189,11 @@ std::string SideHelper::GetPath(std::string path) {
     return path;
   }
 
-  path = ReplaceAll(path, "Left", "^^^UNKNOWN&&&");
-  path = ReplaceAll(path, "Right", "Left");
-  path = ReplaceAll(path, "^^^UNKNOWN&&&", "Right");
+  path = std::regex_replace(path, std::regex{"Left"}, "^^^UNKNOWN&&&");
+  path = std::regex_replace(path, std::regex{"Right"}, "Left");
+  path = std::regex_replace(path, std::regex{"^^^UNKNOWN&&&"}, "Right");
+
+  return path;
 }
 
 /**
