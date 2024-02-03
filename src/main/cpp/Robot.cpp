@@ -19,7 +19,7 @@
 using namespace Actions;
 
 Robot::Robot() :
-  m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
+  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang"}},
   m_swerveController{true, false},
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
@@ -71,12 +71,7 @@ Robot::Robot() :
 
       if (tagId != 0 && m_isSecondTag) {
         frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
-        m_odom.UpdateCams({x, y}, tagId, uniqueId, age);
-        
-        m_logger.LogNum("Raw camX", x);
-        m_logger.LogNum("Raw camY", y);
-        m_logger.LogNum("Unique ID", uniqueId);
-        m_logger.LogNum("Tag ID", tagId);
+        m_odom.UpdateCams({x, y}, tagId, uniqueId, age);   
       }
 
       m_isSecondTag = true;
@@ -188,9 +183,6 @@ void Robot::TeleopPeriodic() {
   // vec::Vector2D setVel = {-vy, -vx};
   // double curYaw = m_odom.GetAngNorm();
   // double curJoystickAng = m_odom.GetJoystickAng();
-
-  // m_logger.LogNum("ang input", rx);
-  // m_logger.LogNum("navX ang", m_odom.GetAng());
 
   // auto lineup to amp
   // if (m_controller.getPressedOnce(AMP_AUTO_LINEUP)) {
@@ -371,6 +363,13 @@ void Robot::ShuffleboardPeriodic() {
 
     m_field.SetRobotPose(frc::Pose2d{units::meter_t{x(pos)}, units::meter_t{y(pos)}, units::radian_t{ang}});
     frc::SmartDashboard::PutData("Robot Field", &m_field);
+
+    m_logger.LogBool("Cams Stale", m_client.IsStale());
+    m_logger.LogBool("Cams Connected", m_client.HasConn());
+    m_logger.LogBool("Tag Detected", m_odom.GetTagDetected());
+    m_logger.LogNum("Pos X", pos.x());
+    m_logger.LogNum("Pos Y", pos.y());
+    m_logger.LogNum("Ang", ang);
   }
 
 
