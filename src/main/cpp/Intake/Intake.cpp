@@ -59,7 +59,7 @@ void Intake::CoreTeleopPeriodic(){
         case PASSTHROUGH:
             // if (m_wrist.GetState() == Wrist::AT_TARGET)
             //     m_wrist.Coast();
-            else if (m_wrist.ProfileDone() && InChannel()){    
+            if (m_wrist.ProfileDone() && InChannel()){    
                 if (!m_keepIntakeDown) {
                     m_wrist.MoveTo(STOWED_POS);
                 }
