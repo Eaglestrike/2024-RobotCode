@@ -26,7 +26,9 @@ AutoPathSegment::AutoPathSegment(bool shuffleboard, SwerveControl &swerve, Odome
   m_posCorrectX{{AutoConstants::DRIVE_P, AutoConstants::DRIVE_I, AutoConstants::DRIVE_D}},
   m_posCorrectY{{AutoConstants::DRIVE_P, AutoConstants::DRIVE_I, AutoConstants::DRIVE_D}},
   m_angCorrect{{AutoConstants::ANG_P, AutoConstants::ANG_I, AutoConstants::ANG_D}},
-  m_shuff{"Auto Segment", shuffleboard}
+  m_shuff{"Auto Segment", shuffleboard},
+  m_isDonePos{false},
+  m_isDoneAng{false}
 {
   m_posCorrectX.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
   m_posCorrectY.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
@@ -74,6 +76,14 @@ void AutoPathSegment::Start() {
   m_spline.ang = SideHelper::GetSplineAng(m_blueSpline.ang);
   
   m_hasStarted = true;
+
+  m_isDonePos = false;
+  m_isDoneAng = false;
+  double pTol = m_shuff.GetNumber("pos tol", AutoConstants::POS_TOL);
+  SetDriveTol(pTol);
+  double aTol = m_shuff.GetNumber("ang tol", AutoConstants::ANG_TOL);
+  SetAngTol(aTol);
+
   m_posCorrectX.Reset();
   m_posCorrectY.Reset();
   m_angCorrect.Reset();
@@ -164,9 +174,27 @@ void AutoPathSegment::Periodic(){
   
   double setAngVel = curExpectedAngVel + correctAngVel;
 
+  // CALEB FILTER
   if (AtAngTarget()) {
     setAngVel = 0;
   }
+
+  // JONATHAN FILTER
+  // if (AtAngTarget()) {
+  //   if (!m_isDoneAng) {
+  //     m_isDoneAng = true;
+  //     double aTol = m_shuff.GetNumber("ang tol big", AutoConstants::ANG_TOL_BIG);
+  //     SetAngTol(aTol);
+  //   }
+  //   m_angCorrect.Reset(); // ???
+  //   setAngVel = 0;
+  // } else {
+  //   if (m_isDoneAng) {
+  //     m_isDoneAng = false;
+  //     double aTol = m_shuff.GetNumber("ang tol", AutoConstants::ANG_TOL);
+  //     SetAngTol(aTol);
+  //   }
+  // }
 
   Periodic(setAngVel);
 }
@@ -210,10 +238,25 @@ void AutoPathSegment::Periodic(double angVel) {
   // set velocity to swerve
   vec::Vector2D setVel = curExpectedVel + correctVel;
 
+  // JONATHAN FILTER
   // if (AtPosTarget()) {
+  //   if (!m_isDonePos) {
+  //     m_isDonePos = true;
+  //     double pTol = m_shuff.GetNumber("pos tol big", AutoConstants::POS_TOL_BIG);
+  //     SetDriveTol(pTol);
+  //   }
+  //   m_posCorrectX.Reset(); // ???
+  //   m_posCorrectY.Reset(); // ???
   //   setVel = {0, 0};
+  // } else {
+  //   if (m_isDonePos) {
+  //     m_isDonePos = false;
+  //     double pTol = m_shuff.GetNumber("pos tol", AutoConstants::POS_TOL);
+  //     SetDriveTol(pTol);
+  //   }
   // }
 
+  // CALEB FILTER
   if(AtPosTarget() && ((curExpectedPos - curPos).magn() < AutoConstants::JITTER_FILTER)){
     setVel = {0,0};
   }
@@ -347,6 +390,8 @@ void AutoPathSegment::ShuffleboardInit() {
 
   m_shuff.PutNumber("pos tol", AutoConstants::POS_TOL, {1,1,0,2});
   m_shuff.PutNumber("ang tol", AutoConstants::ANG_TOL, {1,1,1,2});
+  m_shuff.PutNumber("pos tol big", AutoConstants::POS_TOL_BIG, {1,1,2,2});
+  m_shuff.PutNumber("ang tol big", AutoConstants::ANG_TOL_BIG, {1,1,3,2});
 }
 
 void AutoPathSegment::ShuffleboardPeriodic() {

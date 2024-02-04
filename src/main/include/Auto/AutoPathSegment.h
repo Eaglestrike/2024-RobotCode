@@ -65,4 +65,7 @@ private:
   PID m_angCorrect;
 
   ShuffleboardSender m_shuff;
+
+  bool m_isDonePos;
+  bool m_isDoneAng;
 };
