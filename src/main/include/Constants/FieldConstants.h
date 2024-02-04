@@ -30,4 +30,7 @@ namespace FieldConstants {
   const double FIELD_WIDTH = 651.23;
   const double FIELD_HEIGHT = 323.00;
   const double FIELD_MARGIN = 20.0;
+
+  // speaker location
+  const vec::Vector2D BLUE_SPEAKER = {-0.1, 5.79};
 }

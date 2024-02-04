@@ -86,7 +86,10 @@ private:
 
   // DEBUG ONLY
   AutoPathSegment m_autoPath;
-  frc::SendableChooser<std::string> m_chooser;
+  frc::SendableChooser<std::string> m_autoPathChooser;
+
+  // STARTING POS
+  frc::SendableChooser<std::string> m_startChooser;
 
   // Shooter shooter_{"Shooter", true, true};
 

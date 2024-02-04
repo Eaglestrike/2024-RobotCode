@@ -9,6 +9,10 @@ namespace ShuffleboardHelper{
      * Creates an item on a shuffleboard tab, with a given position/size and type
     */
     template <typename T> nt::GenericEntry* createItem(ShuffleboardItemInterface::ItemData data, T value, frc::BuiltInWidgets type = frc::BuiltInWidgets::kTextView){
+        if(!data.tab){ //No tab = no entry
+            std::cout<<"Could not create "<<data.name<<std::endl;
+            return nullptr;
+        }
         // for(auto &component : data.tab->GetComponents()){
         //     if(component.get()->GetTitle() == data.name){
         //         return component->get()->GetEntry()

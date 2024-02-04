@@ -35,6 +35,10 @@ class ShuffleboardSender{
          * @param edit if the value will update in the code on the update call
         */
         template <typename T> void add(std::string name, T* o, bool edit = false){
+            if(!tab_){
+                std::cout<<name_<<" not initialized"<<std::endl;
+                return;
+            }
             for(ShuffleboardItemInterface* item : items_){
                 if(item->getName() == name){
                     return;
@@ -52,6 +56,10 @@ class ShuffleboardSender{
          * @param edit if the value will update in the code on the update call
         */
         template <typename T> void add(std::string name, T* o, ShuffleboardItemInterface::ShuffleboardPose pose, bool edit = false){
+            if(!tab_){
+                std::cout<<name_<<" not initialized"<<std::endl;
+                return;
+            }
             for(ShuffleboardItemInterface* item : items_){
                 if(item->getName() == name){
                     return;
