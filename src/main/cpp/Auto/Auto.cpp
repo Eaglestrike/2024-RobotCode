@@ -92,6 +92,24 @@ void Auto::SetSegment(uint index, std::string path){
 void Auto::AutoInit(){
     pathNum_ = 0;
     index_ = 0;
+    
+    //Find starting pos
+    segments_.Clear();
+    vec::Vector2D startPos = odometry_.GetPos();
+    for(int i = 0; i < paths_.size(); i++){
+        for(AutoElement element : paths_[i]){
+            if(element.action == DRIVE){
+                segments_.SetAutoPath(element.data);
+                startPos = segments_.GetPos(0.0);
+                std::cout<<"Starting pos " << startPos.toString() <<std::endl;
+                i = paths_.size();
+                break;
+            }
+        }
+    }
+    if((startPos - odometry_.GetPos()).magn() > 0.5){ //If starting pos too far away
+        pathNum_ = 10000000; //Give up
+    }
 
     segments_.Clear();
 

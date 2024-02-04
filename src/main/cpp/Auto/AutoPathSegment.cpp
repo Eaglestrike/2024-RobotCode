@@ -87,6 +87,7 @@ void AutoPathSegment::Stop() {
  * Clears the path
 */
 void AutoPathSegment::Clear(){
+  m_startTime = 0.0;
   m_spline.pos = {1000};
   m_spline.ang = {1000};
 }
@@ -238,7 +239,6 @@ double AutoPathSegment::GetDuration() const {
  * @param t non-relative time (utils frame)
 */
 vec::Vector2D AutoPathSegment::GetPos(double t) const{
-  
   double timeRel = t - m_startTime;
   timeRel = timeRel < 0 ? 0 : (timeRel > m_spline.pos.getHighestTime() ? m_spline.pos.getHighestTime() : timeRel);
   return m_spline.pos.getVel(timeRel);
