@@ -45,7 +45,7 @@ void Intake::CoreTeleopPeriodic(){
         case AMP_INTAKE:
             if (m_wrist.ProfileDone())
                 m_wrist.Coast();
-            if (m_wrist.GetState() == Wrist::COAST && m_beam1broke){
+            if (/*m_wrist.GetState() == Wrist::COAST && */m_beam1broke){
                 m_rollers.SetStateBuffer(Rollers::RETAIN, INTAKE_WAIT_s);
                 m_wrist.MoveTo(STOWED_POS);
                 m_actionState = NONE;
@@ -54,7 +54,7 @@ void Intake::CoreTeleopPeriodic(){
         case PASSTHROUGH:
             if (m_wrist.GetState() == Wrist::AT_TARGET)
                 m_wrist.Coast();
-            else if (m_wrist.GetState() == Wrist::COAST && InChannel()){    
+            else if (/*m_wrist.GetState() == Wrist::COAST &&*/ InChannel()){    
                 if (!m_keepIntakeDown) {
                     m_wrist.MoveTo(STOWED_POS);
                 }
@@ -163,6 +163,12 @@ bool Intake::DebounceBeamBreak1(){
     return m_beam1broke;
 }
 
+/**
+ * Zeros wrist
+*/
+void Intake::Zero(){
+    m_wrist.Zero();
+}
 
 
 //DEBUG

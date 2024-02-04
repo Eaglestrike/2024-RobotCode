@@ -89,8 +89,8 @@ void Wrist::ChangeSetPt(double newSetpt){
 }
 
 void Wrist::Coast(){
-    m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
-    m_state = COAST;
+    // m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
+    // m_state = COAST;
 }
 
 void Wrist::MoveToSetPt(){

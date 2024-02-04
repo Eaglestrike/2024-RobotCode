@@ -210,8 +210,12 @@ void AutoPathSegment::Periodic(double angVel) {
   // set velocity to swerve
   vec::Vector2D setVel = curExpectedVel + correctVel;
 
-  if (AtPosTarget()) {
-    setVel = {0, 0};
+  // if (AtPosTarget()) {
+  //   setVel = {0, 0};
+  // }
+
+  if(AtPosTarget() && ((curExpectedPos - curPos).magn() < AutoConstants::JITTER_FILTER)){
+    setVel = {0,0};
   }
 
   m_swerve.SetRobotVelocity(setVel, angVel, curAng);

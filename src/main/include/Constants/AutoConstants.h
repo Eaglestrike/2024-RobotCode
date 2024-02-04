@@ -30,6 +30,8 @@ namespace AutoConstants {
   const double POS_TOL = 0.05;
   const double ANG_TOL = Utils::DegToRad(3);
 
+  const double JITTER_FILTER = 0.005;
+
   enum AutoType{
     AT_START,
     BEFORE_END,
@@ -94,9 +96,9 @@ namespace AutoConstants {
   const double SHOOT_POS_TOL = 0.3;
 
   // starting positions
-  const StartPose BLUE_L = {{0.666, 6.721}, 4.126271};
+  const StartPose BLUE_L = {{0.666, 6.721}, 4.2309};
   const StartPose BLUE_M = {{1.265, 5.526}, 3.141592};
-  const StartPose BLUE_R = {{0.597, 4.41}, 2.062718};
+  const StartPose BLUE_R = {{0.597, 4.41}, 2.0375};
 
   // auto positions array size
   const int POS_ARR_SIZE = 5;

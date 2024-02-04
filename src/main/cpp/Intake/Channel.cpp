@@ -35,6 +35,7 @@ void Channel::CoreTeleopPeriodic() {
             channelV = m_channelInfo.KEEP_VOLTS;
             break;
         default:
+            break;
     }
 
     m_kickerMotor.SetVoltage(units::volt_t{std::clamp(kickerV, -m_kickerInfo.MAX_VOLTS, m_kickerInfo.MAX_VOLTS)});

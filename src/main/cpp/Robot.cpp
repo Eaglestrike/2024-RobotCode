@@ -117,6 +117,7 @@ void Robot::RobotPeriodic() {
     m_odom.Reset();
     m_swerveController.ResetAngleCorrection(m_odom.GetAng());
     m_swerveController.ResetFF();
+    m_intake.Zero();
   }
 
   #if SWERVE_AUTOTUNING

@@ -37,6 +37,8 @@ class Intake: public Mechanism{
         bool InChannel();
         bool InIntake();
 
+        void Zero();
+
     private:
         void SetState(ActionState newAction);
         void CoreInit() override;
