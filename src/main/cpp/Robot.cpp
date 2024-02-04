@@ -111,13 +111,13 @@ void Robot::RobotPeriodic() {
   m_odom.ShuffleboardPeriodic();
   m_autoLineup.ShuffleboardPeriodic();
 
-  // if (m_controller.getPressedOnce(ZERO_YAW)) {
-  //   m_navx->Reset();
-  //   m_navx->ZeroYaw();
-  //   m_odom.Reset();
-  //   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
-  //   m_swerveController.ResetFF();
-  // }
+  if (m_controller.getPressedOnce(ZERO_YAW)) {
+    m_navx->Reset();
+    m_navx->ZeroYaw();
+    m_odom.Reset();
+    m_swerveController.ResetAngleCorrection(m_odom.GetAng());
+    m_swerveController.ResetFF();
+  }
 
   #if SWERVE_AUTOTUNING
   m_swerveXTuner.ShuffleboardUpdate();
