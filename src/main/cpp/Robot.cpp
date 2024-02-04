@@ -226,7 +226,15 @@ void Robot::TeleopPeriodic() {
     } else if (m_controller.getPressedOnce(UNBRAKE)){
       m_climb.ChangeBrake(false);
     }
-  } else
+  } else if (m_controller.getPressedOnce(ZERO_1) && m_controller.getPressedOnce(ZERO_2)){
+    if (m_controller.getPressedOnce(ZERO_CLIMB)){
+      m_climb.Zero();
+    }
+    // if (m_controller.getPressedOnce(ZERO_INTAKE)){
+    //   m_intake.Zero();
+    // }
+    
+  }
   
   if (m_controller.getPOVDownOnce(CLIMB)){
     m_climb.PullUp();

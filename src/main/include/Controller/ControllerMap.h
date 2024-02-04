@@ -23,6 +23,10 @@ namespace Actions{
         UNBRAKE,
         MANUAL_CLIMB_1,
         MANUAL_CLIMB_2,
+        ZERO_1,
+        ZERO_2,
+        ZERO_CLIMB,
+        ZERO_INTAKE,
         ACTION_COUNT //Just the number of actions, as it is at the end of a enum
     };
 
@@ -70,14 +74,16 @@ namespace ControllerMapData{
         {XBOX_B_BUTTON ,        AMP_AUTO_LINEUP},
         {XBOX_X_BUTTON ,        NONE},
         {XBOX_Y_BUTTON ,        INTAKE_TO_CHANNEL},
-        {XBOX_L_BUMPER ,        NONE},
+        {XBOX_L_BUMPER ,        ZERO_1},
         {XBOX_LTRIGGER ,        MANUAL_CLIMB_1},
-        {XBOX_R_BUMPER ,        NONE},
+        {XBOX_R_BUMPER ,        ZERO_2},
         {{XBOX, B_7} ,          ZERO_DRIVE_PID},
         {{XBOX, B_8} ,          ZERO_YAW},
         {XBOX_RTRIGGER ,        MANUAL_CLIMB_2},
         {BB_Y_TRIM_DOWN ,       UNBRAKE},
-        {BB_Y_TRIM_UP ,         BRAKE}
+        {BB_Y_TRIM_UP ,         BRAKE},
+        {BB_LEFT ,              ZERO_CLIMB},
+        {BB_RIGHT ,             ZERO_INTAKE}
     };
 
     //Allows for maps of buttons to values, such as the index of the buttonboard
