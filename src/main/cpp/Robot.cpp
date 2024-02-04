@@ -220,11 +220,15 @@ void Robot::TeleopPeriodic() {
   }
   //climb
   if (m_controller.getTriggerDown(MANUAL_CLIMB_1) && m_controller.getTriggerDown(MANUAL_CLIMB_2)){
-    m_climb.SetManualInput(m_controller.getRawAxis(MANUAL_CLIMB));
-    if (m_controller.getPOVDownOnce(TOGGLE_BRAKE)){
-      m_climb.ToggleBrake();
+    m_climb.SetManualInput(m_controller.getWithDeadband(MANUAL_CLIMB));
+    if (m_controller.getPressedOnce(BRAKE)){
+      m_climb.ChangeBrake(true);
+    } else if (m_controller.getPressedOnce(UNBRAKE)){
+      m_climb.ChangeBrake(false);
     }
-  } else if (m_controller.getPOVDownOnce(CLIMB)){
+  } else
+  
+  if (m_controller.getPOVDownOnce(CLIMB)){
     m_climb.PullUp();
   } else if (m_controller.getPOVDownOnce(STOW)){
     m_climb.Stow();

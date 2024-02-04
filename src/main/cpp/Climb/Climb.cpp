@@ -22,29 +22,37 @@ void Climb::CoreTeleopPeriodic(){
 
     switch(m_state){
         case MOVING:
-            voltage = info.MOVE_VOLTS;
-            if (AtTarget(info.TARG_POS)){
+            if (m_timer == -1)
+                voltage = info.MOVE_VOLTS;
+            else {
+                voltage = -info.MOVE_VOLTS;
+                m_timer += 0.02;
+                if (m_timer >= WAIT_TIME_S){
+                    m_timer =-1;
+                }
+            }
+            if (AtTarget(info.TARG_POS, (info.MOVE_VOLTS > 0))){
                 m_state = AT_TARGET;
             }
             ReleaseBrake();
             break;
         case AT_TARGET:
-            Brake(); 
+            Brake();    
             break;
         case MANUAL:
             voltage = m_manualVolts;
-            if (m_braking){
-                Brake();
+             if (m_braking){
+                    Brake();
+                } else{
+                    ReleaseBrake();
             }
-            else{
-                ReleaseBrake();
-            }
+            m_state = AT_TARGET;
             break;
     }
 
     voltage = std::clamp(voltage, -MAX_VOLTS, MAX_VOLTS);
  
-    m_master.SetVoltage(units::volt_t(voltage));
+    m_master.SetVoltage(units::volt_t(-voltage));
 }
 
 void Climb::Brake(){
@@ -57,17 +65,25 @@ void Climb::ReleaseBrake(){
     m_braking = false;
 }
 
-void Climb::ToggleBrake(){
-    m_braking = !m_braking;
+void Climb::ChangeBrake(bool brake){
+    if (!brake){
+        // m_timer = 0;
+        ReleaseBrake();
+    } else {
+        Brake();
+    }
+
 }
 
 void Climb::UpdatePos(){
-    m_pos = m_master.GetPosition().GetValueAsDouble();
+    m_pos = -m_master.GetPosition().GetValueAsDouble();
 }
 
-bool Climb::AtTarget(double target){
+bool Climb::AtTarget(double target, bool up){
     // if (std::abs(m_pos-target) <= POS_TOLERANCE)
-    if (m_pos >= target-POS_TOLERANCE)
+    if (up && (m_pos >= target-POS_TOLERANCE))
+        return true;
+    else if (!up && (m_pos <= target+POS_TOLERANCE))
         return true;
     return false;
 }
@@ -75,6 +91,7 @@ bool Climb::AtTarget(double target){
 Climb::Climb(bool enabled, bool dbg): 
     Mechanism("climb", enabled, dbg){
     m_master.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
+    Zero();
     // m_slave.SetControl(Follower(Ids::MASTER_CLIMB_MOTOR, false));
 }
 
@@ -90,19 +107,25 @@ void Climb::PullUp(){
     SetTarget(CLIMB);
 }
 
+void Climb::Stop(){
+    m_state = AT_TARGET;
+}
+
 Climb::State Climb::GetState(){
     return m_state;
 }
 
 void Climb::SetTarget(Target t){
-    if (t = m_targ) return;
+    if (t == m_targ) return;
     m_state = MOVING;
+    m_timer = 0;
     m_targ = t;
 }
 
 // should put break on here also 
 void Climb::SetManualInput(double ctrlr){
-    ctrlr = std::clamp(ctrlr, -1.0, 1.0);
+    if (m_manualVolts == 0 && ctrlr != 0) m_timer =0;
+    ctrlr = std::clamp(-ctrlr, -1.0, 1.0);
     ctrlr *= MAX_VOLTS;
     m_manualVolts = ctrlr;
     m_state = MANUAL;
@@ -118,6 +141,9 @@ void Climb::CoreShuffleboardInit(){
     m_shuff.add("min pos", &MIN_POS, {1,1,1,0}, true);
     m_shuff.add("max volts", &MAX_VOLTS, {1,1,2,0}, true);
     m_shuff.add("tolerance", &POS_TOLERANCE, {1,1,3,0}, true);
+     m_shuff.add("manual volt", &m_manualVolts, {1,1,4,0}, false);
+     m_shuff.add("timer", &m_timer, {1,1,5,0}, false);
+     m_shuff.add("wait time", &WAIT_TIME_S, {1,1,6,0}, true);
 
     //Climb (row 1)
     m_shuff.add("climb pos", &CLIMB_INFO.TARG_POS, {1,1,0,1}, true);

@@ -35,10 +35,12 @@ class Climb : public Mechanism{
         void SetManualInput(double ctrlr); // use for winding
         void PullUp();
         void Stow ();
+        void Stop ();
         void Extend();
-        void ToggleBrake();
+        // void ToggleBrake();
         State GetState();
         void SetTarget(Target t);
+        void ChangeBrake(bool brake);
 
     private:
         void Brake();
@@ -49,7 +51,7 @@ class Climb : public Mechanism{
         void CoreShuffleboardPeriodic() override;
 
         void UpdatePos();
-        bool AtTarget(double target);
+        bool AtTarget(double target, bool up);
 
         ShuffleboardSender m_shuff {"Climb", true};
 
@@ -64,24 +66,27 @@ class Climb : public Mechanism{
         double m_manualVolts=0;
         bool m_braking = true;
 
+        double m_timer = -1;
+        double WAIT_TIME_S = 0.5;
+
         struct StateInfo {
             double TARG_POS;
             double MOVE_VOLTS;
         };
 
         //CONSTANTS:
-        double  MAX_VOLTS = 2.0, 
+        double  MAX_VOLTS = 7.0, 
                 MIN_POS= 0.0, 
-                MAX_POS= 0.0, 
+                MAX_POS= 110.0, 
                 POS_TOLERANCE= 0.0; 
 
         bool BREAK = true;
 
         // double STILL_VOLTS = 0.0 ;
         StateInfo CLIMB_INFO =  {MIN_POS, 
-                                0.0}; 
+                                -4.0}; 
         StateInfo STOW_INFO =    {MIN_POS, 
-                                0.0}; // retain volts
-        StateInfo EXTENDED_INFO = {MAX_POS,
-                                    0.0}; // prob 0
+                                -3.0}; // retain volts
+        StateInfo EXTENDED_INFO = {MAX_POS-10,
+                                    3.0}; // prob 0
 };
