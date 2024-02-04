@@ -51,6 +51,7 @@ private:
     hm::Hermite<2> pos;
     hm::Hermite<1> ang;
   } m_spline;
+  SwerveSpline m_blueSpline;
 
   std::map<std::string, SwerveSpline> m_loadedSplines;
 

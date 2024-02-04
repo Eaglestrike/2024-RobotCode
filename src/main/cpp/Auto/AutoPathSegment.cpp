@@ -9,6 +9,7 @@
 #include "Constants/AutoConstants.h"
 #include "Util/AutoPathReader.h"
 #include "Util/Utils.h"
+#include "Util/SideHelper.h"
 
 /**
  * Auto Path Segment constructor
@@ -51,14 +52,12 @@ void AutoPathSegment::LoadAutoPath(const std::string path) {
  * @param path Filename of auto path 
 */
 void AutoPathSegment::SetAutoPath(const std::string path) {
-  if(m_loadedSplines.find(path) != m_loadedSplines.end()){
-    m_spline = m_loadedSplines[path];
-    return;
-  }
-  else{
+  if(m_loadedSplines.find(path) == m_loadedSplines.end()){
     LoadAutoPath(path);
-    m_spline = m_loadedSplines[path];
   }
+  m_blueSpline = m_loadedSplines[path];
+  m_spline.pos = SideHelper::GetSplinePos(m_blueSpline.pos);
+  m_spline.ang = SideHelper::GetSplineAng(m_blueSpline.ang);
 }
 
 /**
@@ -70,6 +69,10 @@ void AutoPathSegment::Start() {
     m_hasStarted = false;
     return;
   }
+  
+  m_spline.pos = SideHelper::GetSplinePos(m_blueSpline.pos);
+  m_spline.ang = SideHelper::GetSplineAng(m_blueSpline.ang);
+  
   m_hasStarted = true;
   m_posCorrectX.Reset();
   m_posCorrectY.Reset();
@@ -138,6 +141,9 @@ void AutoPathSegment::SetAngTol(double tol) {
  * Periodic (angular and linear motion)
 */
 void AutoPathSegment::Periodic(){
+  if(!m_hasStarted){
+    return;
+  }
   // get relative time
   double curTimeRel = Utils::GetCurTimeS() - m_startTime;
   curTimeRel = curTimeRel < 0 ? 0 : (curTimeRel > m_spline.pos.getHighestTime() ? m_spline.pos.getHighestTime() : curTimeRel);
@@ -241,7 +247,7 @@ double AutoPathSegment::GetDuration() const {
 vec::Vector2D AutoPathSegment::GetPos(double t) const{
   double timeRel = t - m_startTime;
   timeRel = timeRel < 0 ? 0 : (timeRel > m_spline.pos.getHighestTime() ? m_spline.pos.getHighestTime() : timeRel);
-  return m_spline.pos.getVel(timeRel);
+  return m_spline.pos.getPos(timeRel);
 }
 
 /**

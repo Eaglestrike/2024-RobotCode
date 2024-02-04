@@ -28,7 +28,7 @@ class Auto{
 
     private:
         void DrivePeriodic(double t);
-        bool ShooterPeriodic(double t);
+        void ShooterPeriodic(double t);
         void IntakePeriodic(double t);
 
         void LoadPath(const AutoConstants::AutoPath& path);

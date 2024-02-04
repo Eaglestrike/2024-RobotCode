@@ -59,7 +59,7 @@ void Auto::SetSegment(uint index, std::string to, std::string back){
         index,
         {
             {DRIVE, AFTER, to},
-            {INTAKE, BEFORE_END}, //Can keep intake down if needed (then use stow)
+            {INTAKE, AT_START}, //Can keep intake down if needed (then use stow)
             {DRIVE, AFTER, back},
             {SHOOT, BEFORE_END},
         }
@@ -100,6 +100,7 @@ void Auto::AutoInit(){
         for(AutoElement element : paths_[i]){
             if(element.action == DRIVE){
                 segments_.SetAutoPath(element.data);
+                std::cout<<element.data<<std::endl;
                 startPos = segments_.GetPos(0.0);
                 std::cout<<"Starting pos " << startPos.toString() <<std::endl;
                 i = paths_.size();
@@ -108,7 +109,7 @@ void Auto::AutoInit(){
         }
     }
     if((startPos - odometry_.GetPos()).magn() > 0.5){ //If starting pos too far away
-        pathNum_ = 10000000; //Give up
+        pathNum_ = 100000; //Give up
     }
 
     segments_.Clear();
@@ -117,23 +118,25 @@ void Auto::AutoInit(){
     ResetTiming(intakeTiming_);
     ResetTiming(shooterTiming_);
     ResetTiming(driveTiming_);
-    
-    NextBlock();
 
     autoStart_ = Utils::GetCurTimeS();
+    
+    NextBlock();
+    //std::cout << "End Init" <<std::endl;
 }
 
 /**
  * Autonomous Periodic
 */
 void Auto::AutoPeriodic(){
+    //std::cout << "Periodic Start" <<std::endl;
     double t = Utils::GetCurTimeS() - autoStart_;
 
     if(driveTiming_.finished && shooterTiming_.finished && intakeTiming_.finished){
+        //std::cout << "Next Block Periodic" <<std::endl;
         NextBlock();
     }
-
-    DrivePeriodic(t);
+    
     // if(shooterTiming_.hasStarted && (!shooterTiming_.finished)){
     //     autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
     //     autoLineup_.Start();
@@ -142,9 +145,16 @@ void Auto::AutoPeriodic(){
     // }
     // else{
         segments_.Periodic();
+
+        //std::cout<<"Segments"<<std::endl;
     //}
+    
+    DrivePeriodic(t);
+    //std::cout<<"drive"<<std::endl;
     ShooterPeriodic(t);
+    //std::cout<<"shoot"<<std::endl;
     IntakePeriodic(t);
+    //std::cout<<"intake"<<std::endl;
 }
 
 /**
@@ -170,7 +180,7 @@ void Auto::DrivePeriodic(double t){
  * 
  * @returns if it needs to autolineup
 */
-bool Auto::ShooterPeriodic(double t){
+void Auto::ShooterPeriodic(double t){
     if(!shooterTiming_.hasStarted && t > shooterTiming_.start){
         shooterTiming_.hasStarted = true;
     }
@@ -216,7 +226,7 @@ void Auto::IntakePeriodic(double t){
     //First Action
     if(!intakeTiming_.hasStarted && t > intakeTiming_.start){
         if(intaking_){
-            intake_.AmpIntake();
+            intake_.Passthrough();
         }
         else{
             intake_.Stow();
@@ -225,8 +235,9 @@ void Auto::IntakePeriodic(double t){
     }
     //Check if finished
     if(intaking_){
+        double maxTime = std::max(intakeTiming_.end, driveTiming_.end);
         if( (intake_.HasGamePiece()) || // End intake if has game piece
-            (t > intakeTiming_.end + INTAKE_PADDING)){ 
+            (t > maxTime + INTAKE_PADDING)){ 
             intakeTiming_.finished = true;
         }
     }
@@ -244,20 +255,26 @@ void Auto::NextBlock(){
     if(pathNum_ >= (int)paths_.size()){
         return;
     }
-
+    std::cout<<pathNum_<<" "<<index_<<std::endl;
     AutoPath path = paths_[pathNum_];
-    if(path.size() == 0){
+    if(index_ >= (int)path.size()){
         pathNum_++;
+        index_ = 0;
         NextBlock();
         return;
     }
     AutoElement firstElement = path[index_];
+    std::cout<<"Next block get element"<<std::endl;
 
     ResetTiming(channelTiming_);
     ResetTiming(intakeTiming_);
     ResetTiming(shooterTiming_);
     ResetTiming(driveTiming_);
 
+    // std::cout<<Utils::GetCurTimeS()<<std::endl;
+    // std::cout<<autoStart_<<std::endl;
+    // std::cout<<firstElement.offset<<std::endl;
+    
     blockStart_ = Utils::GetCurTimeS() - autoStart_ + firstElement.offset;
 
     //Figure out the block duration/initialize the first element
@@ -484,14 +501,14 @@ void Auto::ShuffleboardInit(){
 
     //Print Pathing
     shuff_.addButton("Print Path", [&]{
-        for(int i = 0; i < paths_.size(); i++){
+        for(uint i = 0; i < paths_.size(); i++){
             std::cout<<"Path "<<i<<std::endl;
             for(AutoElement element : paths_[i]){
                 std::cout<<ElementToString(element)<<std::endl;
             }
         };
         std::cout<<"Printed Path"<<std::endl;
-    },{3,1,0,6});
+    },{3,2,6,0});
 }
 
 void Auto::ShuffleboardPeriodic(){

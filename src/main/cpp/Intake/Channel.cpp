@@ -17,7 +17,7 @@ m_channelMotor{IntakeConstants::CHANNEL_MOTOR},
 m_kickerMotor{IntakeConstants::KICKER_MOTOR, rev::CANSparkLowLevel::MotorType::kBrushless}{
     m_kickerMotor.RestoreFactoryDefaults();
     m_kickerMotor.SetIdleMode(rev::CANSparkBase::IdleMode::kCoast);
-    m_kickerMotor.SetInverted(false);
+    m_kickerMotor.SetInverted(true);
     // m_channelMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
 }
 
@@ -34,6 +34,7 @@ void Channel::CoreTeleopPeriodic() {
             kickerV = m_kickerInfo.KEEP_VOLTS;
             channelV = m_channelInfo.KEEP_VOLTS;
             break;
+        default:
     }
 
     m_kickerMotor.SetVoltage(units::volt_t{std::clamp(kickerV, -m_kickerInfo.MAX_VOLTS, m_kickerInfo.MAX_VOLTS)});
