@@ -91,6 +91,7 @@ void Robot::RobotInit() {
   m_odom.Reset();
 
   m_intake.Init();
+  m_climb.Init();
   m_client.Init();
   m_swerveController.Init();
 
@@ -128,6 +129,7 @@ void Robot::RobotPeriodic() {
 
   m_logger.Periodic(Utils::GetCurTimeS());
   m_intake.Periodic();
+  m_climb.Periodic();
 }
 
 /**
@@ -216,6 +218,32 @@ void Robot::TeleopPeriodic() {
   } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
     m_intake.Stow();
   }
+  //climb
+  if (m_controller.getTriggerDown(MANUAL_CLIMB_1) && m_controller.getTriggerDown(MANUAL_CLIMB_2)){
+    m_climb.SetManualInput(m_controller.getWithDeadband(MANUAL_CLIMB));
+    if (m_controller.getPressedOnce(BRAKE)){
+      m_climb.ChangeBrake(true);
+    } else if (m_controller.getPressedOnce(UNBRAKE)){
+      m_climb.ChangeBrake(false);
+    }
+  } else if (m_controller.getPressedOnce(ZERO_1) && m_controller.getPressedOnce(ZERO_2)){
+    if (m_controller.getPressedOnce(ZERO_CLIMB)){
+      m_climb.Zero();
+    }
+    // if (m_controller.getPressedOnce(ZERO_INTAKE)){
+    //   m_intake.Zero();
+    // }
+    
+  }
+  
+  if (m_controller.getPOVDownOnce(CLIMB)){
+    m_climb.PullUp();
+  } else if (m_controller.getPOVDownOnce(STOW)){
+    m_climb.Stow();
+  }  else if (m_controller.getPOVDownOnce(EXTEND)){
+    m_climb.Extend();
+  } 
+
 
   if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
     double angVel = m_autoLineup.GetAngVel();
@@ -225,6 +253,7 @@ void Robot::TeleopPeriodic() {
     m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   }
 
+  m_climb.TeleopPeriodic();
   m_intake.TeleopPeriodic();
   m_swerveController.Periodic();
   m_autoLineup.Periodic();

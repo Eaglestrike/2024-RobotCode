@@ -18,6 +18,15 @@ namespace Actions{
         INTAKE_TO_CHANNEL,
         AMP_AUTO_LINEUP,
         SHOOT,
+        MANUAL_CLIMB,
+        BRAKE,
+        UNBRAKE,
+        MANUAL_CLIMB_1,
+        MANUAL_CLIMB_2,
+        ZERO_1,
+        ZERO_2,
+        ZERO_CLIMB,
+        ZERO_INTAKE,
         ACTION_COUNT //Just the number of actions, as it is at the end of a enum
     };
 
@@ -25,6 +34,10 @@ namespace Actions{
     enum POVAction{
         NO_POV_ACTION = -1,
         TEMP,
+        CLIMB,
+        EXTEND,
+        STOW,
+        TOGGLE_BRAKE,
         ACTION_COUNT_POV //Just the number of actions, as it is at the end of a enum
     };
 }
@@ -54,19 +67,23 @@ namespace ControllerMapData{
         {{RJOY, B_2},           SLOW_MODE},
 
         {XBOX_LJOY_X,           NONE},
-        {XBOX_LJOY_Y,           NONE}, 
+        {XBOX_LJOY_Y,           MANUAL_CLIMB}, 
         {XBOX_RJOY_X,           NONE},
         {XBOX_RJOY_Y,           NONE},
         {XBOX_A_BUTTON ,        INTAKE_TO_AMP},
         {XBOX_B_BUTTON ,        AMP_AUTO_LINEUP},
         {XBOX_X_BUTTON ,        NONE},
         {XBOX_Y_BUTTON ,        INTAKE_TO_CHANNEL},
-        {XBOX_L_BUMPER ,        NONE},
-        {XBOX_LTRIGGER ,        NONE},
-        {XBOX_R_BUMPER ,        NONE},
+        {XBOX_L_BUMPER ,        ZERO_1},
+        {XBOX_LTRIGGER ,        MANUAL_CLIMB_1},
+        {XBOX_R_BUMPER ,        ZERO_2},
         {{XBOX, B_7} ,          ZERO_DRIVE_PID},
         {{XBOX, B_8} ,          ZERO_YAW},
-        {XBOX_RTRIGGER ,        NONE}
+        {XBOX_RTRIGGER ,        MANUAL_CLIMB_2},
+        {BB_Y_TRIM_DOWN ,       UNBRAKE},
+        {BB_Y_TRIM_UP ,         BRAKE},
+        {BB_LEFT ,              ZERO_CLIMB},
+        {BB_RIGHT ,             ZERO_INTAKE}
     };
 
     //Allows for maps of buttons to values, such as the index of the buttonboard
@@ -126,5 +143,9 @@ namespace ControllerMapData{
     };
 
     const std::vector<POVMapElement> POVMap = {
+        {XBOX_POV, POV_UP, EXTEND},
+        {XBOX_POV, POV_DOWN, CLIMB},
+        {XBOX_POV, POV_LEFT, STOW},
+        {XBOX_POV, POV_RIGHT, TOGGLE_BRAKE},
     };
 };

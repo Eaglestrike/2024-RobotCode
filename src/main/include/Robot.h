@@ -19,10 +19,8 @@
 #include "Controller/Controller.h"
 #include "Drive/AutoAngLineup.h"
 #include "Drive/SwerveControl.h"
-#include "Intake/Wrist.h"
-#include "Intake/Channel.h"
+#include "Climb/Climb.h"
 #include "Intake/Intake.h"
-#include "Intake/Rollers.h"
 #include "Util/Logger.h"
 #include "Util/Odometry.h"
 #include "Util/SocketClient.h"
@@ -63,6 +61,9 @@ private:
 
   //intake
   Intake m_intake {true, true};
+
+  //climb
+  Climb m_climb {true, true};
 
   // Jetson
   #if SWERVE_AUTOTUNING
