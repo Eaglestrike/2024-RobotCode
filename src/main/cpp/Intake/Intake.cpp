@@ -11,11 +11,11 @@ Intake::Intake(bool enabled, bool dbg):
 
 void Intake::CoreInit(){
     m_rollers.Init();
-    std::cout << "roller success" << std::endl;
+    // std::cout << "roller success" << std::endl;
     m_wrist.Init();
-    std::cout << "wrist success" << std::endl;
+    // std::cout << "wrist success" << std::endl;
     m_channel.Init();
-    std::cout << "chanmel success" << std::endl;
+    // std::cout << "chanmel success" << std::endl;
 }
 
 void Intake::CorePeriodic(){
@@ -27,12 +27,15 @@ void Intake::CorePeriodic(){
 
 
 //State machine
-
+void Intake::Zero(){
+    m_wrist.Zero();
+}
 
 void Intake::CoreTeleopPeriodic(){
     m_rollers.TeleopPeriodic();
     m_wrist.TeleopPeriodic();
     m_channel.TeleopPeriodic();
+    // std::cout << "INTAKE PERIODIC" << std::endl;
 
     DebounceBeamBreak1();
     
@@ -48,18 +51,20 @@ void Intake::CoreTeleopPeriodic(){
         case AMP_INTAKE:
             if (m_wrist.ProfileDone())
                 m_wrist.Coast();
-            if (m_channel.GetState() == Channel::OUT){
-
-            } if (m_wrist.GetState() == Wrist::COAST && m_beam1broke){
+            if (m_wrist.GetState() == Wrist::COAST && m_beam1broke){
                 m_rollers.SetStateBuffer(Rollers::RETAIN, INTAKE_WAIT_s);
                 m_wrist.MoveTo(STOWED_POS);
                 m_actionState = NONE;
             }
             break; 
         case PASSTHROUGH:
-            // if (m_wrist.GetState() == Wrist::AT_TARGET)
+            // if (m_wrist.ProfileDone()&& m_wrist.GetSetpt() == INTAKE_POS)
             //     m_wrist.Coast();
-            if (m_wrist.ProfileDone() && InChannel()){    
+            // if (GetBeamBreak1()){
+            //     m_wrist.MoveTo(PASSTHROUGH_POS);
+            //     m_rollers.SetState(Rollers::STOP);
+            // }
+            if (InChannel()){    
                 if (!m_keepIntakeDown) {
                     m_wrist.MoveTo(STOWED_POS);
                 }
@@ -85,6 +90,8 @@ void Intake::CoreTeleopPeriodic(){
         default:
             break;
     }
+
+    // std::cout << "INTAKE PERIODIC END" << std::endl;
 }
 
 void Intake::SetState(ActionState newAction){
@@ -99,22 +106,25 @@ void Intake::SetState(ActionState newAction){
         case STOW:
             newWristPos = STOWED_POS;
             m_rollers.SetState(Rollers::STOP);
+            if (m_channel.GetState() != Channel::RETAIN){
+                m_channel.SetState(Channel::STOP);
+            }
             break; 
         case HALF_STOW:
             newWristPos = HALF_STOW;
             break; 
         case AMP_INTAKE:
             newWristPos = INTAKE_POS;
-            if (InChannel()){
-                m_rollers.SetState(Rollers::OUTTAKE);
-                m_channel.SetState(Channel::OUT);
-            } else {
+            // if (InChannel()){
+            //     m_rollers.SetState(Rollers::OUTTAKE);
+            //     m_channel.SetState(Channel::OUT);
+            // } else {
                 m_rollers.SetState(Rollers::INTAKE);
                 m_channel.SetState(Channel::STOP);
-            }
+            // }
             break; 
         case PASSTHROUGH:
-            newWristPos = INTAKE_POS;
+            newWristPos = PASSTHROUGH_POS;
             m_rollers.SetState(Rollers::INTAKE);
             m_channel.SetState(Channel::ON);
             break; 

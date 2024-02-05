@@ -92,20 +92,20 @@ void Robot::RobotInit() {
   m_odom.ShuffleboardInit();
   m_autoLineup.ShuffleboardInit();
 
-  std::cout << "shuff init succ" << std::endl;
+  // std::cout << "shuff init succ" << std::endl;
 
   m_navx->Reset();
   m_navx->ZeroYaw();
   m_odom.Reset();
 
-  std::cout << "odom init succ" << std::endl;
+  // std::cout << "odom init succ" << std::endl;
 
   m_intake.Init();
-  std::cout << "inake init succ" << std::endl;
+  // std::cout << "inake init succ" << std::endl;
   m_client.Init();
-  std::cout << "client init succ" << std::endl;
+  // std::cout << "client init succ" << std::endl;
   m_swerveController.Init();
-  std::cout << "init success " << std::endl; 
+  // std::cout << "init success " << std::endl; 
   // shooter_.Init();
 }
 
@@ -125,13 +125,13 @@ void Robot::RobotPeriodic() {
   m_odom.ShuffleboardPeriodic();
   m_autoLineup.ShuffleboardPeriodic();
 
-  // if (m_controller.getPressedOnce(ZERO_YAW)) {
-  //   m_navx->Reset();
-  //   m_navx->ZeroYaw();
-  //   m_odom.Reset();
-  //   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
-  //   m_swerveController.ResetFF();
-  // }
+  if (m_controller.getPressedOnce(ZERO_YAW)) {
+    m_navx->Reset();
+    m_navx->ZeroYaw();
+    m_odom.Reset();
+    m_swerveController.ResetAngleCorrection(m_odom.GetAng());
+    m_swerveController.ResetFF();
+  }
 
   #if SWERVE_AUTOTUNING
   m_swerveXTuner.ShuffleboardUpdate();
@@ -174,75 +174,75 @@ void Robot::TeleopInit() {
 
 void Robot::TeleopPeriodic() {
   //Swerve
-  // double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
-  // double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
+  double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
+  double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
 
-  // double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
+  double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
 
-  // int posVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
-  // if (posVal) {
-  //   m_autoLineup.SetTarget(SideHelper::GetManualLineupAng(posVal - 1));
-  // }
+  int posVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
+  if (posVal) {
+    m_autoLineup.SetTarget(SideHelper::GetManualLineupAng(posVal - 1));
+  }
 
-  // double mult = SwerveConstants::NORMAL_SWERVE_MULT;
-  // // // if (m_controller.getPressed(SLOW_MODE)) {
-  // // //   mult = SwerveConstants::SLOW_SWERVE_MULT;
-  // // // }
-  // double vx = std::clamp(lx, -1.0, 1.0) * mult;
-  // double vy = std::clamp(ly, -1.0, 1.0) * mult;
-  // double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
+  double mult = SwerveConstants::NORMAL_SWERVE_MULT;
+  if (m_controller.getPressed(SLOW_MODE)) {
+    mult = SwerveConstants::SLOW_SWERVE_MULT;
+  }
+  double vx = std::clamp(lx, -1.0, 1.0) * mult;
+  double vy = std::clamp(ly, -1.0, 1.0) * mult;
+  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
 
-  // vec::Vector2D setVel = {-vy, -vx};
-  // double curYaw = m_odom.GetAngNorm();
-  // double curJoystickAng = m_odom.GetJoystickAng();
+  vec::Vector2D setVel = {-vy, -vx};
+  double curYaw = m_odom.GetAngNorm();
+  double curJoystickAng = m_odom.GetJoystickAng();
 
-  // m_logger.LogNum("ang input", rx);
-  // m_logger.LogNum("navX ang", m_odom.GetAng());
+  m_logger.LogNum("ang input", rx);
+  m_logger.LogNum("navX ang", m_odom.GetAng());
 
   // auto lineup to amp
-  // if (m_controller.getPressedOnce(AMP_AUTO_LINEUP)) {
-  //   m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
-  //   m_autoLineup.Start();
-  // }
-  //Intake
-  // if(m_controller.getPressedOnce(HALF_STOW)){
-  //   m_intake.HalfStow();
-  // }
-  // if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
-  //   m_amp = true;
-  // }
-  // if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
-  //   m_amp = false;
-  // }
-  // if (m_controller.getPressedOnce(SHOOT)){
-  //   if (m_amp) {
-  //     m_intake.AmpOuttake();
-  //   } else {
-  //     // code shooter later
-  //     // if somehow switched from shooter to amp when in channel
-  //     // HANDLE THIS CASE
-  //   }
-  // }
-  // // else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
-  //   if (m_amp)
-  //   m_intake.AmpIntake();
-  //   else
-  //   m_intake.Passthrough();
-  // } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
-  //   m_intake.Stow();
-  // }
+  if (m_controller.getPressedOnce(AMP_AUTO_LINEUP)) {
+    m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
+    m_autoLineup.Start();
+  }
+  // Intake
+  if(m_controller.getPressedOnce(HALF_STOW)){
+    m_intake.HalfStow();
+  }
+  if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
+    m_amp = true;
+  }
+  if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
+    m_amp = false;
+  }
+  if (m_controller.getPressedOnce(SHOOT)){
+    if (m_amp) {
+      m_intake.AmpOuttake();
+    } else {
+      // code shooter later
+      // if somehow switched from shooter to amp when in channel
+      // HANDLE THIS CASE
+    }
+  }
+  else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
+    if (m_amp)
+      m_intake.AmpIntake();
+    else
+      m_intake.Passthrough();
+  } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
+    m_intake.Stow();
+  }
 
-  // // if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
-  //   double angVel = m_autoLineup.GetAngVel();
-  //   m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
-  // } else {
-  //   m_autoLineup.Stop();
-  //   m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
-  // }
+  if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
+    double angVel = m_autoLineup.GetAngVel();
+    m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
+  } else {
+    m_autoLineup.Stop();
+    m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
+  }
 
-  // m_intake.TeleopPeriodic();
-  // m_swerveController.Periodic();
-  // m_autoLineup.Periodic();
+  m_intake.TeleopPeriodic();
+  m_swerveController.Periodic();
+  m_autoLineup.Periodic();
 }
 
 void Robot::DisabledInit() {}

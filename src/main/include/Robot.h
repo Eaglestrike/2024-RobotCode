@@ -53,7 +53,7 @@ private:
   void ShuffleboardPeriodic();
 
   // Controller
-  // Controller m_controller;
+  Controller m_controller;
 
   // navX (gyroscope)
   AHRS *m_navx;
