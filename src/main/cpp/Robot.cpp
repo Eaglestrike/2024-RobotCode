@@ -21,7 +21,7 @@ Robot::Robot() :
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
-  m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
+  m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ", "wrist volts", "targ pos", "targ vel", "targ acc", "pos", "vel", "acc", "beambreak1","beambreak2"}},
   m_prevIsLogging{false},
   m_autoPath{false, m_swerveController, m_odom},
   m_autoLineup{false, m_odom}

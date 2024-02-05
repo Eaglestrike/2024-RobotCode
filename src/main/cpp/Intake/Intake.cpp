@@ -142,6 +142,11 @@ void Intake::SetState(ActionState newAction){
     m_wrist.MoveTo(newWristPos);
 }
 
+void Intake::Log(FRCLogger& logger) {
+    m_wrist.Log(logger);
+    logger.LogBool("beambreak1", m_beam1broke);
+    logger.LogBool("beambreak2", GetBeamBreak2());
+}
 
 
 // Beambreak stuff

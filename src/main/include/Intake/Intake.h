@@ -3,7 +3,7 @@
 #include <frc/DigitalInput.h>
 
 #include "ShuffleboardSender/ShuffleboardSender.h"
-
+#include "Util/Logger.h"
 #include "Constants/IntakeConstants.h"
 
 #include "Intake/Wrist.h"
@@ -37,6 +37,8 @@ class Intake: public Mechanism{
         bool HasGamePiece();
         bool InChannel();
         bool InIntake();
+
+        void Log(FRCLogger& logger);
 
     private:
         void SetState(ActionState newAction);

@@ -21,10 +21,6 @@ double Wrist::GetPos(){
     return m_curPos;
 }
 
-double Wrist::GetSetpt(){
-    return m_setPt;
-}
-
 // absolute encoder pos in radians
 // double Wrist::GetAbsEncoderPos() {
 //     return -m_wristEncoder.GetAbsolutePosition().GetValueAsDouble() * 18.0 / 66.0 * 2.0 * M_PI + ENCODER_OFFSET;
@@ -77,6 +73,16 @@ void Wrist::CoreTeleopPeriodic(){
 }
 
 
+void Wrist::Log(FRCLogger& logger){
+    logger.LogNum("wrist volts", wristVolts);
+    logger.LogNum("targ pos",  m_trapezoidalProfile.currentPose().pos);
+    logger.LogNum("targ vel",  m_trapezoidalProfile.currentPose().vel);
+    logger.LogNum("targ acc",  m_trapezoidalProfile.currentPose().acc);
+    logger.LogNum("pos",  m_curPos);
+    logger.LogNum("vel",  m_curVel);
+    logger.LogNum("acc",  m_curAcc);
+    
+}
 
 void Wrist::MoveTo(double newpos){
     if (newpos == m_setPt) return;

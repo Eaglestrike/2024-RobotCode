@@ -7,6 +7,7 @@
 #include "Util/TrapezoidalProfile.h"
 #include <ctre/phoenix6/CANcoder.hpp>
 #include "Util/Mechanism.h"
+#include "Util/Logger.h"
 #include "ShuffleboardSender/ShuffleboardSender.h"
 #include "Constants/IntakeConstants.h"
 
@@ -39,7 +40,7 @@ class Wrist: public Mechanism{
         void CoreShuffleboardPeriodic() override;
         void CoreShuffleboardInit() override;
         void MoveTo(double newPos);
-        double GetSetpt();
+        void Log(FRCLogger& logger);
         void Coast();
         void Kill();
         bool ProfileDone();
@@ -67,6 +68,8 @@ class Wrist: public Mechanism{
         MechState m_state = MechState::STOPPED;
 
         //profile vars
+
+        double wristVolts;
         double m_setPt; 
         double m_newSetPt = -1;
         double m_curPos, m_curVel, m_curAcc; // cur pose
