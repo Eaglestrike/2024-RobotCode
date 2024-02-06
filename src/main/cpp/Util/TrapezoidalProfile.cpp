@@ -44,7 +44,7 @@ bool TrapezoidalProfile::setTarget(Poses::Pose1D currPose, Poses::Pose1D finalPo
     timer_.Reset();
     timer_.Start();
     startPose_ = currPose;
-    if((maxAcc_ == 0) || (maxVel_ == 0) || (std::abs(currPose.vel) > maxVel_) || (std::abs(finalPose.vel) > maxVel_)){
+    if((maxAcc_ == 0) || (maxVel_ == 0)/* || (std::abs(currPose.vel) > maxVel_) || (std::abs(finalPose.vel) > maxVel_)*/){
         Zero(currPose); //Should stop if profile is bad
         return false; 
     }
