@@ -40,7 +40,7 @@ void Wrist::CorePeriodic(){
 
 // teleop periodic runs on state machine
 void Wrist::CoreTeleopPeriodic(){
-    double wristVolts = 0;
+    wristVolts = 0;
     switch (m_state){
         case MOVING:
             // bc still using motion profile 
@@ -78,6 +78,7 @@ void Wrist::Log(FRCLogger& logger){
     logger.LogNum("targ pos",  m_trapezoidalProfile.currentPose().pos);
     logger.LogNum("targ vel",  m_trapezoidalProfile.currentPose().vel);
     logger.LogNum("targ acc",  m_trapezoidalProfile.currentPose().acc);
+    logger.LogNum("wrist setpt", m_setPt);
     logger.LogNum("pos",  m_curPos);
     logger.LogNum("vel",  m_curVel);
     logger.LogNum("acc",  m_curAcc);
