@@ -3,7 +3,7 @@
 #include <frc/DigitalInput.h>
 
 #include "ShuffleboardSender/ShuffleboardSender.h"
-
+#include "Util/Logger.h"
 #include "Constants/IntakeConstants.h"
 
 #include "Intake/Wrist.h"
@@ -15,6 +15,7 @@ class Intake: public Mechanism{
         Intake(bool enable, bool dbg);
         enum ActionState{
             STOW, 
+            HALF_STOW,
             AMP_INTAKE, 
             PASSTHROUGH, 
             AMP_OUTTAKE,
@@ -22,21 +23,25 @@ class Intake: public Mechanism{
             NONE
         };
         
-        void SetState(ActionState newAction);
         ActionState GetState();
         void Stow();
+        void HalfStow();
         void Passthrough();
         void AmpOuttake();
         void AmpIntake();
         void FeedIntoShooter();
         // void CoreAutonomousPeriodic() override;
         void KeepIntakeDown(bool intakeDown);
+        void Zero();
 
         bool HasGamePiece();
         bool InChannel();
         bool InIntake();
 
+        void Log(FRCLogger& logger);
+
     private:
+        void SetState(ActionState newAction);
         void CoreInit() override;
         void CorePeriodic() override;
         void CoreTeleopPeriodic() override;
@@ -61,8 +66,9 @@ class Intake: public Mechanism{
         double m_dbTimer = -1;
 
         double STOWED_POS = M_PI / 2,
+        HALF_STOWED_POS = 1.0,
         INTAKE_POS = -0.7, 
-        PASSTHROUGH_POS = INTAKE_POS,
+        PASSTHROUGH_POS = -0.64,
         AMP_OUT_POS = 1.364; // 1.26 
 
         double INTAKE_WAIT_s = 0.1;
@@ -70,6 +76,7 @@ class Intake: public Mechanism{
         double DEBOUNCE_WAIT_s = 2.0;
 
         frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
+        frc::DigitalInput m_beamBreak2{IntakeConstants::BEAM_BREAK2_ID};
 
         ShuffleboardSender m_shuff;
 };

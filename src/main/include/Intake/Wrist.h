@@ -4,8 +4,10 @@
 
 #include <ctre/phoenix6/TalonFX.hpp>
 #include <frc/smartdashboard/SmartDashboard.h>
+#include "Util/TrapezoidalProfile.h"
 #include <ctre/phoenix6/CANcoder.hpp>
 #include "Util/Mechanism.h"
+#include "Util/Logger.h"
 #include "ShuffleboardSender/ShuffleboardSender.h"
 #include "Constants/IntakeConstants.h"
 
@@ -38,6 +40,7 @@ class Wrist: public Mechanism{
         void CoreShuffleboardPeriodic() override;
         void CoreShuffleboardInit() override;
         void MoveTo(double newPos);
+        void Log(FRCLogger& logger);
         void Coast();
         void Kill();
         bool ProfileDone();
@@ -55,27 +58,33 @@ class Wrist: public Mechanism{
         std::string DBGToString();
         void SetVoltage();
         double GetRelPos();
-        double GetAbsEncoderPos();
+        // double GetAbsEncoderPos();
         
         TalonFX m_wristMotor {IntakeConstants::WRIST_MOTOR};
-        CANcoder m_wristEncoder{IntakeConstants::WRIST_ENCODER_CAN_ID};
+        // CANcoder m_wristEncoder{IntakeConstants::WRIST_ENCODER_CAN_ID};
 
         //MEMBER VARS
         //state vars
         MechState m_state = MechState::STOPPED;
 
         //profile vars
+
+        double wristVolts;
         double m_setPt; 
         double m_newSetPt = -1;
         double m_curPos, m_curVel, m_curAcc; // cur pose
-        double m_targetPos = m_setPt, m_targetVel =0 , m_targetAcc = 0; // motion profile 
-        double m_speedDecreasePos, // pos in motion profile where start decelerating
-                m_totalErr = 0; // integral of position error for PID
+        // double m_targetPos = m_setPt, m_targetVel =0 , m_targetAcc = 0; // motion profile 
+        // double m_speedDecreasePos, // pos in motion profile where start decelerating
+               double m_totalErr = 0; // integral of position error for PID
 
         double m_absEncoderInit;
 
         //Shuffleboard
         ShuffleboardSender m_shuff;
+        double MAX_VEL = 20.0, MAX_ACC = 17.0;
+        TrapezoidalProfile m_trapezoidalProfile;
+
+        
         
         #if WRIST_AUTOTUNING
         FFAutotuner m_autoTuner {"Wrist Autotuner", FFAutotuner::ARM};
@@ -87,7 +96,6 @@ class Wrist: public Mechanism{
 
         double MAX_POS = 1.9, MIN_POS = -0.75;
 
-        double MAX_VEL = 20.0, MAX_ACC = 17.0;
         double POS_TOLERANCE = 0.05;
 
         double ENCODER_OFFSET = 1.68 + M_PI/2.0 - 1.3411 + 0.1134;

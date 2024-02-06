@@ -48,11 +48,12 @@ class Rollers : public Mechanism{
     double MAX_VOLTS = 10.0;
     double KEEP_VOLTS = 0.0;
     double IN_VOLTS = -3.0;
+    double BACK_ROLLER_IN_VOLTS = -4.0;
     //amp out
     double OUT_VOLTS = 2.8; // 3.3
 
     //for dbg
     double m_voltReq = 0.0;
 
-    void SetRollerVolts(double volts);
+    void SetRollerVolts(double volts, double v2);
 };

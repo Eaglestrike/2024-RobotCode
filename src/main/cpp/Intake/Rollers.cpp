@@ -29,7 +29,7 @@ Rollers::RollerState Rollers::GetState() {
 }
 
 void Rollers::CoreTeleopPeriodic() {
-    double setVolts = 0;
+    double setVolts = 0, v2 = 0;
 
     if (m_wait != -1){
         m_timer += 0.02;
@@ -42,6 +42,7 @@ void Rollers::CoreTeleopPeriodic() {
     switch (m_state) {
         case INTAKE:
             setVolts = IN_VOLTS;
+            v2 = BACK_ROLLER_IN_VOLTS;
             break;
         case INTAKE_STRONG:
             setVolts = MAX_VOLTS;
@@ -59,8 +60,9 @@ void Rollers::CoreTeleopPeriodic() {
             setVolts = m_voltReq;
             break;
     }
+    if (v2 == 0) v2 = setVolts;
 
-    SetRollerVolts(setVolts);
+    SetRollerVolts(setVolts, v2);
 }
 
 
@@ -70,14 +72,14 @@ void Rollers::SetVoltage(){
 }
 
 void Rollers::StopRollers() {
-    SetRollerVolts(0);
-
+    SetRollerVolts(0, 0);
 }
 
 void Rollers::CoreShuffleboardInit(){
     m_shuff.add("Voltage", &m_voltReq, true);
     m_shuff.addButton("Set Voltage", [&]{SetVoltage();}, {2,1});
-     m_shuff.add("In volts ", &IN_VOLTS, {1,1,0,4}, true);
+    m_shuff.add("In volts ", &IN_VOLTS, {1,1,0,4}, true);
+    m_shuff.add("back in volts ", &BACK_ROLLER_IN_VOLTS, {1,1,0,5}, true);
     m_shuff.add("out volts", &OUT_VOLTS, {1,1,1,4}, true);
     m_shuff.add("keep volts", &KEEP_VOLTS, {1,1,2,4}, true);
 }
@@ -121,8 +123,8 @@ switch(m_state){
 /**
  * Sets roller volts for both motors because FX and sRX differnt versions cannot do leader/follower
 */
-void Rollers::SetRollerVolts(double volts) {
+void Rollers::SetRollerVolts(double volts, double v2) {
     volts = std::clamp(volts, -MAX_VOLTS, MAX_VOLTS);
     m_rollerMotor.SetVoltage(units::volt_t{volts});
-    m_rollerMotorBack.SetVoltage(units::volt_t{volts});
+    m_rollerMotorBack.SetVoltage(units::volt_t{v2});
 }

@@ -21,21 +21,26 @@ Robot::Robot() :
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
-  m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ"}},
+  m_logger{"log", {"wrist volts", "targ pos", "targ vel", "targ acc", "pos", "vel", "acc", "beambreak1","beambreak2", "wrist setpt", "intake state"}},
   m_prevIsLogging{false},
   m_autoPath{false, m_swerveController, m_odom},
   m_autoLineup{false, m_odom}
   {
+
+    std::cout << "hgere 1" << std::endl;
   // navx
   try
   {
     m_navx = new AHRS(frc::SerialPort::kUSB2);
+     std::cout << "navx success" << std::endl;
+
   }
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
   }
 
+ 
   m_logger.SetLogToConsole(true);
 
   AddPeriodic([&](){
@@ -90,11 +95,11 @@ void Robot::RobotInit() {
   m_navx->ZeroYaw();
   m_odom.Reset();
 
+
   m_intake.Init();
   m_climb.Init();
   m_client.Init();
   m_swerveController.Init();
-
   // shooter_.Init();
 }
 
@@ -126,7 +131,6 @@ void Robot::RobotPeriodic() {
   m_swerveXTuner.ShuffleboardUpdate();
   m_swerveYTuner.ShuffleboardUpdate();
   #endif
-
   m_logger.Periodic(Utils::GetCurTimeS());
   m_intake.Periodic();
   m_climb.Periodic();
@@ -194,14 +198,17 @@ void Robot::TeleopPeriodic() {
     m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
     m_autoLineup.Start();
   }
-  //Intake
+  // Intake
+  if(m_controller.getPressedOnce(HALF_STOW)){
+    m_intake.HalfStow();
+  }
   if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
     m_amp = true;
   }
   if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
     m_amp = false;
   }
-  if (m_controller.getPressedOnce(SHOOT)){
+  if (m_controller.getPressed(SHOOT)){
     if (m_amp) {
       m_intake.AmpOuttake();
     } else {
@@ -209,12 +216,11 @@ void Robot::TeleopPeriodic() {
       // if somehow switched from shooter to amp when in channel
       // HANDLE THIS CASE
     }
-  }
-  else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
+  } else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
     if (m_amp)
-    m_intake.AmpIntake();
+      m_intake.AmpIntake();
     else
-    m_intake.Passthrough();
+      m_intake.Passthrough();
   } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
     m_intake.Stow();
   }
@@ -349,6 +355,7 @@ void Robot::ShuffleboardInit() {
  * Shuffleboard Periodic
  */
 void Robot::ShuffleboardPeriodic() {
+  m_intake.Log(m_logger);
   // LOGGING
   {
     bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
