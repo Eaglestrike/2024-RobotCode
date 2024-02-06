@@ -68,7 +68,6 @@ void Wrist::CoreTeleopPeriodic(){
         default:
             wristVolts = 0.0;
     }
-    // std::cout << wristVolts<< std::endl;
     m_wristMotor.SetVoltage(units::volt_t(std::clamp(-wristVolts, -MAX_VOLTS, MAX_VOLTS)));
 }
 
@@ -102,14 +101,10 @@ void Wrist::Coast(){
 
 void Wrist::MoveToSetPt(){
     m_setPt = m_newSetPt;
-    // std::cout << "setting target" << std::endl;
-    // m_trapezoidalProfile.setMaxAcc(MAX_ACC);
-    // m_trapezoidalProfile.setMaxVel(MAX_VEL);
-    m_trapezoidalProfile.setTarget({m_curPos, m_curVel, m_curAcc}, {m_setPt, 0.0, 0.0});
+    double vel = std::clamp(m_curVel, -MAX_VEL, MAX_VEL);
+    double acc = std::clamp(m_curVel, -MAX_ACC, MAX_ACC);
     
-    std::cout << "cur pos " << m_curPos << " cur vel " << m_curVel << " cur acc " << m_curAcc << std::endl;
-    std::cout << "setpt " << m_setPt <<  std::endl;
-    // std::cout << "done setting target" << std::endl;
+    m_trapezoidalProfile.setTarget({m_curPos, vel, acc}, {m_setPt, 0.0, 0.0});
     ResetPID();
     m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
     m_state = MOVING;
@@ -132,8 +127,8 @@ double Wrist::GetRelPos() {
 //Updates the current position, velocity, and acceleration of the wrist
 void Wrist::UpdatePose(){
     double newPos = GetRelPos(); // might need to negate or do some wrap around calculations
-    double newVel = (newPos - m_curPos)/0.02;
-    m_curAcc = (newVel - m_curVel)/0.02;
+    double newVel = -m_wristMotor.GetVelocity().GetValueAsDouble() * 2 * M_PI * REL_CONV_FACTOR;
+    m_curAcc = -m_wristMotor.GetAcceleration().GetValueAsDouble() * 2 * M_PI * REL_CONV_FACTOR;
     m_curVel = newVel;
     m_curPos = newPos;
 }
@@ -141,7 +136,6 @@ void Wrist::UpdatePose(){
 
 //calculates voltage output with feedforwardPID
 double Wrist::FFPIDCalculate(){
-    // std::cout << "GET CUR POSE" << std::endl;
     auto  t= m_trapezoidalProfile.currentPose();
     double targetPos = t.pos, 
     targetVel = t.vel, 
@@ -167,7 +161,6 @@ double Wrist::FFPIDCalculate(){
         m_shuff.PutNumber("pid out", pid); 
     }
 
-    // std::cout << "DONE FFPID CALC" << std::endl;
     return pid+ff;
 }
 

@@ -11,11 +11,8 @@ Intake::Intake(bool enabled, bool dbg):
 
 void Intake::CoreInit(){
     m_rollers.Init();
-    // std::cout << "roller success" << std::endl;
     m_wrist.Init();
-    // std::cout << "wrist success" << std::endl;
     m_channel.Init();
-    // std::cout << "chanmel success" << std::endl;
 }
 
 void Intake::CorePeriodic(){
@@ -35,7 +32,6 @@ void Intake::CoreTeleopPeriodic(){
     m_rollers.TeleopPeriodic();
     m_wrist.TeleopPeriodic();
     m_channel.TeleopPeriodic();
-    // std::cout << "INTAKE PERIODIC" << std::endl;
 
     DebounceBeamBreak1();
     
@@ -90,8 +86,6 @@ void Intake::CoreTeleopPeriodic(){
         default:
             break;
     }
-
-    // std::cout << "INTAKE PERIODIC END" << std::endl;
 }
 
 void Intake::SetState(ActionState newAction){
@@ -145,7 +139,7 @@ void Intake::SetState(ActionState newAction){
 void Intake::Log(FRCLogger& logger) {
     m_wrist.Log(logger);
     logger.LogBool("beambreak1", m_beam1broke);
-    logger.LogNum("state", m_actionState);
+    logger.LogNum("intake state", m_actionState);
     logger.LogBool("beambreak2", GetBeamBreak2());
 }
 

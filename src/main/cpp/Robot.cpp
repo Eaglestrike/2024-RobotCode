@@ -21,7 +21,7 @@ Robot::Robot() :
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
-  m_logger{"log", {"wrist volts", "targ pos", "targ vel", "targ acc", "pos", "vel", "acc", "beambreak1","beambreak2", "wrist setpt"}},
+  m_logger{"log", {"wrist volts", "targ pos", "targ vel", "targ acc", "pos", "vel", "acc", "beambreak1","beambreak2", "wrist setpt", "intake state"}},
   m_prevIsLogging{false},
   m_autoPath{false, m_swerveController, m_odom},
   m_autoLineup{false, m_odom}
@@ -86,26 +86,19 @@ Robot::Robot() :
 }
 
 void Robot::RobotInit() {
-  std::cout << "init start" << std::endl;
   ShuffleboardInit();
   m_autoPath.ShuffleboardInit();
   m_odom.ShuffleboardInit();
   m_autoLineup.ShuffleboardInit();
 
-  // std::cout << "shuff init succ" << std::endl;
-
   m_navx->Reset();
   m_navx->ZeroYaw();
   m_odom.Reset();
 
-  // std::cout << "odom init succ" << std::endl;
 
   m_intake.Init();
-  // std::cout << "inake init succ" << std::endl;
   m_client.Init();
-  // std::cout << "client init succ" << std::endl;
   m_swerveController.Init();
-  // std::cout << "init success " << std::endl; 
   // shooter_.Init();
 }
 
@@ -217,7 +210,6 @@ void Robot::TeleopPeriodic() {
     if (m_amp) {
       m_intake.AmpOuttake();
     } else {
-      // std::cout << "do nothing shoot" << std::endl;
       // code shooter later
       // if somehow switched from shooter to amp when in channel
       // HANDLE THIS CASE
