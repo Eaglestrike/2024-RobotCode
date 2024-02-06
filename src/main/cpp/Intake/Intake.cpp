@@ -145,6 +145,7 @@ void Intake::SetState(ActionState newAction){
 void Intake::Log(FRCLogger& logger) {
     m_wrist.Log(logger);
     logger.LogBool("beambreak1", m_beam1broke);
+    logger.LogNum("state", m_actionState);
     logger.LogBool("beambreak2", GetBeamBreak2());
 }
 

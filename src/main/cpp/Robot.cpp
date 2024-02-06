@@ -21,7 +21,7 @@ Robot::Robot() :
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
-  m_logger{"log", {"ang input", "navX ang", "Unique ID", "Tag ID", "Raw camX", "Raw camY", "Raw angZ", "wrist volts", "targ pos", "targ vel", "targ acc", "pos", "vel", "acc", "beambreak1","beambreak2"}},
+  m_logger{"log", {"wrist volts", "targ pos", "targ vel", "targ acc", "pos", "vel", "acc", "beambreak1","beambreak2", "wrist setpt"}},
   m_prevIsLogging{false},
   m_autoPath{false, m_swerveController, m_odom},
   m_autoLineup{false, m_odom}
@@ -137,7 +137,6 @@ void Robot::RobotPeriodic() {
   m_swerveXTuner.ShuffleboardUpdate();
   m_swerveYTuner.ShuffleboardUpdate();
   #endif
-
   m_logger.Periodic(Utils::GetCurTimeS());
   m_intake.Periodic();
 }
@@ -214,16 +213,16 @@ void Robot::TeleopPeriodic() {
   if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
     m_amp = false;
   }
-  if (m_controller.getPressedOnce(SHOOT)){
+  if (m_controller.getPressed(SHOOT)){
     if (m_amp) {
       m_intake.AmpOuttake();
     } else {
+      // std::cout << "do nothing shoot" << std::endl;
       // code shooter later
       // if somehow switched from shooter to amp when in channel
       // HANDLE THIS CASE
     }
-  }
-  else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
+  } else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
     if (m_amp)
       m_intake.AmpIntake();
     else
@@ -335,6 +334,7 @@ void Robot::ShuffleboardInit() {
  * Shuffleboard Periodic
  */
 void Robot::ShuffleboardPeriodic() {
+  m_intake.Log(m_logger);
   // LOGGING
   {
     bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
