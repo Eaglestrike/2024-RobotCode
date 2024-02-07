@@ -159,7 +159,8 @@ bool Intake::GetBeamBreak1() {
 }
 
 bool Intake::GetBeamBreak2() {
-    return !m_beamBreak2.Get();
+    return false;
+    // return !m_beamBreak2.Get();
 }
 
 bool Intake::DebounceBeamBreak1(){
