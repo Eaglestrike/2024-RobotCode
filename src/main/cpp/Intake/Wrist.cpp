@@ -95,8 +95,8 @@ void Wrist::ChangeSetPt(double newSetpt){
 }
 
 void Wrist::Coast(){
-    m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
-    m_state = COAST;
+    // m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
+    // m_state = COAST;
 }
 
 void Wrist::MoveToSetPt(){
@@ -143,7 +143,6 @@ double Wrist::FFPIDCalculate(){
     double posErr = targetPos - m_curPos, 
     velErr = targetVel - m_curVel;
     m_totalErr += posErr * 0.02;
-            m_shuff.PutNumber("posErr", posErr); 
     if (fabs(posErr) <= POS_TOLERANCE) posErr =0;
     double pid = m_kp*posErr + m_kd*velErr + m_ki*m_totalErr;
     double s = m_s;
@@ -156,6 +155,7 @@ double Wrist::FFPIDCalculate(){
         m_shuff.PutNumber("vel targ", targetVel); 
 
         // m_shuff.PutNumber("posErr", posErr); 
+        m_shuff.PutNumber("posErr", posErr); 
         m_shuff.PutNumber("velErr", velErr); 
         m_shuff.PutNumber("ff out", ff); 
         m_shuff.PutNumber("pid out", pid); 

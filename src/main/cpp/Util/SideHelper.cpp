@@ -1,6 +1,7 @@
 #include "Util/SideHelper.h"
 
 #include <cmath>
+#include <regex>
 
 #include <frc/DriverStation.h>
 
@@ -174,6 +175,25 @@ hm::Hermite<2> SideHelper::GetSplinePos(hm::Hermite<2> inp) {
   }
 
   return res;
+}
+
+/**
+ * Gets path name depending on side
+ * 
+ * @param path Path
+ * 
+ * @returns Path name
+*/
+std::string SideHelper::GetPath(std::string path) {
+  if (IsBlue()) {
+    return path;
+  }
+
+  path = std::regex_replace(path, std::regex{"Left"}, "^^^UNKNOWN&&&");
+  path = std::regex_replace(path, std::regex{"Right"}, "Left");
+  path = std::regex_replace(path, std::regex{"\\^\\^\\^UNKNOWN&&&"}, "Right");
+
+  return path;
 }
 
 /**

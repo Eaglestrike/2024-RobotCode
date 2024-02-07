@@ -56,6 +56,11 @@ class Flywheel : public Mechanism{
         State state_;
         VelocityProfile profile_;
         ShooterConstants::Feedforward feedforward_;
+        ShooterConstants::PID pid_;
+        double accum_;
+        double prevT_;
+
+        double velTol_;
 
         //Shuffleboard
         std::string StateToString(State state);
