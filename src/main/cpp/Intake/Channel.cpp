@@ -17,7 +17,7 @@ m_channelMotor{IntakeConstants::CHANNEL_MOTOR},
 m_kickerMotor{IntakeConstants::KICKER_MOTOR, rev::CANSparkLowLevel::MotorType::kBrushless}{
     m_kickerMotor.RestoreFactoryDefaults();
     m_kickerMotor.SetIdleMode(rev::CANSparkBase::IdleMode::kCoast);
-    m_kickerMotor.SetInverted(true);
+    m_kickerMotor.SetInverted(false);
     // m_channelMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
 }
 
