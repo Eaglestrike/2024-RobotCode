@@ -124,9 +124,11 @@ void Robot::RobotPeriodic() {
   // ZERO CLIMB + INTAKE
   if (m_controller.getPressed(ZERO_1) && m_controller.getPressed(ZERO_2)){
     if (m_controller.getPressedOnce(ZERO_CLIMB)){
+      m_climbZeroed = true;
       m_climb.Zero();
     }
     if (m_controller.getPressedOnce(ZERO_INTAKE)){
+      m_intakeZeroed = true;
       m_intake.Zero();
     }    
   }
@@ -344,6 +346,12 @@ void Robot::ShuffleboardInit() {
     frc::SmartDashboard::PutData("End Position", &m_autoEndChooser);
   }
 
+  // ZERO
+  {
+    frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
+    frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+  }
+
   // DEBUG
   {
     // double navXAngVel = m_odom.GetAngVel();
@@ -389,6 +397,7 @@ void Robot::ShuffleboardPeriodic() {
     m_field.SetRobotPose(frc::Pose2d{units::meter_t{x(pos)}, units::meter_t{y(pos)}, units::radian_t{ang}});
     frc::SmartDashboard::PutData("Robot Field", &m_field);
 
+    // logger
     m_logger.LogBool("Cams Stale", m_client.IsStale());
     m_logger.LogBool("Cams Connected", m_client.HasConn());
     m_logger.LogBool("Tag Detected", m_odom.GetTagDetected());
@@ -397,6 +406,11 @@ void Robot::ShuffleboardPeriodic() {
     m_logger.LogNum("Ang", ang);
   }
 
+  // ZERO
+  {
+    frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
+    frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+  }
 
   // DEBUG
   {
