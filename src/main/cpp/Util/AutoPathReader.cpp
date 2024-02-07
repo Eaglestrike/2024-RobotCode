@@ -30,6 +30,8 @@ AutoPathReader::AutoPathReader(const std::string name)
     }
     ParseLine(line);
   } 
+
+  fin.close();
 }
 
 /**

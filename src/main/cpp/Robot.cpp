@@ -26,8 +26,8 @@ Robot::Robot() :
   m_odom{false},
   m_prevIsLogging{false},
   m_autoLineup{false, m_odom},
-  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, /*m_shooter*/},
-  m_autoChooser{true, m_auto}
+  m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, /*m_shooter*/},
+  m_autoChooser{false, m_auto}
   {
 
   // navx
@@ -71,7 +71,7 @@ Robot::Robot() :
 
       if (tagId != 0 && m_isSecondTag) {
         frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
-        m_odom.UpdateCams({x, y}, tagId, uniqueId, age);   
+        m_odom.UpdateCams({x, y}, tagId, uniqueId, age);
       }
 
       m_isSecondTag = true;
@@ -112,12 +112,23 @@ void Robot::RobotPeriodic() {
   m_odom.ShuffleboardPeriodic();
   m_autoLineup.ShuffleboardPeriodic();
 
+  // ZERO DRIVEBASE
   if (m_controller.getPressedOnce(ZERO_YAW)) {
     m_navx->Reset();
     m_navx->ZeroYaw();
     m_odom.Reset();
     m_swerveController.ResetAngleCorrection(m_odom.GetAng());
     m_swerveController.ResetFF();
+  }
+
+  // ZERO CLIMB + INTAKE
+  if (m_controller.getPressed(ZERO_1) && m_controller.getPressed(ZERO_2)){
+    if (m_controller.getPressedOnce(ZERO_CLIMB)){
+      m_climb.Zero();
+    }
+    if (m_controller.getPressedOnce(ZERO_INTAKE)){
+      m_intake.Zero();
+    }    
   }
 
   #if SWERVE_AUTOTUNING
@@ -222,14 +233,6 @@ void Robot::TeleopPeriodic() {
     } else if (m_controller.getPressedOnce(UNBRAKE)){
       m_climb.ChangeBrake(false);
     }
-  } else if (m_controller.getPressedOnce(ZERO_1) && m_controller.getPressedOnce(ZERO_2)){
-    if (m_controller.getPressedOnce(ZERO_CLIMB)){
-      m_climb.Zero();
-    }
-    // if (m_controller.getPressedOnce(ZERO_INTAKE)){
-    //   m_intake.Zero();
-    // }
-    
   }
   
   if (m_controller.getPOVDownOnce(CLIMB)){

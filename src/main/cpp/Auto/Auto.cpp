@@ -100,9 +100,9 @@ void Auto::AutoInit(){
         for(AutoElement element : paths_[i]){
             if(element.action == DRIVE){
                 segments_.SetAutoPath(element.data);
-                std::cout<<element.data<<std::endl;
+                //std::cout<<element.data<<std::endl;
                 startPos = segments_.GetPos(0.0);
-                std::cout<<"Starting pos " << startPos.toString() <<std::endl;
+                //std::cout<<"Starting pos " << startPos.toString() <<std::endl;
                 i = paths_.size();
                 break;
             }
@@ -255,7 +255,7 @@ void Auto::NextBlock(){
     if(pathNum_ >= (int)paths_.size()){
         return;
     }
-    std::cout<<pathNum_<<" "<<index_<<std::endl;
+    //std::cout<<pathNum_<<" "<<index_<<std::endl;
     AutoPath path = paths_[pathNum_];
     if(index_ >= (int)path.size()){
         pathNum_++;
@@ -264,7 +264,7 @@ void Auto::NextBlock(){
         return;
     }
     AutoElement firstElement = path[index_];
-    std::cout<<"Next block get element"<<std::endl;
+    //std::cout<<"Next block get element"<<std::endl;
 
     ResetTiming(channelTiming_);
     ResetTiming(intakeTiming_);

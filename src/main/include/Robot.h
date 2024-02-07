@@ -68,8 +68,8 @@ class Robot : public frc::TimedRobot {
     //intake
     Intake m_intake {true, false};
 
-  //climb
-  Climb m_climb {true, true};
+    //climb
+    Climb m_climb {true, false};
 
     // Jetson
     #if SWERVE_AUTOTUNING

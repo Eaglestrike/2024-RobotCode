@@ -27,12 +27,12 @@ namespace AutoConstants {
   const double ANG_D = 0.08;
 
   // tolerance for being at target, in m and degrees
-  const double POS_TOL = 0.05;
+  const double POS_TOL = 0.005;
   const double POS_TOL_BIG = 0.1;
-  const double ANG_TOL = Utils::DegToRad(3);
+  const double ANG_TOL = Utils::DegToRad(2);
   const double ANG_TOL_BIG = Utils::DegToRad(5);
 
-  const double JITTER_FILTER = 0.005;
+  // const double JITTER_FILTER = 0.005;
 
   enum AutoType{
     AT_START,

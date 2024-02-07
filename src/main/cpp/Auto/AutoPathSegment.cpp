@@ -175,26 +175,26 @@ void AutoPathSegment::Periodic(){
   double setAngVel = curExpectedAngVel + correctAngVel;
 
   // CALEB FILTER
-  if (AtAngTarget()) {
-    setAngVel = 0;
-  }
+  // if (AtAngTarget()) {
+  //   setAngVel = 0;
+  // }
 
   // JONATHAN FILTER
-  // if (AtAngTarget()) {
-  //   if (!m_isDoneAng) {
-  //     m_isDoneAng = true;
-  //     double aTol = m_shuff.GetNumber("ang tol big", AutoConstants::ANG_TOL_BIG);
-  //     SetAngTol(aTol);
-  //   }
-  //   m_angCorrect.Reset(); // ???
-  //   setAngVel = 0;
-  // } else {
-  //   if (m_isDoneAng) {
-  //     m_isDoneAng = false;
-  //     double aTol = m_shuff.GetNumber("ang tol", AutoConstants::ANG_TOL);
-  //     SetAngTol(aTol);
-  //   }
-  // }
+  if (AtAngTarget()) {
+    if (!m_isDoneAng) {
+      m_isDoneAng = true;
+      double aTol = m_shuff.GetNumber("ang tol big", AutoConstants::ANG_TOL_BIG);
+      SetAngTol(aTol);
+    }
+    m_angCorrect.Reset(); // ???
+    setAngVel = 0;
+  } else {
+    if (m_isDoneAng) {
+      m_isDoneAng = false;
+      double aTol = m_shuff.GetNumber("ang tol", AutoConstants::ANG_TOL);
+      SetAngTol(aTol);
+    }
+  }
 
   Periodic(setAngVel);
 }
@@ -239,27 +239,27 @@ void AutoPathSegment::Periodic(double angVel) {
   vec::Vector2D setVel = curExpectedVel + correctVel;
 
   // JONATHAN FILTER
-  // if (AtPosTarget()) {
-  //   if (!m_isDonePos) {
-  //     m_isDonePos = true;
-  //     double pTol = m_shuff.GetNumber("pos tol big", AutoConstants::POS_TOL_BIG);
-  //     SetDriveTol(pTol);
-  //   }
-  //   m_posCorrectX.Reset(); // ???
-  //   m_posCorrectY.Reset(); // ???
-  //   setVel = {0, 0};
-  // } else {
-  //   if (m_isDonePos) {
-  //     m_isDonePos = false;
-  //     double pTol = m_shuff.GetNumber("pos tol", AutoConstants::POS_TOL);
-  //     SetDriveTol(pTol);
-  //   }
-  // }
+  if (AtPosTarget()) {
+    if (!m_isDonePos) {
+      m_isDonePos = true;
+      double pTol = m_shuff.GetNumber("pos tol big", AutoConstants::POS_TOL_BIG);
+      SetDriveTol(pTol);
+    }
+    m_posCorrectX.Reset(); // ???
+    m_posCorrectY.Reset(); // ???
+    setVel = {0, 0};
+  } else {
+    if (m_isDonePos) {
+      m_isDonePos = false;
+      double pTol = m_shuff.GetNumber("pos tol", AutoConstants::POS_TOL);
+      SetDriveTol(pTol);
+    }
+  }
 
   // CALEB FILTER
-  if(AtPosTarget() && ((curExpectedPos - curPos).magn() < AutoConstants::JITTER_FILTER)){
-    setVel = {0,0};
-  }
+  // if(AtPosTarget() && ((curExpectedPos - curPos).magn() < AutoConstants::JITTER_FILTER)){
+  //   setVel = {0,0};
+  // }
 
   m_swerve.SetRobotVelocity(setVel, angVel, curAng);
 }
