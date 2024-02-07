@@ -66,7 +66,7 @@ class Robot : public frc::TimedRobot {
     SwerveControl m_swerveController{true, false};
 
     //intake
-    Intake m_intake {true, false};
+    Intake m_intake {true, true};
 
     //climb
     Climb m_climb {true, false};
