@@ -23,9 +23,6 @@ void Intake::CorePeriodic(){
 
 
 
-//State machine
-
-
 void Intake::CoreTeleopPeriodic(){
     m_rollers.TeleopPeriodic();
     m_wrist.TeleopPeriodic();
@@ -52,9 +49,13 @@ void Intake::CoreTeleopPeriodic(){
             }
             break; 
         case PASSTHROUGH:
-            if (m_wrist.GetState() == Wrist::AT_TARGET)
-                m_wrist.Coast();
-            else if (/*m_wrist.GetState() == Wrist::COAST &&*/ InChannel()){    
+            // if (m_wrist.ProfileDone()&& m_wrist.GetSetpt() == INTAKE_POS)
+            //     m_wrist.Coast();
+            // if (GetBeamBreak1()){
+            //     m_wrist.MoveTo(PASSTHROUGH_POS);
+            //     m_rollers.SetState(Rollers::STOP);
+            // }
+            if (InChannel()){    
                 if (!m_keepIntakeDown) {
                     m_wrist.MoveTo(STOWED_POS);
                 }
@@ -94,17 +95,25 @@ void Intake::SetState(ActionState newAction){
         case STOW:
             newWristPos = STOWED_POS;
             m_rollers.SetState(Rollers::STOP);
+            if (m_channel.GetState() != Channel::RETAIN){
+                m_channel.SetState(Channel::STOP);
+            }
             break; 
         case HALF_STOW:
             newWristPos = HALF_STOW;
             break; 
         case AMP_INTAKE:
             newWristPos = INTAKE_POS;
-            m_rollers.SetState(Rollers::INTAKE);
-            m_channel.SetState(Channel::STOP);
+            // if (InChannel()){
+            //     m_rollers.SetState(Rollers::OUTTAKE);
+            //     m_channel.SetState(Channel::OUT);
+            // } else {
+                m_rollers.SetState(Rollers::INTAKE);
+                m_channel.SetState(Channel::STOP);
+            // }
             break; 
         case PASSTHROUGH:
-            newWristPos = INTAKE_POS;
+            newWristPos = PASSTHROUGH_POS;
             m_rollers.SetState(Rollers::INTAKE);
             m_channel.SetState(Channel::ON);
             break; 
@@ -122,6 +131,12 @@ void Intake::SetState(ActionState newAction){
     m_wrist.MoveTo(newWristPos);
 }
 
+void Intake::Log(FRCLogger& logger) {
+    m_wrist.Log(logger);
+    logger.LogBool("beambreak1", m_beam1broke);
+    logger.LogNum("intake state", m_actionState);
+    logger.LogBool("beambreak2", GetBeamBreak2());
+}
 
 
 // Beambreak stuff

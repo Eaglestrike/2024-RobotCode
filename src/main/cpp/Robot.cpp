@@ -92,9 +92,10 @@ void Robot::RobotInit() {
   m_odom.Reset();
 
   m_intake.Init();
+  m_climb.Init();
   m_client.Init();
   m_swerveController.Init();
-  //m_shooter.Init();
+  // shooter_.Init();
 }
 
 /**
@@ -117,18 +118,15 @@ void Robot::RobotPeriodic() {
     m_odom.Reset();
     m_swerveController.ResetAngleCorrection(m_odom.GetAng());
     m_swerveController.ResetFF();
-    m_intake.Zero();
   }
 
   #if SWERVE_AUTOTUNING
   m_swerveXTuner.ShuffleboardUpdate();
   m_swerveYTuner.ShuffleboardUpdate();
   #endif
-
   m_logger.Periodic(Utils::GetCurTimeS());
   m_intake.Periodic();
-
-  //m_shooter.Periodic();
+  m_climb.Periodic();
 }
 
 /**
@@ -190,7 +188,7 @@ void Robot::TeleopPeriodic() {
     m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
     m_autoLineup.Start();
   }
-  //Intake
+  // Intake
   if(m_controller.getPressedOnce(HALF_STOW)){
     m_intake.HalfStow();
   }
@@ -200,28 +198,48 @@ void Robot::TeleopPeriodic() {
   if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
     m_amp = false;
   }
-
-  //Shooting (amp or speaker)
-  //m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng());
-  if (m_controller.getPressedOnce(SHOOT)){
+  if (m_controller.getPressed(SHOOT)){
     if (m_amp) {
       m_intake.AmpOuttake();
+    } else {
+      // code shooter later
+      // if somehow switched from shooter to amp when in channel
+      // HANDLE THIS CASE
     }
-    else {
-      // m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue()); //TODO use utils
-      // if(m_shooter.CanShoot(m_odom.GetPos(), m_odom.GetVel(),m_odom.GetAng())){
-      //  m_intake.FeedIntoShooter(); //Shoot when ready
-      // }
-    }
-  }
-  else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
+  } else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
     if (m_amp)
-    m_intake.AmpIntake();
+      m_intake.AmpIntake();
     else
-    m_intake.Passthrough();
+      m_intake.Passthrough();
   } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
     m_intake.Stow();
   }
+  //climb
+  if (m_controller.getTriggerDown(MANUAL_CLIMB_1) && m_controller.getTriggerDown(MANUAL_CLIMB_2)){
+    m_climb.SetManualInput(m_controller.getWithDeadband(MANUAL_CLIMB));
+    if (m_controller.getPressedOnce(BRAKE)){
+      m_climb.ChangeBrake(true);
+    } else if (m_controller.getPressedOnce(UNBRAKE)){
+      m_climb.ChangeBrake(false);
+    }
+  } else if (m_controller.getPressedOnce(ZERO_1) && m_controller.getPressedOnce(ZERO_2)){
+    if (m_controller.getPressedOnce(ZERO_CLIMB)){
+      m_climb.Zero();
+    }
+    // if (m_controller.getPressedOnce(ZERO_INTAKE)){
+    //   m_intake.Zero();
+    // }
+    
+  }
+  
+  if (m_controller.getPOVDownOnce(CLIMB)){
+    m_climb.PullUp();
+  } else if (m_controller.getPOVDownOnce(STOW)){
+    m_climb.Stow();
+  }  else if (m_controller.getPOVDownOnce(EXTEND)){
+    m_climb.Extend();
+  } 
+
 
   if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
     double angVel = m_autoLineup.GetAngVel();
@@ -231,11 +249,10 @@ void Robot::TeleopPeriodic() {
     m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   }
 
+  m_climb.TeleopPeriodic();
   m_intake.TeleopPeriodic();
   m_swerveController.Periodic();
   m_autoLineup.Periodic();
-
-  //m_shooter.TeleopPeriodic();
 }
 
 void Robot::DisabledInit() {}
@@ -342,6 +359,7 @@ void Robot::ShuffleboardInit() {
  * Shuffleboard Periodic
  */
 void Robot::ShuffleboardPeriodic() {
+  m_intake.Log(m_logger);
   // LOGGING
   {
     bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);

@@ -22,6 +22,7 @@
 #include "Controller/Controller.h"
 #include "Drive/AutoAngLineup.h"
 #include "Drive/SwerveControl.h"
+#include "Climb/Climb.h"
 #include "Intake/Intake.h"
 #include "Util/Logger.h"
 #include "Util/Odometry.h"
@@ -51,8 +52,8 @@ class Robot : public frc::TimedRobot {
     void ShuffleboardInit();
     void ShuffleboardPeriodic();
 
-    // Controller
-    Controller m_controller;
+  // Controller
+  Controller m_controller;
 
     // navX (gyroscope)
     AHRS *m_navx;
@@ -66,6 +67,9 @@ class Robot : public frc::TimedRobot {
 
     //intake
     Intake m_intake {true, false};
+
+  //climb
+  Climb m_climb {true, true};
 
     // Jetson
     #if SWERVE_AUTOTUNING

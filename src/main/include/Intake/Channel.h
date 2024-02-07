@@ -15,6 +15,7 @@ class Channel : public Mechanism{
             ON,
             STOP,
             RETAIN,
+            OUT
         };
 
         Channel(bool enabled, bool dbg);
@@ -36,14 +37,17 @@ private:
     double MAX_VOLTS;
     double KEEP_VOLTS;
     double IN_VOLTS;
+    double OUT_VOLTS;
   };
     motorV m_channelInfo = {8.0,
                             0.0,
-                            3.0};
+                            3.0,
+                            -3.0};
 
     motorV m_kickerInfo =  {8.0,
                             0.0,
-                            3.0};
+                            2.0,
+                            -2.0};
     
   //for dbg
    double m_kVoltReq = 0.0;
