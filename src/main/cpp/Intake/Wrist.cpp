@@ -13,7 +13,6 @@ Wrist::Wrist(bool enabled, bool dbg):
 }
 
 void Wrist::Zero() {
-    // m_absEncoderInit = GetAbsEncoderPos();
     m_wristMotor.SetPosition(units::turn_t(0));
 }
 
@@ -21,17 +20,10 @@ double Wrist::GetPos(){
     return m_curPos;
 }
 
-// absolute encoder pos in radians
-// double Wrist::GetAbsEncoderPos() {
-//     return -m_wristEncoder.GetAbsolutePosition().GetValueAsDouble() * 18.0 / 66.0 * 2.0 * M_PI + ENCODER_OFFSET;
-// }
-
-
 // needs to be called INSTEAD of teleop periodic
 void Wrist::ManualPeriodic(double wristVolts){
     m_voltReq = wristVolts;
     SetVoltage();
-    //m_wristMotor.SetVoltage(units::volt_t(std::clamp(-wristVolts, -MAX_VOLTS, MAX_VOLTS)));
 }
 
 void Wrist::CorePeriodic(){
@@ -143,7 +135,6 @@ double Wrist::FFPIDCalculate(){
     double posErr = targetPos - m_curPos, 
     velErr = targetVel - m_curVel;
     m_totalErr += posErr * 0.02;
-            m_shuff.PutNumber("posErr", posErr); 
     if (fabs(posErr) <= POS_TOLERANCE) posErr =0;
     double pid = m_kp*posErr + m_kd*velErr + m_ki*m_totalErr;
     double s = m_s;

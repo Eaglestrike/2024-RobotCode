@@ -50,18 +50,13 @@ class Wrist: public Mechanism{
         void MoveToSetPt();
         void ChangeSetPt(double newPos); //pos should be in radians, w 0 as extended and parallel to ground
         void UpdatePose();
-        void UpdateTargetPose();
         double FFPIDCalculate();
-        void CalcSpeedDecreasePos();
         bool AtSetpoint();
         void ResetPID();
-        std::string DBGToString();
         void SetVoltage();
         double GetRelPos();
-        // double GetAbsEncoderPos();
         
         TalonFX m_wristMotor {IntakeConstants::WRIST_MOTOR};
-        // CANcoder m_wristEncoder{IntakeConstants::WRIST_ENCODER_CAN_ID};
 
         //MEMBER VARS
         //state vars
@@ -73,9 +68,7 @@ class Wrist: public Mechanism{
         double m_setPt; 
         double m_newSetPt = -1;
         double m_curPos, m_curVel, m_curAcc; // cur pose
-        // double m_targetPos = m_setPt, m_targetVel =0 , m_targetAcc = 0; // motion profile 
-        // double m_speedDecreasePos, // pos in motion profile where start decelerating
-               double m_totalErr = 0; // integral of position error for PID
+        double m_totalErr = 0; // integral of position error for PID
 
         double m_absEncoderInit;
 
@@ -83,8 +76,6 @@ class Wrist: public Mechanism{
         ShuffleboardSender m_shuff;
         double MAX_VEL = 20.0, MAX_ACC = 17.0;
         TrapezoidalProfile m_trapezoidalProfile;
-
-        
         
         #if WRIST_AUTOTUNING
         FFAutotuner m_autoTuner {"Wrist Autotuner", FFAutotuner::ARM};
