@@ -123,7 +123,7 @@ void Robot::RobotPeriodic() {
 
   // ZERO CLIMB + INTAKE
   if (m_controller.getPressed(ZERO_1) && m_controller.getPressed(ZERO_2)){
-    if (m_controller.getPressedOnce(ZERO_CLIMB)){
+    if (m_controller.getPressed(ZERO_CLIMB)){
       m_climbZeroed = true;
       m_climb.Zero();
     }

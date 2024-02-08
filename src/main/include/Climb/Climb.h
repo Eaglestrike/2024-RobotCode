@@ -64,10 +64,14 @@ class Climb : public Mechanism{
         State m_state = AT_TARGET;
 
         double m_manualVolts=0;
+        bool m_brakeOverride = false;
         bool m_braking = true;
 
         double m_timer = -1;
-        double WAIT_TIME_S = 0.5;
+        double WAIT_TIME_S = 0.1;
+        double UNRACHET_VOLTS = -3.0; 
+
+        bool m_zeroed = false;
 
         struct StateInfo {
             double TARG_POS;
@@ -78,7 +82,7 @@ class Climb : public Mechanism{
         double  MAX_VOLTS = 7.0, 
                 MIN_POS= 0.0, 
                 MAX_POS= 110.0, 
-                POS_TOLERANCE= 0.0; 
+                POS_TOLERANCE= 0.0;
 
         bool BREAK = true;
 
