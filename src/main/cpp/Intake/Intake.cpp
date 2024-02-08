@@ -1,5 +1,7 @@
 #include "Intake/Intake.h"
 
+#include <algorithm>
+
 Intake::Intake(bool enabled, bool dbg):
     Mechanism("intake", enabled, dbg),
     m_rollers{enabled, dbg},
@@ -22,6 +24,30 @@ void Intake::CorePeriodic(){
 }
 
 
+/**
+ * Sets manual mode for wrist
+ * 
+ * @param manual If should be in manual mode
+*/
+void Intake::SetManual(bool manual) {
+    if (manual) {
+        m_actionState = MANUAL_WRIST;
+    } else {
+        m_actionState = STOW;
+    }
+}
+
+/**
+ * Sets manual input for wrist
+ * 
+ * @param manualInput manual JOYSTICK INPUT to set to wrist
+*/
+void Intake::SetManualInput(double manualInput) {
+    manualInput = std::clamp(manualInput, -1.0, 1.0);
+    manualInput *= m_wrist.GetMaxVolts();
+    m_manualVolts = manualInput;
+}
+
 
 void Intake::CoreTeleopPeriodic(){
     m_rollers.TeleopPeriodic();
@@ -31,6 +57,9 @@ void Intake::CoreTeleopPeriodic(){
     DebounceBeamBreak1();
     
     switch(m_actionState){
+        case MANUAL_WRIST:
+            m_wrist.ManualPeriodic(m_manualVolts);
+            break;
         case STOW:
             if (m_wrist.GetState() == Wrist::AT_TARGET)
                 m_actionState = NONE;

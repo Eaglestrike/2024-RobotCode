@@ -5,6 +5,7 @@
 #include "Robot.h"
 
 #include <iostream>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -231,16 +232,35 @@ void Robot::TeleopPeriodic() {
     m_intake.Stow();
   }
 
-  //climb
-  if (m_controller.getTriggerDown(MANUAL_CLIMB_1) && m_controller.getTriggerDown(MANUAL_CLIMB_2)){
+  // manual
+  if (m_controller.getTriggerDown(MANUAL_1) && m_controller.getTriggerDown(MANUAL_2)){
     m_climb.SetManualInput(m_controller.getWithDeadband(MANUAL_CLIMB));
     if (m_controller.getPressedOnce(BRAKE)){
       m_climb.ChangeBrake(true);
     } else if (m_controller.getPressedOnce(UNBRAKE)){
       m_climb.ChangeBrake(false);
     }
+    m_climbManual = true;
+
+    double wristCtrl = m_controller.getWithDeadband(MANUAL_INTAKE_WRIST);
+    if (std::abs(wristCtrl) > 0.05) {
+      if (!m_wristManual) {
+        m_intake.SetManual(true);
+      }
+      m_wristManual = true;
+    }
+    m_intake.SetManualInput(wristCtrl);
+  } else {
+    if (m_wristManual) {
+      m_intake.SetManual(false);
+      m_intake.SetManualInput(0);
+    }
+
+    m_climbManual = false;
+    m_wristManual = false;
   }
   
+  // climb
   if (m_controller.getPOVDownOnce(CLIMB)){
     m_climb.PullUp();
   } else if (m_controller.getPOVDownOnce(STOW)){
@@ -250,6 +270,7 @@ void Robot::TeleopPeriodic() {
   } 
 
 
+  // auto lineup
   if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
     double angVel = m_autoLineup.GetAngVel();
     m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
@@ -356,6 +377,12 @@ void Robot::ShuffleboardInit() {
     frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
   }
 
+  // MANUAL
+  {
+    frc::SmartDashboard::PutBoolean("Climb Manual", m_climbManual);
+    frc::SmartDashboard::PutBoolean("Wrist Manual", m_wristManual);
+  }
+
   // DEBUG
   {
     // double navXAngVel = m_odom.GetAngVel();
@@ -414,6 +441,12 @@ void Robot::ShuffleboardPeriodic() {
   {
     frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
     frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+  }
+
+  // MANUAL
+  {
+    frc::SmartDashboard::PutBoolean("Climb Manual", m_climbManual);
+    frc::SmartDashboard::PutBoolean("Wrist Manual", m_wristManual);
   }
 
   // DEBUG

@@ -20,6 +20,7 @@ class Intake: public Mechanism{
             PASSTHROUGH, 
             AMP_OUTTAKE,
             FEED_TO_SHOOTER,
+            MANUAL_WRIST,
             NONE
         };
         
@@ -33,6 +34,8 @@ class Intake: public Mechanism{
         // void CoreAutonomousPeriodic() override;
         void KeepIntakeDown(bool intakeDown);
         void Zero();
+        void SetManual(bool manual);
+        void SetManualInput(double manualInput);
 
         bool HasGamePiece();
         bool InChannel();
@@ -74,6 +77,8 @@ class Intake: public Mechanism{
         double INTAKE_WAIT_s = 0.1;
         double OUTTAKE_WAIT_s = 0.5;
         double DEBOUNCE_WAIT_s = 2.0;
+
+        double m_manualVolts = 0;
 
         frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
         frc::DigitalInput m_beamBreak2{IntakeConstants::BEAM_BREAK2_ID};

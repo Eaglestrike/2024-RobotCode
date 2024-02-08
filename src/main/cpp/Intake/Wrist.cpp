@@ -264,3 +264,10 @@ void Wrist::SetVoltage(){
     m_state = CONST_VOLTAGE;
     m_voltReq = std::clamp(m_voltReq, -MAX_VOLTS, MAX_VOLTS);
 }
+
+/**
+ * Gets max volts for wrist
+*/
+double Wrist::GetMaxVolts() {
+    return MAX_VOLTS;
+}
