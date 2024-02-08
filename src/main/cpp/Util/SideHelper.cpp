@@ -225,8 +225,12 @@ hm::Hermite<1> SideHelper::GetSplineAng(hm::Hermite<1> inp) {
  * @returns Manual lineup angle
 */
 double SideHelper::GetManualLineupAng(int idx) {
-  if (idx < 0 || idx >= (int) AutoLineupConstants::BLUE_SHOOT_LOCATIONS.size()) {
-    return 0;
+  if (idx < 0 || idx >= static_cast<int>(AutoLineupConstants::BLUE_SHOOT_LOCATIONS.size())) {
+    return IsBlue() ? M_PI : 0;
+  }
+  
+  if (!IsBlue()) {
+    idx = static_cast<int>(AutoLineupConstants::BLUE_SHOOT_LOCATIONS.size()) - idx - 1;
   }
 
   vec::Vector2D shootPos = GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[idx]);

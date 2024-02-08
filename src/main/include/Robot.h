@@ -103,5 +103,10 @@ class Robot : public frc::TimedRobot {
     frc::SendableChooser<std::string> m_autoChoosers[AutoConstants::POS_ARR_SIZE - 2];
     frc::SendableChooser<std::string> m_autoEndChooser;
 
+    // current buttonboard states
     bool m_amp = true;
+
+    // zerored states
+    bool m_intakeZeroed = false;
+    bool m_climbZeroed = false;
 };

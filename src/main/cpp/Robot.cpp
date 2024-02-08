@@ -124,9 +124,11 @@ void Robot::RobotPeriodic() {
   // ZERO CLIMB + INTAKE
   if (m_controller.getPressed(ZERO_1) && m_controller.getPressed(ZERO_2)){
     if (m_controller.getPressedOnce(ZERO_CLIMB)){
+      m_climbZeroed = true;
       m_climb.Zero();
     }
     if (m_controller.getPressedOnce(ZERO_INTAKE)){
+      m_intakeZeroed = true;
       m_intake.Zero();
     }    
   }
@@ -168,20 +170,22 @@ void Robot::TeleopInit() {
   m_swerveController.SetAngCorrection(true);
   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
   m_swerveController.SetAutoMode(false);
+  m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
 }
 
 void Robot::TeleopPeriodic() {
   // Swerve
   double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
   double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
-
   double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
 
+  // angle lock
   int posVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
   if (posVal) {
     m_autoLineup.SetTarget(SideHelper::GetManualLineupAng(posVal - 1));
   }
 
+  // slow mode
   double mult = SwerveConstants::NORMAL_SWERVE_MULT;
   if (m_controller.getPressed(SLOW_MODE)) {
     mult = SwerveConstants::SLOW_SWERVE_MULT;
@@ -190,15 +194,16 @@ void Robot::TeleopPeriodic() {
   double vy = std::clamp(ly, -1.0, 1.0) * mult;
   double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
 
+  // velocity vectors
   vec::Vector2D setVel = {-vy, -vx};
   double curYaw = m_odom.GetAngNorm();
   double curJoystickAng = m_odom.GetJoystickAng();
 
   // auto lineup to amp
   if (m_controller.getPressedOnce(AMP_AUTO_LINEUP)) {
-    m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
     m_autoLineup.Start();
   }
+
   // Intake
   if(m_controller.getPressedOnce(HALF_STOW)){
     m_intake.HalfStow();
@@ -225,6 +230,7 @@ void Robot::TeleopPeriodic() {
   } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
     m_intake.Stow();
   }
+
   //climb
   if (m_controller.getTriggerDown(MANUAL_CLIMB_1) && m_controller.getTriggerDown(MANUAL_CLIMB_2)){
     m_climb.SetManualInput(m_controller.getWithDeadband(MANUAL_CLIMB));
@@ -344,6 +350,12 @@ void Robot::ShuffleboardInit() {
     frc::SmartDashboard::PutData("End Position", &m_autoEndChooser);
   }
 
+  // ZERO
+  {
+    frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
+    frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+  }
+
   // DEBUG
   {
     // double navXAngVel = m_odom.GetAngVel();
@@ -389,6 +401,7 @@ void Robot::ShuffleboardPeriodic() {
     m_field.SetRobotPose(frc::Pose2d{units::meter_t{x(pos)}, units::meter_t{y(pos)}, units::radian_t{ang}});
     frc::SmartDashboard::PutData("Robot Field", &m_field);
 
+    // logger
     m_logger.LogBool("Cams Stale", m_client.IsStale());
     m_logger.LogBool("Cams Connected", m_client.HasConn());
     m_logger.LogBool("Tag Detected", m_odom.GetTagDetected());
@@ -397,6 +410,11 @@ void Robot::ShuffleboardPeriodic() {
     m_logger.LogNum("Ang", ang);
   }
 
+  // ZERO
+  {
+    frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
+    frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+  }
 
   // DEBUG
   {
