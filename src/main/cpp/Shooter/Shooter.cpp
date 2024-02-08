@@ -45,7 +45,17 @@ void Shooter::CoreTeleopPeriodic(){
     switch(state_){
         case STOP:
             break;
-        case PREPARING:
+        case LOADPIECE:
+            if(hasPiece_){
+                state_ = SHOOT;
+            }
+            break;
+        case SHOOT:
+            if((Utils::GetCurTimeS() - shootTimer_ > shootTimer_) && (!hasPiece_)){
+                Stroll(); //Stroll after shooting (not seeing piece for some time)
+            }
+            break;
+        case STROLL:
             break;
         default:
             break;
@@ -91,6 +101,13 @@ void Shooter::Stroll(){
     rflywheel_.SetVoltage(strollSpeed_);
     pivot_.Stop();
     state_ = STROLL;
+}
+
+/**
+ * Sets pivot down to intake
+*/
+void Shooter::Intake(){
+    pivot_.SetAngle(pivotIntake_);
 }
 
 /**
@@ -147,6 +164,16 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
 }
 
 /**
+ * Sets if there is a game piece loaded into the shooter (beambreak)
+*/
+void Shooter::SetGamepiece(bool hasPiece){
+    hasPiece_ = hasPiece;
+    if(hasPiece){
+        shootTimer_ = Utils::GetCurTimeS(); //Zero timer whenever have piece (timer starts when switches off)
+    }
+}
+
+/**
  * Internal method to shoot at vel, spin and pivot angle
 */
 void Shooter::SetUp(double vel, double spin, double pivot){
@@ -158,7 +185,8 @@ void Shooter::SetUp(double vel, double spin, double pivot){
     rflywheel_.SetTarget(vel + spin);
     pivot_.SetAngle(pivot);
 
-    state_ = PREPARING;
+    state_ = SHOOT;
+    hasShot_ = true;
 }
 
 /**
@@ -215,7 +243,7 @@ Shooter::IKRes Shooter::CalculateInverseKinematics(vec::Vector2D target){
  * Returns if you can shoot
 */
 bool Shooter::CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw){
-    if(state_ != PREPARING){
+    if(state_ != SHOOT){
         return false;
     }
     if((robotPos - targetPos_).magn() < posTol_){
@@ -249,7 +277,8 @@ void Shooter::SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double
 std::string Shooter::StateToString(State state){
     switch(state){
         case STOP: return "Stop";
-        case PREPARING: return "Preparing";
+        case LOADPIECE: return "Load Piece";
+        case SHOOT: return "Shoot";
         case STROLL: return "Stroll";
         default: return "Unknown";
     }
@@ -271,10 +300,13 @@ void Shooter::CoreShuffleboardInit(){
 
     //State (rightside)
     shuff_.PutString("State", StateToString(state_), {2,1,4,0});
+    shuff_.add("Has piece", &hasPiece_, {2,1,4,1}, false);
     shuff_.PutBoolean("Can Shoot", false, {1,1,5,0});
-    shuff_.PutBoolean("FK make it", false, {1,1,6,0});
-    shuff_.PutBoolean("Aimed", false, {1,1,7,0});
-    shuff_.PutString("Shot Error", "", {2,1,6,1});
+
+    // Kinematics
+    // shuff_.PutBoolean("FK make it", false, {1,1,6,0});
+    // shuff_.PutBoolean("Aimed", false, {1,1,7,0});
+    // shuff_.PutString("Shot Error", "", {2,1,6,1});
 
     #if SHOOTER_AUTO_TUNE
     shuff_.add("Lfly Autotune", &lflyTuning_, {1,1,3,1}, true);
@@ -317,12 +349,13 @@ void Shooter::CoreShuffleboardInit(){
 void Shooter::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
     shuff_.PutBoolean("Can Shoot", CanShoot(robotPos_, robotVel_, robotYaw_));
-    
-    vec::Vector2D targ = SideHelper::IsBlue? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
-    FKRes fk = CalculateForwardKinematics(robotPos_, robotVel_, robotYaw_, targ, shot_);
-    shuff_.PutBoolean("FK make it", fk.score);
-    shuff_.PutBoolean("Aimed", fk.aimed);
-    shuff_.PutString("Shot Error", fk.error.toString());
+
+    //Kinematics
+    // vec::Vector2D targ = SideHelper::IsBlue? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
+    // FKRes fk = CalculateForwardKinematics(robotPos_, robotVel_, robotYaw_, targ, shot_);
+    // shuff_.PutBoolean("FK make it", fk.score);
+    // shuff_.PutBoolean("Aimed", fk.aimed);
+    // shuff_.PutString("Shot Error", fk.error.toString());
 
     shuff_.update(true);
 }

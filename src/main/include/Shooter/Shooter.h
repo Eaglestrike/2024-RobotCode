@@ -24,7 +24,8 @@ class Shooter : public Mechanism{
     public:
         enum State{
             STOP,
-            PREPARING,
+            LOADPIECE,
+            SHOOT,
             STROLL //Set to low speed
         };
   
@@ -32,9 +33,11 @@ class Shooter : public Mechanism{
 
         void Stop();
         void Stroll();
+        void Intake();
 
         void SetUp(double vel, double spin, double ang);
         void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker);
+        void SetGamepiece(bool hasPiece);
 
         bool CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);
 
@@ -51,6 +54,7 @@ class Shooter : public Mechanism{
         void CoreShuffleboardPeriodic() override;
 
         State state_;
+        bool hasPiece_;
 
         Flywheel lflywheel_;
         Flywheel rflywheel_;
@@ -62,17 +66,22 @@ class Shooter : public Mechanism{
         std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;
         double kSpin_ = ShooterConstants::K_SPIN;
 
+        double pivotIntake_ = ShooterConstants::PIVOT_INTAKE;
+
+        bool hasShot_;
         ShooterConstants::ShootConfig shot_;
         double spin_;
+        
+        double shootTimer_;
 
         //Odometry Targets
         vec::Vector2D targetPos_;
         vec::Vector2D targetVel_;
         double targetYaw_;
 
-        double posTol_ = ShooterConstants::SHOOT_POS_TOL;
-        double velTol_ = ShooterConstants::SHOOT_VEL_TOL;
-        double yawTol_ = ShooterConstants::SHOOT_YAW_TOL;
+        double posTol_ = ShooterConstants::SHOOT_POS_TOL; //Driving position tolerance
+        double velTol_ = ShooterConstants::SHOOT_VEL_TOL; //Driving velocity tolerance
+        double yawTol_ = ShooterConstants::SHOOT_YAW_TOL; //Driving yaw tolerance
 
         //Debug odom vals
         vec::Vector2D robotPos_;
