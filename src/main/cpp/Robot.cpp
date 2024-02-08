@@ -5,6 +5,7 @@
 #include "Robot.h"
 
 #include <iostream>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -205,51 +206,75 @@ void Robot::TeleopPeriodic() {
   }
 
   // Intake
-  if(m_controller.getPressedOnce(HALF_STOW)){
-    m_intake.HalfStow();
-  }
-  if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
-    m_amp = true;
-  }
-  if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
-    m_amp = false;
-  }
-  if (m_controller.getPressed(SHOOT)){
-    if (m_amp) {
-      m_intake.AmpOuttake();
-    } else {
-      // code shooter later
-      // if somehow switched from shooter to amp when in channel
-      // HANDLE THIS CASE
+  if (!m_wristManual) {
+    if(m_controller.getPressedOnce(HALF_STOW)){
+      m_intake.HalfStow();
     }
-  } else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
-    if (m_amp)
-      m_intake.AmpIntake();
-    else
-      m_intake.Passthrough();
-  } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
-    m_intake.Stow();
+    if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
+      m_amp = true;
+    }
+    if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
+      m_amp = false;
+    }
+    if (m_controller.getPressed(SHOOT)){
+      if (m_amp) {
+        m_intake.AmpOuttake();
+      } else {
+        // code shooter later
+        // if somehow switched from shooter to amp when in channel
+        // HANDLE THIS CASE
+      }
+    } else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
+      if (m_amp)
+        m_intake.AmpIntake();
+      else
+        m_intake.Passthrough();
+    } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
+      m_intake.Stow();
+    }
   }
 
-  //climb
-  if (m_controller.getTriggerDown(MANUAL_CLIMB_1) && m_controller.getTriggerDown(MANUAL_CLIMB_2)){
+  // manual
+  if (m_controller.getTriggerDown(MANUAL_1) && m_controller.getTriggerDown(MANUAL_2)){
     m_climb.SetManualInput(m_controller.getWithDeadband(MANUAL_CLIMB));
     if (m_controller.getPressedOnce(BRAKE)){
       m_climb.ChangeBrake(true);
     } else if (m_controller.getPressedOnce(UNBRAKE)){
       m_climb.ChangeBrake(false);
     }
+    m_climbManual = true;
+
+    double wristCtrl = m_controller.getWithDeadband(MANUAL_INTAKE_WRIST);
+    if (std::abs(wristCtrl) > 0.05) {
+      if (!m_wristManual) {
+        m_intake.SetManual(true);
+      }
+      m_wristManual = true;
+    }
+    m_intake.SetManualInput(wristCtrl);
+  } else {
+    if (m_wristManual) {
+      m_intake.SetManual(false);
+      m_intake.SetManualInput(0);
+    }
+
+    m_climbManual = false;
+    m_wristManual = false;
   }
   
-  if (m_controller.getPOVDownOnce(CLIMB)){
-    m_climb.PullUp();
-  } else if (m_controller.getPOVDownOnce(STOW)){
-    m_climb.Stow();
-  }  else if (m_controller.getPOVDownOnce(EXTEND)){
-    m_climb.Extend();
-  } 
+  // climb
+  if (!m_climbManual) {
+    if (m_controller.getPOVDownOnce(CLIMB)){
+      m_climb.PullUp();
+    } else if (m_controller.getPOVDownOnce(STOW)){
+      m_climb.Stow();
+    }  else if (m_controller.getPOVDownOnce(EXTEND)){
+      m_climb.Extend();
+    } 
+  }
 
 
+  // auto lineup
   if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
     double angVel = m_autoLineup.GetAngVel();
     m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
@@ -356,6 +381,12 @@ void Robot::ShuffleboardInit() {
     frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
   }
 
+  // MANUAL
+  {
+    frc::SmartDashboard::PutBoolean("Climb Manual", m_climbManual);
+    frc::SmartDashboard::PutBoolean("Wrist Manual", m_wristManual);
+  }
+
   // DEBUG
   {
     // double navXAngVel = m_odom.GetAngVel();
@@ -414,6 +445,12 @@ void Robot::ShuffleboardPeriodic() {
   {
     frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
     frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+  }
+
+  // MANUAL
+  {
+    frc::SmartDashboard::PutBoolean("Climb Manual", m_climbManual);
+    frc::SmartDashboard::PutBoolean("Wrist Manual", m_wristManual);
   }
 
   // DEBUG
