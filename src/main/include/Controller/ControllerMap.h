@@ -102,10 +102,10 @@ namespace ControllerMapData{
         {{BUTTONBOARD, B_3}, 3},
         {{BUTTONBOARD, B_4}, 4},
         {{BUTTONBOARD, B_5}, 5},
-        {{BUTTONBOARD, B_6}, 6},
-        {{BUTTONBOARD, B_7}, 7},
-        {{BUTTONBOARD, B_8}, 8},
-        {{BUTTONBOARD, B_9}, 9},
+        // {{BUTTONBOARD, B_6}, 6},
+        // {{BUTTONBOARD, B_7}, 7},
+        // {{BUTTONBOARD, B_8}, 8},
+        // {{BUTTONBOARD, B_9}, 9},
     };
 
      const std::vector<ValueMapElement<int>> GET_LEVEL = {
