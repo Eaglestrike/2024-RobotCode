@@ -33,7 +33,8 @@ void Intake::SetManual(bool manual) {
     if (manual) {
         m_actionState = MANUAL_WRIST;
     } else {
-        m_actionState = STOW;
+        m_wrist.MoveTo(0);
+        Stow();
     }
 }
 
@@ -44,7 +45,7 @@ void Intake::SetManual(bool manual) {
 */
 void Intake::SetManualInput(double manualInput) {
     manualInput = std::clamp(manualInput, -1.0, 1.0);
-    manualInput *= m_wrist.GetMaxVolts();
+    manualInput *= m_wrist.GetMaxVolts() / 2;
     m_manualVolts = manualInput;
 }
 
@@ -252,6 +253,9 @@ void Intake::CoreShuffleboardPeriodic(){
             break;
         case FEED_TO_SHOOTER:
             m_shuff.PutString("State", "Feed to Shooter");
+            break;
+        case MANUAL_WRIST:
+            m_shuff.PutString("State", "Manual Wrist");
             break;
         case NONE:
             m_shuff.PutString("State", "None");

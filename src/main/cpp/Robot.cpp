@@ -206,30 +206,32 @@ void Robot::TeleopPeriodic() {
   }
 
   // Intake
-  if(m_controller.getPressedOnce(HALF_STOW)){
-    m_intake.HalfStow();
-  }
-  if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
-    m_amp = true;
-  }
-  if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
-    m_amp = false;
-  }
-  if (m_controller.getPressed(SHOOT)){
-    if (m_amp) {
-      m_intake.AmpOuttake();
-    } else {
-      // code shooter later
-      // if somehow switched from shooter to amp when in channel
-      // HANDLE THIS CASE
+  if (!m_wristManual) {
+    if(m_controller.getPressedOnce(HALF_STOW)){
+      m_intake.HalfStow();
     }
-  } else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
-    if (m_amp)
-      m_intake.AmpIntake();
-    else
-      m_intake.Passthrough();
-  } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
-    m_intake.Stow();
+    if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
+      m_amp = true;
+    }
+    if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
+      m_amp = false;
+    }
+    if (m_controller.getPressed(SHOOT)){
+      if (m_amp) {
+        m_intake.AmpOuttake();
+      } else {
+        // code shooter later
+        // if somehow switched from shooter to amp when in channel
+        // HANDLE THIS CASE
+      }
+    } else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
+      if (m_amp)
+        m_intake.AmpIntake();
+      else
+        m_intake.Passthrough();
+    } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
+      m_intake.Stow();
+    }
   }
 
   // manual
@@ -261,13 +263,15 @@ void Robot::TeleopPeriodic() {
   }
   
   // climb
-  if (m_controller.getPOVDownOnce(CLIMB)){
-    m_climb.PullUp();
-  } else if (m_controller.getPOVDownOnce(STOW)){
-    m_climb.Stow();
-  }  else if (m_controller.getPOVDownOnce(EXTEND)){
-    m_climb.Extend();
-  } 
+  if (!m_climbManual) {
+    if (m_controller.getPOVDownOnce(CLIMB)){
+      m_climb.PullUp();
+    } else if (m_controller.getPOVDownOnce(STOW)){
+      m_climb.Stow();
+    }  else if (m_controller.getPOVDownOnce(EXTEND)){
+      m_climb.Extend();
+    } 
+  }
 
 
   // auto lineup
