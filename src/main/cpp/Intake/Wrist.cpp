@@ -102,7 +102,7 @@ void Wrist::Coast(){
 void Wrist::MoveToSetPt(){
     m_setPt = m_newSetPt;
     double vel = std::clamp(m_curVel, -MAX_VEL, MAX_VEL);
-    double acc = std::clamp(m_curVel, -MAX_ACC, MAX_ACC);
+    double acc = std::clamp(m_curAcc, -MAX_ACC, MAX_ACC);
     
     m_trapezoidalProfile.setTarget({m_curPos, vel, acc}, {m_setPt, 0.0, 0.0});
     ResetPID();
@@ -263,4 +263,11 @@ void Wrist::ResetPID(){
 void Wrist::SetVoltage(){
     m_state = CONST_VOLTAGE;
     m_voltReq = std::clamp(m_voltReq, -MAX_VOLTS, MAX_VOLTS);
+}
+
+/**
+ * Gets max volts for wrist
+*/
+double Wrist::GetMaxVolts() {
+    return MAX_VOLTS;
 }

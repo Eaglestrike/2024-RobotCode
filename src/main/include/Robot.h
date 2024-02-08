@@ -105,6 +105,8 @@ class Robot : public frc::TimedRobot {
 
     // current buttonboard states
     bool m_amp = true;
+    bool m_wristManual = false;
+    bool m_climbManual = false;
 
     // zerored states
     bool m_intakeZeroed = false;
