@@ -25,10 +25,10 @@ void Climb::CoreTeleopPeriodic(){
             if (m_timer == -1)
                 voltage = info.MOVE_VOLTS;
             else {
-                voltage = -info.MOVE_VOLTS;
+                voltage = UNRACHET_VOLTS;
                 m_timer += 0.02;
                 if (m_timer >= WAIT_TIME_S){
-                    m_timer =-1;
+                    m_timer =-1; //-1 means finished
                 }
             }
             if (AtTarget(info.TARG_POS, (info.MOVE_VOLTS > 0))){
@@ -37,14 +37,32 @@ void Climb::CoreTeleopPeriodic(){
             ReleaseBrake();
             break;
         case AT_TARGET:
+            m_brakeOverride = false; //Default brake override for manual false
             Brake();    
             break;
         case MANUAL:
-            voltage = m_manualVolts;
-             if (m_braking){
-                    Brake();
-                } else{
-                    ReleaseBrake();
+            if (m_pos <= MIN_POS-1 && m_manualVolts < 0) {
+                voltage = 0;
+            } else if (m_pos >= MAX_POS+1 && m_manualVolts > 0) {
+                voltage = 0;
+            } else {
+                voltage = m_manualVolts;
+            }
+
+            if(!m_brakeOverride){ //Automatic braking
+                m_braking = (voltage == 0); //Brake when not applying voltage
+                if((m_timer < WAIT_TIME_S) && (voltage > 0)){//Move down to unratchet
+                    voltage = UNRACHET_VOLTS;
+                }
+                m_timer += 0.02;
+            }
+            if (m_braking){
+                if (voltage > 0) {
+                    voltage = 0;
+                }
+                Brake();
+            } else{
+                ReleaseBrake();
             }
             m_state = AT_TARGET;
             break;
@@ -66,6 +84,7 @@ void Climb::ReleaseBrake(){
 }
 
 void Climb::ChangeBrake(bool brake){
+    m_brakeOverride = true;
     if (!brake){
         // m_timer = 0;
         ReleaseBrake();
@@ -124,9 +143,11 @@ void Climb::SetTarget(Target t){
 
 // should put break on here also 
 void Climb::SetManualInput(double ctrlr){
-    if (m_manualVolts == 0 && ctrlr != 0) m_timer =0;
     ctrlr = std::clamp(-ctrlr, -1.0, 1.0);
     ctrlr *= MAX_VOLTS;
+    if (ctrlr <= 0){ //Reset timer when not moving up
+        m_timer =0;
+    }
     m_manualVolts = ctrlr;
     m_state = MANUAL;
 }
@@ -156,6 +177,9 @@ void Climb::CoreShuffleboardInit(){
     //Extend (row 3)
     m_shuff.add("extend pos", &EXTENDED_INFO.TARG_POS, {1,1,0,3}, true);
     m_shuff.add("extend volts", &EXTENDED_INFO.MOVE_VOLTS, {1,1,1,3}, true);
+
+    // // lock/unlock
+    // m_shuff.add("locking", &m_braking, {1, 1, });
 }
 
 void Climb::CoreShuffleboardPeriodic(){
