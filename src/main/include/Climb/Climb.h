@@ -79,7 +79,8 @@ class Climb : public Mechanism{
         };
 
         //CONSTANTS:
-        double  MAX_VOLTS = 7.0, 
+        double  MANUAL_VOLTS = 7.0,
+                MAX_VOLTS = 10.0, 
                 MIN_POS= 0.0, 
                 MAX_POS= 110.0, 
                 POS_TOLERANCE= 0.0;
@@ -88,9 +89,9 @@ class Climb : public Mechanism{
 
         // double STILL_VOLTS = 0.0 ;
         StateInfo CLIMB_INFO =  {MIN_POS, 
-                                -4.0}; 
+                                -8.0}; 
         StateInfo STOW_INFO =    {MIN_POS, 
-                                -3.0}; // retain volts
+                                -8.0}; // retain volts
         StateInfo EXTENDED_INFO = {MAX_POS-10,
-                                    3.0}; // prob 0
+                                    8.0}; // prob 0
 };

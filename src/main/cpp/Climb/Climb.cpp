@@ -144,7 +144,7 @@ void Climb::SetTarget(Target t){
 // should put break on here also 
 void Climb::SetManualInput(double ctrlr){
     ctrlr = std::clamp(-ctrlr, -1.0, 1.0);
-    ctrlr *= MAX_VOLTS;
+    ctrlr *= MANUAL_VOLTS;
     if (ctrlr <= 0){ //Reset timer when not moving up
         m_timer =0;
     }
@@ -163,6 +163,7 @@ void Climb::CoreShuffleboardInit(){
     m_shuff.add("max volts", &MAX_VOLTS, {1,1,2,0}, true);
     m_shuff.add("tolerance", &POS_TOLERANCE, {1,1,3,0}, true);
      m_shuff.add("manual volt", &m_manualVolts, {1,1,4,0}, false);
+     m_shuff.add("manual multiplier volts", &MANUAL_VOLTS, {1,1,5,0}, true);
      m_shuff.add("timer", &m_timer, {1,1,5,0}, false);
      m_shuff.add("wait time", &WAIT_TIME_S, {1,1,6,0}, true);
 
