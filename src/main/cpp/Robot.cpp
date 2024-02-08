@@ -265,6 +265,7 @@ void Robot::TeleopPeriodic() {
   // climb
   if (!m_climbManual) {
     if (m_controller.getPOVDownOnce(CLIMB)){
+      m_intake.Climb();
       m_climb.PullUp();
     } else if (m_controller.getPOVDownOnce(STOW)){
       m_climb.Stow();

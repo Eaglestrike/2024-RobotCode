@@ -15,6 +15,7 @@ class Intake: public Mechanism{
         Intake(bool enable, bool dbg);
         enum ActionState{
             STOW, 
+            CLIMB,
             HALF_STOW,
             AMP_INTAKE, 
             PASSTHROUGH, 
@@ -26,6 +27,7 @@ class Intake: public Mechanism{
         
         ActionState GetState();
         void Stow();
+        void Climb();
         void HalfStow();
         void Passthrough();
         void AmpOuttake();
