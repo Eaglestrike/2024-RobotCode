@@ -20,12 +20,21 @@
 using namespace Actions;
 
 Robot::Robot() :
+  //Controller
+  m_controller{},
+  //Logger
   m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang"}},
+  m_prevIsLogging{false},
+  //Mechanisms
   m_swerveController{true, false},
+  m_intake{true, true},
+  m_climb{true, false},
+  m_shooter{"Shooter", true, true},
+  //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
-  m_prevIsLogging{false},
+  //Auto
   m_autoLineup{false, m_odom},
   m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, /*m_shooter*/},
   m_autoChooser{false, m_auto}

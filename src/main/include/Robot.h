@@ -52,8 +52,8 @@ class Robot : public frc::TimedRobot {
     void ShuffleboardInit();
     void ShuffleboardPeriodic();
 
-  // Controller
-  Controller m_controller;
+    // Controller
+    Controller m_controller;
 
     // navX (gyroscope)
     AHRS *m_navx;
@@ -63,13 +63,16 @@ class Robot : public frc::TimedRobot {
     bool m_prevIsLogging;
 
     // Swerve
-    SwerveControl m_swerveController{true, false};
+    SwerveControl m_swerveController;
 
     //intake
-    Intake m_intake {true, true};
+    Intake m_intake;
 
     //climb
-    Climb m_climb {true, false};
+    Climb m_climb;
+
+    // Shooter
+    Shooter m_shooter;
 
     // Jetson
     #if SWERVE_AUTOTUNING
@@ -85,9 +88,6 @@ class Robot : public frc::TimedRobot {
     Odometry m_odom;
     frc::Field2d m_field;
     std::string m_prevSelectedStart = "";
-
-    // Shooter
-    Shooter m_shooter{"Shooter", true, true};
 
     // auto lineup
     AutoAngLineup m_autoLineup;
