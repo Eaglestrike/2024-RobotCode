@@ -225,7 +225,7 @@ void Robot::TeleopPeriodic() {
       if (m_amp) {
         m_intake.AmpOuttake(); //Shoot into amp
       } else {
-        m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetAng());  //Shoot into speaker
+        m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
         m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
         m_autoLineup.Start();
         if(m_shooter.CanShoot(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetAng())){
