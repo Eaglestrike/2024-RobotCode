@@ -132,6 +132,11 @@ void Intake::SetState(ActionState newAction){
                 m_channel.SetState(Channel::STOP);
             }
             break; 
+        case CLIMB:
+            newWristPos = INTAKE_POS;
+            m_rollers.SetState(Rollers::STOP);
+            m_channel.SetState(Channel::STOP);
+            break;
         case HALF_STOW:
             newWristPos = HALF_STOW;
             break; 
@@ -260,6 +265,9 @@ void Intake::CoreShuffleboardPeriodic(){
         case MANUAL_WRIST:
             m_shuff.PutString("State", "Manual Wrist");
             break;
+        case CLIMB:
+            m_shuff.PutString("State", "Climb");
+            break;
         case NONE:
             m_shuff.PutString("State", "None");
             break;
@@ -297,6 +305,10 @@ Intake::ActionState Intake::GetState(){
 
 void Intake::Stow(){
     SetState(STOW);
+}
+
+void Intake::Climb(){
+    SetState(CLIMB);
 }
 
 void Intake::HalfStow(){

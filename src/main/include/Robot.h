@@ -66,10 +66,10 @@ class Robot : public frc::TimedRobot {
     SwerveControl m_swerveController{true, false};
 
     //intake
-    Intake m_intake {true, true};
+    Intake m_intake {true, false};
 
     //climb
-    Climb m_climb {true, false};
+    Climb m_climb {true, true};
 
     // Jetson
     #if SWERVE_AUTOTUNING
