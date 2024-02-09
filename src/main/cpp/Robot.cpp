@@ -216,6 +216,7 @@ void Robot::TeleopPeriodic() {
 
   // auto lineup to amp
   if (m_controller.getPressedOnce(AMP_AUTO_LINEUP)) {
+    m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
     m_autoLineup.Start();
   }
 

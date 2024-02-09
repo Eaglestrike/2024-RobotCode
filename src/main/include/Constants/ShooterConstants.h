@@ -63,9 +63,11 @@ namespace ShooterConstants{
     const int PIVOT_CHILD_ID = 37;
 
     const int PIVOT_ENCODER_ID = 15;
+
+    const double PIVOT_GEARING = 12.0/196.0;
     
     const double PIVOT_MIN = 0.35;
-    const double PIVOT_MAX = 1.5;
+    const double PIVOT_MAX = PIVOT_MIN + 0.816988623;
 
     const double PIVOT_MAX_VOLTS = 0.0;
 

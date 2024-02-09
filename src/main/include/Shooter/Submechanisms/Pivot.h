@@ -49,6 +49,8 @@ class Pivot : public Mechanism{
 
         TalonFX motor_;
         TalonFX motorChild_;
+        double gearing_;
+        
         double volts_;
         double maxVolts_;
 

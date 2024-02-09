@@ -20,6 +20,7 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     state_{STOP},
     motor_{ShooterConstants::PIVOT_ID},
     motorChild_{ShooterConstants::PIVOT_CHILD_ID},
+    gearing_{ShooterConstants::PIVOT_GEARING},
     volts_{0.0},
     maxVolts_{ShooterConstants::PIVOT_MAX_VOLTS},
     encoder_{ShooterConstants::PIVOT_ENCODER_ID, ShooterConstants::SHOOTER_CANBUS},
@@ -52,8 +53,8 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
  * Core functions
 */
 void Pivot::CorePeriodic(){
-    double pos = (2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_);
-    double vel = (2*M_PI * encoder_.GetVelocity().GetValueAsDouble()); //Rotations -> Radians
+    double pos = (gearing_ * 2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_);
+    double vel = (gearing_ * 2*M_PI * encoder_.GetVelocity().GetValueAsDouble()); //Rotations -> Radians
     double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
     currPose_ = {pos, vel, acc};
 }
@@ -104,10 +105,10 @@ void Pivot::CoreTeleopPeriodic(){
             break; //Voltage already set through volts_
     }
     volts_ = std::clamp(volts_, -maxVolts_, maxVolts_);
-    if((currPose_.pos > bounds_.max) && (volts_ > 0.0)){
+    if((currPose_.pos > bounds_.max) && (volts_ > ff_.kg*cos(bounds_.max))){
         volts_ = 0.0;
     }
-    else if((currPose_.pos < bounds_.min) && (volts_ < 0.0)){
+    else if((currPose_.pos < bounds_.min) && (volts_ < ff_.kg*cos(bounds_.min))){
         volts_ = 0.0;
     }
     motor_.SetVoltage(units::volt_t{volts_});
