@@ -9,6 +9,7 @@
 #include "Constants/AutoConstants.h"
 #include "Util/AutoPathReader.h"
 #include "Util/Utils.h"
+#include "Util/SideHelper.h"
 
 /**
  * Auto Path Segment constructor
@@ -18,15 +19,33 @@
 */
 AutoPathSegment::AutoPathSegment(bool shuffleboard, SwerveControl &swerve, Odometry &odom)
   : m_shuffleboard{shuffleboard},
-  m_posSpline{1000}, m_angSpline{1000}, m_swerve{swerve}, m_odom{odom}, m_startTime{0},
+  m_spline{.pos{1000}, .ang{1000}},
+  m_swerve{swerve}, m_odom{odom},
+  m_startTime{0},
   m_hasStarted{false},
   m_posCorrectX{{AutoConstants::DRIVE_P, AutoConstants::DRIVE_I, AutoConstants::DRIVE_D}},
   m_posCorrectY{{AutoConstants::DRIVE_P, AutoConstants::DRIVE_I, AutoConstants::DRIVE_D}},
-  m_angCorrect{{AutoConstants::ANG_P, AutoConstants::ANG_I, AutoConstants::ANG_D}}
+  m_angCorrect{{AutoConstants::ANG_P, AutoConstants::ANG_I, AutoConstants::ANG_D}},
+  m_shuff{"Auto Segment", shuffleboard},
+  m_isDonePos{false},
+  m_isDoneAng{false}
 {
   m_posCorrectX.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
   m_posCorrectY.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
   m_angCorrect.SetTolerance(AutoConstants::ANG_TOL, std::numeric_limits<double>::infinity());
+}
+
+/**
+ * Loads auto path
+ * 
+ * @param path Filename of auto path 
+*/
+void AutoPathSegment::LoadAutoPath(const std::string path) {
+  if(m_loadedSplines.find(path) != m_loadedSplines.end()){
+    return;
+  }
+  AutoPathReader reader{path};
+  m_loadedSplines.insert({path, {.pos = reader.GetSplinePos(), .ang = reader.GetSplineAng()}});
 }
 
 /**
@@ -35,9 +54,12 @@ AutoPathSegment::AutoPathSegment(bool shuffleboard, SwerveControl &swerve, Odome
  * @param path Filename of auto path 
 */
 void AutoPathSegment::SetAutoPath(const std::string path) {
-  AutoPathReader reader{path};
-  m_posSpline = reader.GetSplinePos();
-  m_angSpline = reader.GetSplineAng();
+  if(m_loadedSplines.find(path) == m_loadedSplines.end()){
+    LoadAutoPath(path);
+  }
+  m_blueSpline = m_loadedSplines[path];
+  m_spline.pos = SideHelper::GetSplinePos(m_blueSpline.pos);
+  m_spline.ang = SideHelper::GetSplineAng(m_blueSpline.ang);
 }
 
 /**
@@ -45,10 +67,42 @@ void AutoPathSegment::SetAutoPath(const std::string path) {
 */
 void AutoPathSegment::Start() {
   m_startTime = Utils::GetCurTimeS();
+  if(m_spline.pos.getHighestTime() <= 0.0){
+    m_hasStarted = false;
+    return;
+  }
+  
+  m_spline.pos = SideHelper::GetSplinePos(m_blueSpline.pos);
+  m_spline.ang = SideHelper::GetSplineAng(m_blueSpline.ang);
+  
   m_hasStarted = true;
+
+  m_isDonePos = false;
+  m_isDoneAng = false;
+  double pTol = m_shuff.GetNumber("pos tol", AutoConstants::POS_TOL);
+  SetDriveTol(pTol);
+  double aTol = m_shuff.GetNumber("ang tol", AutoConstants::ANG_TOL);
+  SetAngTol(aTol);
+
   m_posCorrectX.Reset();
   m_posCorrectY.Reset();
   m_angCorrect.Reset();
+}
+
+/**
+ * Stops auto path
+*/
+void AutoPathSegment::Stop() {
+  m_hasStarted = false;
+}
+
+/**
+ * Clears the path
+*/
+void AutoPathSegment::Clear(){
+  m_startTime = 0.0;
+  m_spline.pos = {1000};
+  m_spline.ang = {1000};
 }
 
 /**
@@ -94,57 +148,120 @@ void AutoPathSegment::SetAngTol(double tol) {
 }
 
 /**
- * Periodic
+ * Periodic (angular and linear motion)
 */
-void AutoPathSegment::Periodic() {
+void AutoPathSegment::Periodic(){
+  if(!m_hasStarted){
+    return;
+  }
   // get relative time
   double curTimeRel = Utils::GetCurTimeS() - m_startTime;
-  curTimeRel = curTimeRel < 0 ? 0 : (curTimeRel > m_posSpline.getHighestTime() ? m_posSpline.getHighestTime() : curTimeRel);
+  curTimeRel = curTimeRel < 0 ? 0 : (curTimeRel > m_spline.pos.getHighestTime() ? m_spline.pos.getHighestTime() : curTimeRel);
+  
+  //Deal with angular correction
+  const double curExpectedAng = m_spline.ang(curTimeRel)[0];
+  const double curExpectedAngVel = m_spline.ang.getVel(curTimeRel)[0]; // only feedback -> set to 0
+
+  const double curAng = m_odom.GetAng();
+  const double curAngVel = m_swerve.GetRobotAngularVel();
+  
+  Poses::Pose1D angPose = {curAng, curAngVel, 0.0};
+  const double correctAngVel = m_angCorrect.Calculate(angPose, {curExpectedAng, curExpectedAngVel, 0.0});
+
+  if(m_shuffleboard){
+    m_shuff.PutNumber("error ang", curExpectedAng - curAng, {1,1,6,4});
+  }
+  
+  double setAngVel = curExpectedAngVel + correctAngVel;
+
+  // CALEB FILTER
+  // if (AtAngTarget()) {
+  //   setAngVel = 0;
+  // }
+
+  // JONATHAN FILTER
+  if (AtAngTarget()) {
+    if (!m_isDoneAng) {
+      m_isDoneAng = true;
+      double aTol = m_shuff.GetNumber("ang tol big", AutoConstants::ANG_TOL_BIG);
+      SetAngTol(aTol);
+    }
+    m_angCorrect.Reset(); // ???
+    setAngVel = 0;
+  } else {
+    if (m_isDoneAng) {
+      m_isDoneAng = false;
+      double aTol = m_shuff.GetNumber("ang tol", AutoConstants::ANG_TOL);
+      SetAngTol(aTol);
+    }
+  }
+
+  Periodic(setAngVel);
+}
+
+/**
+ * Periodic (only linear motion)
+*/
+void AutoPathSegment::Periodic(double angVel) {
+  if(!m_hasStarted){
+    return;
+  }
+  // get relative time
+  double curTimeRel = Utils::GetCurTimeS() - m_startTime;
+  curTimeRel = curTimeRel < 0 ? 0 : (curTimeRel > m_spline.pos.getHighestTime() ? m_spline.pos.getHighestTime() : curTimeRel);
 
   // get current expected position
-  const vec::Vector2D curExpectedPos = m_posSpline(curTimeRel);
-  const double curExpectedAng = m_angSpline(curTimeRel)[0];
+  const vec::Vector2D curExpectedPos = m_spline.pos(curTimeRel);
 
   // get feed forward velocity 
-  const vec::Vector2D curExpectedVel = m_posSpline.getVel(curTimeRel);
-  const double curExpectedAngVel = m_angSpline.getVel(curTimeRel)[0]; // only feedback -> set to 0
+  const vec::Vector2D curExpectedVel = m_spline.pos.getVel(curTimeRel);
 
   // get current pos
-  const vec::Vector2D curPos = m_odom.GetPos();
   const double curAng = m_odom.GetAng();
+  const vec::Vector2D curPos = m_odom.GetPos();
 
   const vec::Vector2D curVel = m_swerve.GetRobotVelocity(curAng);
-  const double curAngVel = m_swerve.GetRobotAngularVel();
 
   Poses::Pose1D xPose = {curPos.x(), curVel.x(), 0.0};
   Poses::Pose1D yPose = {curPos.y(), curVel.y(), 0.0};
-  Poses::Pose1D angPose = {curAng, curAngVel, 0.0};
 
   // get correction velocity
   const double correctVelX = m_posCorrectX.Calculate(xPose, {curExpectedPos.x(), curExpectedVel.x(), 0.0});
   const double correctVelY = m_posCorrectY.Calculate(yPose, {curExpectedPos.y(), curExpectedVel.y(), 0.0});
-  const double correctAngVel = m_angCorrect.Calculate(angPose, {curExpectedAng, curExpectedAngVel, 0.0});
   const vec::Vector2D correctVel = {correctVelX, correctVelY};
 
   if (m_shuffleboard) {
-    frc::SmartDashboard::PutNumber("error x", curExpectedPos.x() - curPos.x());
-    frc::SmartDashboard::PutNumber("error y", curExpectedPos.y() - curPos.y());
-    frc::SmartDashboard::PutNumber("error ang", curExpectedAng - curAng);
+    m_shuff.PutNumber("error x", curExpectedPos.x() - curPos.x(), {1,1,4,4});
+    m_shuff.PutNumber("error y", curExpectedPos.y() - curPos.y(), {1,1,5,4});
   }
 
   // set velocity to swerve
   vec::Vector2D setVel = curExpectedVel + correctVel;
-  double setAngVel = curExpectedAngVel + correctAngVel;
 
+  // JONATHAN FILTER
   if (AtPosTarget()) {
+    if (!m_isDonePos) {
+      m_isDonePos = true;
+      double pTol = m_shuff.GetNumber("pos tol big", AutoConstants::POS_TOL_BIG);
+      SetDriveTol(pTol);
+    }
+    m_posCorrectX.Reset(); // ???
+    m_posCorrectY.Reset(); // ???
     setVel = {0, 0};
+  } else {
+    if (m_isDonePos) {
+      m_isDonePos = false;
+      double pTol = m_shuff.GetNumber("pos tol", AutoConstants::POS_TOL);
+      SetDriveTol(pTol);
+    }
   }
 
-  if (AtAngTarget()) {
-    setAngVel = 0;
-  }
+  // CALEB FILTER
+  // if(AtPosTarget() && ((curExpectedPos - curPos).magn() < AutoConstants::JITTER_FILTER)){
+  //   setVel = {0,0};
+  // }
 
-  m_swerve.SetRobotVelocity(setVel, setAngVel, curAng);
+  m_swerve.SetRobotVelocity(setVel, angVel, curAng);
 }
 
 /**
@@ -158,6 +275,26 @@ void AutoPathSegment::Periodic() {
 */
 double AutoPathSegment::GetProgress() const {
   return std::clamp(GetAbsProgress(), 0.0, 1.0);
+}
+
+/**
+ * Gets the duration of the path
+ * 
+ * @returns the total time elapsed by the path
+*/
+double AutoPathSegment::GetDuration() const {
+  return m_spline.pos.getHighestTime() - m_spline.pos.getLowestTime();
+}
+
+/**
+ * Gets the position at time t
+ * 
+ * @param t non-relative time (utils frame)
+*/
+vec::Vector2D AutoPathSegment::GetPos(double t) const{
+  double timeRel = t - m_startTime;
+  timeRel = timeRel < 0 ? 0 : (timeRel > m_spline.pos.getHighestTime() ? m_spline.pos.getHighestTime() : timeRel);
+  return m_spline.pos.getPos(timeRel);
 }
 
 /**
@@ -232,7 +369,7 @@ bool AutoPathSegment::AtTarget() const {
  * @returns Abs progress
 */
 double AutoPathSegment::GetAbsProgress() const {
-  double endTime = m_posSpline.getHighestTime();
+  double endTime = m_spline.pos.getHighestTime();
   double curRelTime = Utils::GetCurTimeS() - m_startTime;
 
   return curRelTime / endTime;
@@ -243,16 +380,18 @@ void AutoPathSegment::ShuffleboardInit() {
     return;
   }
 
-  frc::SmartDashboard::PutNumber("trans kP", AutoConstants::DRIVE_P);
-  frc::SmartDashboard::PutNumber("trans kI", AutoConstants::DRIVE_I);
-  frc::SmartDashboard::PutNumber("trans kD", AutoConstants::DRIVE_D);
+  m_shuff.PutNumber("trans kP", AutoConstants::DRIVE_P, {1,1,0,0});
+  m_shuff.PutNumber("trans kI", AutoConstants::DRIVE_I, {1,1,1,0});
+  m_shuff.PutNumber("trans kD", AutoConstants::DRIVE_D, {1,1,2,0});
 
-  frc::SmartDashboard::PutNumber("turn kP", AutoConstants::ANG_P);
-  frc::SmartDashboard::PutNumber("turn kI", AutoConstants::ANG_I);
-  frc::SmartDashboard::PutNumber("turn kD", AutoConstants::ANG_D);
+  m_shuff.PutNumber("turn kP", AutoConstants::ANG_P, {1,1,0,1});
+  m_shuff.PutNumber("turn kI", AutoConstants::ANG_I, {1,1,1,1});
+  m_shuff.PutNumber("turn kD", AutoConstants::ANG_D, {1,1,2,1});
 
-  frc::SmartDashboard::PutNumber("pos tol", AutoConstants::POS_TOL);
-  frc::SmartDashboard::PutNumber("ang tol", AutoConstants::ANG_TOL);
+  m_shuff.PutNumber("pos tol", AutoConstants::POS_TOL, {1,1,0,2});
+  m_shuff.PutNumber("ang tol", AutoConstants::ANG_TOL, {1,1,1,2});
+  m_shuff.PutNumber("pos tol big", AutoConstants::POS_TOL_BIG, {1,1,2,2});
+  m_shuff.PutNumber("ang tol big", AutoConstants::ANG_TOL_BIG, {1,1,3,2});
 }
 
 void AutoPathSegment::ShuffleboardPeriodic() {
@@ -260,22 +399,22 @@ void AutoPathSegment::ShuffleboardPeriodic() {
     return;
   }
 
-  double kP = frc::SmartDashboard::GetNumber("trans kP", AutoConstants::DRIVE_P);
-  double kI = frc::SmartDashboard::GetNumber("trans kI", AutoConstants::DRIVE_I);
-  double kD = frc::SmartDashboard::GetNumber("trans kD", AutoConstants::DRIVE_D);
-
+  double kP = m_shuff.GetNumber("trans kP", AutoConstants::DRIVE_P);
+  double kI = m_shuff.GetNumber("trans kI", AutoConstants::DRIVE_I);
+  double kD = m_shuff.GetNumber("trans kD", AutoConstants::DRIVE_D);
   SetDrivePID(kP, kI, kD);
 
-  double wkP =  frc::SmartDashboard::GetNumber("turn kP", AutoConstants::ANG_P);
-  double wkI =  frc::SmartDashboard::GetNumber("turn kI", AutoConstants::ANG_I);
-  double wkD =  frc::SmartDashboard::GetNumber("turn kD", AutoConstants::ANG_D);
-
+  double wkP =  m_shuff.GetNumber("turn kP", AutoConstants::ANG_P);
+  double wkI =  m_shuff.GetNumber("turn kI", AutoConstants::ANG_I);
+  double wkD =  m_shuff.GetNumber("turn kD", AutoConstants::ANG_D);
   SetAngPID(wkP, wkI, wkD);
 
-  double pTol = frc::SmartDashboard::GetNumber("pos tol", AutoConstants::POS_TOL);
+  double pTol = m_shuff.GetNumber("pos tol", AutoConstants::POS_TOL);
   SetDriveTol(pTol);
-  double aTol = frc::SmartDashboard::GetNumber("ang tol", AutoConstants::ANG_TOL);
+  double aTol = m_shuff.GetNumber("ang tol", AutoConstants::ANG_TOL);
   SetAngTol(aTol);
 
-  frc::SmartDashboard::PutBoolean("At Target", AtTarget());
+  m_shuff.PutBoolean("At Target", AtTarget(), {3,3,5,0});
+
+  m_shuff.update(true);
 }

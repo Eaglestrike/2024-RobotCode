@@ -1,6 +1,7 @@
 #include "Util/SideHelper.h"
 
 #include <cmath>
+#include <regex>
 
 #include <frc/DriverStation.h>
 
@@ -177,6 +178,25 @@ hm::Hermite<2> SideHelper::GetSplinePos(hm::Hermite<2> inp) {
 }
 
 /**
+ * Gets path name depending on side
+ * 
+ * @param path Path
+ * 
+ * @returns Path name
+*/
+std::string SideHelper::GetPath(std::string path) {
+  if (IsBlue()) {
+    return path;
+  }
+
+  path = std::regex_replace(path, std::regex{"Left"}, "^^^UNKNOWN&&&");
+  path = std::regex_replace(path, std::regex{"Right"}, "Left");
+  path = std::regex_replace(path, std::regex{"\\^\\^\\^UNKNOWN&&&"}, "Right");
+
+  return path;
+}
+
+/**
  * Gets ang spline, and mirror it to red if we are red
  * 
  * @param inp Input spline
@@ -205,8 +225,12 @@ hm::Hermite<1> SideHelper::GetSplineAng(hm::Hermite<1> inp) {
  * @returns Manual lineup angle
 */
 double SideHelper::GetManualLineupAng(int idx) {
-  if (idx < 0 || idx >= (int) AutoLineupConstants::BLUE_SHOOT_LOCATIONS.size()) {
-    return 0;
+  if (idx < 0 || idx >= static_cast<int>(AutoLineupConstants::BLUE_SHOOT_LOCATIONS.size())) {
+    return IsBlue() ? M_PI : 0;
+  }
+  
+  if (!IsBlue()) {
+    idx = static_cast<int>(AutoLineupConstants::BLUE_SHOOT_LOCATIONS.size()) - idx - 1;
   }
 
   vec::Vector2D shootPos = GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[idx]);

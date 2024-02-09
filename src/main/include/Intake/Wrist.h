@@ -46,6 +46,8 @@ class Wrist: public Mechanism{
         bool ProfileDone();
         double GetPos();
         MechState GetState();
+
+        double GetMaxVolts();
     private:
         void MoveToSetPt();
         void ChangeSetPt(double newPos); //pos should be in radians, w 0 as extended and parallel to ground

@@ -23,7 +23,8 @@ namespace SideHelper {
   double GetJoystickAng();
   double GetManualLineupAng(int idx);
 
-  // TODO check if these work
+  std::string GetPath(std::string path);
+
   hm::Hermite<2> GetSplinePos(hm::Hermite<2> inp);
   hm::Hermite<1> GetSplineAng(hm::Hermite<1> inp);
 }

@@ -1,5 +1,7 @@
 #include "Intake/Intake.h"
 
+#include <algorithm>
+
 Intake::Intake(bool enabled, bool dbg):
     Mechanism("intake", enabled, dbg),
     m_rollers{enabled, dbg},
@@ -22,11 +24,31 @@ void Intake::CorePeriodic(){
 }
 
 
-
-//State machine
-void Intake::Zero(){
-    m_wrist.Zero();
+/**
+ * Sets manual mode for wrist
+ * 
+ * @param manual If should be in manual mode
+*/
+void Intake::SetManual(bool manual) {
+    if (manual) {
+        m_actionState = MANUAL_WRIST;
+    } else {
+        m_wrist.MoveTo(0);
+        Stow();
+    }
 }
+
+/**
+ * Sets manual input for wrist
+ * 
+ * @param manualInput manual JOYSTICK INPUT to set to wrist
+*/
+void Intake::SetManualInput(double manualInput) {
+    manualInput = std::clamp(manualInput, -1.0, 1.0);
+    manualInput *= m_wrist.GetMaxVolts() / 2;
+    m_manualVolts = manualInput;
+}
+
 
 void Intake::CoreTeleopPeriodic(){
     m_rollers.TeleopPeriodic();
@@ -36,6 +58,9 @@ void Intake::CoreTeleopPeriodic(){
     DebounceBeamBreak1();
     
     switch(m_actionState){
+        case MANUAL_WRIST:
+            m_wrist.ManualPeriodic(m_manualVolts);
+            break;
         case STOW:
             if (m_wrist.GetState() == Wrist::AT_TARGET)
                 m_actionState = NONE;
@@ -47,7 +72,7 @@ void Intake::CoreTeleopPeriodic(){
         case AMP_INTAKE:
             if (m_wrist.ProfileDone())
                 m_wrist.Coast();
-            if (m_wrist.GetState() == Wrist::COAST && m_beam1broke){
+            if (/*m_wrist.GetState() == Wrist::COAST && */m_beam1broke){
                 m_rollers.SetStateBuffer(Rollers::RETAIN, INTAKE_WAIT_s);
                 m_wrist.MoveTo(STOWED_POS);
                 m_actionState = NONE;
@@ -164,7 +189,8 @@ bool Intake::GetBeamBreak1() {
 }
 
 bool Intake::GetBeamBreak2() {
-    return !m_beamBreak2.Get();
+    return false;
+    // return !m_beamBreak2.Get();
 }
 
 bool Intake::DebounceBeamBreak1(){
@@ -183,6 +209,12 @@ bool Intake::DebounceBeamBreak1(){
     return m_beam1broke;
 }
 
+/**
+ * Zeros wrist
+*/
+void Intake::Zero(){
+    m_wrist.Zero();
+}
 
 
 //DEBUG
@@ -221,6 +253,9 @@ void Intake::CoreShuffleboardPeriodic(){
             break;
         case FEED_TO_SHOOTER:
             m_shuff.PutString("State", "Feed to Shooter");
+            break;
+        case MANUAL_WRIST:
+            m_shuff.PutString("State", "Manual Wrist");
             break;
         case NONE:
             m_shuff.PutString("State", "None");

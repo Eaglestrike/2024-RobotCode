@@ -8,6 +8,8 @@
 #include "Util/PID.h"
 #include "Util/Poses.h"
 
+#include "ShuffleboardSender/ShuffleboardSender.h"
+
 namespace hm = hermite;
 
 /**
@@ -22,8 +24,11 @@ public:
 
   void Start();
   void Periodic();
+  void Periodic(double angVel);
   void Stop();
+  void Clear();
 
+  void LoadAutoPath(const std::string path);
   void SetAutoPath(const std::string path);
   void SetDrivePID(double kP, double kI, double kD);
   void SetAngPID(double kP, double kI, double kD);
@@ -31,6 +36,8 @@ public:
   void SetAngTol(double tol);
 
   double GetProgress() const;
+  double GetDuration() const;
+  vec::Vector2D GetPos(double t) const;
   bool IsDoneHermite() const;
   bool AtPosTarget() const;
   bool AtAngTarget() const;
@@ -40,8 +47,13 @@ private:
 
   bool m_shuffleboard;
 
-  hm::Hermite<2> m_posSpline;
-  hm::Hermite<1> m_angSpline;
+  struct SwerveSpline{
+    hm::Hermite<2> pos;
+    hm::Hermite<1> ang;
+  } m_spline;
+  SwerveSpline m_blueSpline;
+
+  std::map<std::string, SwerveSpline> m_loadedSplines;
 
   SwerveControl &m_swerve;
   Odometry &m_odom;
@@ -51,4 +63,9 @@ private:
   PID m_posCorrectX;
   PID m_posCorrectY;
   PID m_angCorrect;
+
+  ShuffleboardSender m_shuff;
+
+  bool m_isDonePos;
+  bool m_isDoneAng;
 };

@@ -5,6 +5,9 @@
 #include "Robot.h"
 
 #include <iostream>
+#include <cmath>
+#include <string>
+#include <vector>
 
 #include <fmt/core.h>
 #include <frc/smartdashboard/SmartDashboard.h>
@@ -17,32 +20,31 @@
 using namespace Actions;
 
 Robot::Robot() :
+  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang"}},
   m_swerveController{true, false},
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
-  m_logger{"log", {"wrist volts", "targ pos", "targ vel", "targ acc", "pos", "vel", "acc", "beambreak1","beambreak2", "wrist setpt", "intake state"}},
   m_prevIsLogging{false},
-  m_autoPath{false, m_swerveController, m_odom},
-  m_autoLineup{false, m_odom}
+  m_autoLineup{false, m_odom},
+  m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, /*m_shooter*/},
+  m_autoChooser{false, m_auto}
   {
 
-    std::cout << "hgere 1" << std::endl;
   // navx
   try
   {
     m_navx = new AHRS(frc::SerialPort::kUSB2);
-     std::cout << "navx success" << std::endl;
-
   }
   catch (const std::exception &e)
   {
     std::cerr << e.what() << std::endl;
   }
 
- 
+  // logger
   m_logger.SetLogToConsole(true);
 
+  // Periodic fast
   AddPeriodic([&](){
     // update drivebase odometry
     double curAng = m_navx->GetAngle();
@@ -71,11 +73,6 @@ Robot::Robot() :
       if (tagId != 0 && m_isSecondTag) {
         frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
         m_odom.UpdateCams({x, y}, tagId, uniqueId, age);
-        
-        m_logger.LogNum("Raw camX", x);
-        m_logger.LogNum("Raw camY", y);
-        m_logger.LogNum("Unique ID", uniqueId);
-        m_logger.LogNum("Tag ID", tagId);
       }
 
       m_isSecondTag = true;
@@ -87,14 +84,13 @@ Robot::Robot() :
 
 void Robot::RobotInit() {
   ShuffleboardInit();
-  m_autoPath.ShuffleboardInit();
+  m_auto.ShuffleboardInit();
   m_odom.ShuffleboardInit();
   m_autoLineup.ShuffleboardInit();
 
   m_navx->Reset();
   m_navx->ZeroYaw();
   m_odom.Reset();
-
 
   m_intake.Init();
   m_climb.Init();
@@ -112,19 +108,30 @@ void Robot::RobotInit() {
  * LiveWindow and SmartDashboard integrated updating.
  */
 void Robot::RobotPeriodic() {
-  // shooter_.Periodic();
-
   ShuffleboardPeriodic();
-  m_autoPath.ShuffleboardPeriodic();
+  m_auto.ShuffleboardPeriodic();
   m_odom.ShuffleboardPeriodic();
   m_autoLineup.ShuffleboardPeriodic();
 
+  // ZERO DRIVEBASE
   if (m_controller.getPressedOnce(ZERO_YAW)) {
     m_navx->Reset();
     m_navx->ZeroYaw();
     m_odom.Reset();
     m_swerveController.ResetAngleCorrection(m_odom.GetAng());
     m_swerveController.ResetFF();
+  }
+
+  // ZERO CLIMB + INTAKE
+  if (m_controller.getPressed(ZERO_1) && m_controller.getPressed(ZERO_2)){
+    if (m_controller.getPressed(ZERO_CLIMB)){
+      m_climbZeroed = true;
+      m_climb.Zero();
+    }
+    if (m_controller.getPressedOnce(ZERO_INTAKE)){
+      m_intakeZeroed = true;
+      m_intake.Zero();
+    }    
   }
 
   #if SWERVE_AUTOTUNING
@@ -151,33 +158,35 @@ void Robot::AutonomousInit() {
   m_swerveController.SetAngCorrection(false);
   m_swerveController.SetAutoMode(true);
   
-  m_autoPath.Start();
+  m_auto.AutoInit();
 }
 
 void Robot::AutonomousPeriodic() {
-  frc::SmartDashboard::PutNumber("percent done", m_autoPath.GetProgress() * 100);
-
-  m_autoPath.Periodic();
+  m_auto.AutoPeriodic();
   m_swerveController.Periodic();
+  m_intake.TeleopPeriodic();
 }
 
 void Robot::TeleopInit() {
   m_swerveController.SetAngCorrection(true);
+  m_swerveController.ResetAngleCorrection(m_odom.GetAng());
   m_swerveController.SetAutoMode(false);
+  m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
 }
 
 void Robot::TeleopPeriodic() {
-  //Swerve
+  // Swerve
   double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
   double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
-
   double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
 
+  // angle lock
   int posVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
   if (posVal) {
     m_autoLineup.SetTarget(SideHelper::GetManualLineupAng(posVal - 1));
   }
 
+  // slow mode
   double mult = SwerveConstants::NORMAL_SWERVE_MULT;
   if (m_controller.getPressed(SLOW_MODE)) {
     mult = SwerveConstants::SLOW_SWERVE_MULT;
@@ -186,71 +195,86 @@ void Robot::TeleopPeriodic() {
   double vy = std::clamp(ly, -1.0, 1.0) * mult;
   double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
 
+  // velocity vectors
   vec::Vector2D setVel = {-vy, -vx};
   double curYaw = m_odom.GetAngNorm();
   double curJoystickAng = m_odom.GetJoystickAng();
 
-  m_logger.LogNum("ang input", rx);
-  m_logger.LogNum("navX ang", m_odom.GetAng());
-
   // auto lineup to amp
   if (m_controller.getPressedOnce(AMP_AUTO_LINEUP)) {
-    m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
     m_autoLineup.Start();
   }
+
   // Intake
-  if(m_controller.getPressedOnce(HALF_STOW)){
-    m_intake.HalfStow();
-  }
-  if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
-    m_amp = true;
-  }
-  if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
-    m_amp = false;
-  }
-  if (m_controller.getPressed(SHOOT)){
-    if (m_amp) {
-      m_intake.AmpOuttake();
-    } else {
-      // code shooter later
-      // if somehow switched from shooter to amp when in channel
-      // HANDLE THIS CASE
+  if (!m_wristManual) {
+    if(m_controller.getPressedOnce(HALF_STOW)){
+      m_intake.HalfStow();
     }
-  } else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
-    if (m_amp)
-      m_intake.AmpIntake();
-    else
-      m_intake.Passthrough();
-  } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
-    m_intake.Stow();
+    if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
+      m_amp = true;
+    }
+    if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
+      m_amp = false;
+    }
+    if (m_controller.getPressed(SHOOT)){
+      if (m_amp) {
+        m_intake.AmpOuttake();
+      } else {
+        // code shooter later
+        // if somehow switched from shooter to amp when in channel
+        // HANDLE THIS CASE
+      }
+    } else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
+      if (m_amp)
+        m_intake.AmpIntake();
+      else
+        m_intake.Passthrough();
+    } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
+      m_intake.Stow();
+    }
   }
-  //climb
-  if (m_controller.getTriggerDown(MANUAL_CLIMB_1) && m_controller.getTriggerDown(MANUAL_CLIMB_2)){
+
+  // manual
+  if (m_controller.getTriggerDown(MANUAL_1) && m_controller.getTriggerDown(MANUAL_2)){
     m_climb.SetManualInput(m_controller.getWithDeadband(MANUAL_CLIMB));
     if (m_controller.getPressedOnce(BRAKE)){
       m_climb.ChangeBrake(true);
     } else if (m_controller.getPressedOnce(UNBRAKE)){
       m_climb.ChangeBrake(false);
     }
-  } else if (m_controller.getPressedOnce(ZERO_1) && m_controller.getPressedOnce(ZERO_2)){
-    if (m_controller.getPressedOnce(ZERO_CLIMB)){
-      m_climb.Zero();
+    m_climbManual = true;
+
+    double wristCtrl = m_controller.getWithDeadband(MANUAL_INTAKE_WRIST);
+    if (std::abs(wristCtrl) > 0.05) {
+      if (!m_wristManual) {
+        m_intake.SetManual(true);
+      }
+      m_wristManual = true;
     }
-    // if (m_controller.getPressedOnce(ZERO_INTAKE)){
-    //   m_intake.Zero();
-    // }
-    
+    m_intake.SetManualInput(wristCtrl);
+  } else {
+    if (m_wristManual) {
+      m_intake.SetManual(false);
+      m_intake.SetManualInput(0);
+    }
+
+    m_climbManual = false;
+    m_wristManual = false;
   }
   
-  if (m_controller.getPOVDownOnce(CLIMB)){
-    m_climb.PullUp();
-  } else if (m_controller.getPOVDownOnce(STOW)){
-    m_climb.Stow();
-  }  else if (m_controller.getPOVDownOnce(EXTEND)){
-    m_climb.Extend();
-  } 
+  // climb
+  if (!m_climbManual) {
+    if (m_controller.getPOVDownOnce(CLIMB)){
+      m_climb.PullUp();
+    } else if (m_controller.getPOVDownOnce(STOW)){
+      m_climb.Stow();
+    }  else if (m_controller.getPOVDownOnce(EXTEND)){
+      m_climb.Extend();
+    } 
+  }
 
 
+  // auto lineup
   if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
     double angVel = m_autoLineup.GetAngVel();
     m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
@@ -268,19 +292,26 @@ void Robot::TeleopPeriodic() {
 void Robot::DisabledInit() {}
 
 void Robot::DisabledPeriodic() {
-  // STARTING POS
+  // STARTING POS + AUTO CHOOSER
   {
-    std::string selected = m_startChooser.GetSelected();
-    AutoConstants::StartPose startPos = SideHelper::GetStartingPose(selected);
+    std::string selectedStart = m_startChooser.GetSelected();
+    AutoConstants::StartPose startPos = SideHelper::GetStartingPose(selectedStart);
     double joystickAng = SideHelper::GetJoystickAng();
-    m_odom.SetStartingConfig(startPos.pos, startPos.ang, joystickAng);
-  }
+    if (selectedStart != m_prevSelectedStart) {
+      m_odom.SetStartingConfig(startPos.pos, startPos.ang, joystickAng);
+    }
+    m_prevSelectedStart = selectedStart;
 
-  // AUTO
-  {
-    std::string selected = m_autoPathChooser.GetSelected();
-    selected += ".csv";
-    m_autoPath.SetAutoPath(selected);
+    std::string end = m_autoEndChooser.GetSelected();
+
+    std::vector<std::string> selects;
+    selects.push_back(selectedStart);
+    for(int i = 0; i < AutoConstants::POS_ARR_SIZE - 2; i++){
+      std::string path = m_autoChoosers[i].GetSelected();
+      selects.push_back(path);
+    }
+    selects.push_back(end);
+    m_autoChooser.ProcessChoosers(selects);
   }
 }
 
@@ -322,23 +353,42 @@ void Robot::ShuffleboardInit() {
 
   // STARTING POS
   {
-    m_startChooser.SetDefaultOption("Middle", "Middle");
-    m_startChooser.AddOption("Left", "Left");
-    m_startChooser.AddOption("Middle", "Middle");
-    m_startChooser.AddOption("Right", "Right");
+    m_startChooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_startChooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+    m_startChooser.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_startChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
     frc::SmartDashboard::PutData("Starting Position", &m_startChooser);
+
+    for(int i = 0; i < AutoConstants::POS_ARR_SIZE - 2; i++){
+      m_autoChoosers[i].SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
+      frc::SmartDashboard::PutData("Auto " + std::to_string(i+1), &(m_autoChoosers[i]));
+    }
+ 
+    m_autoEndChooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_autoEndChooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
+    m_autoEndChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
+    m_autoEndChooser.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
+    frc::SmartDashboard::PutData("End Position", &m_autoEndChooser);
+  }
+
+  // ZERO
+  {
+    frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
+    frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+  }
+
+  // MANUAL
+  {
+    frc::SmartDashboard::PutBoolean("Climb Manual", m_climbManual);
+    frc::SmartDashboard::PutBoolean("Wrist Manual", m_wristManual);
   }
 
   // DEBUG
   {
-    if (AutoConstants::DEPLOY_FILES.size() > 0) {
-      m_autoPathChooser.SetDefaultOption(AutoConstants::DEPLOY_FILES[0], AutoConstants::DEPLOY_FILES[0]);
-    }
-    for (std::string fname : AutoConstants::DEPLOY_FILES) {
-      m_autoPathChooser.AddOption(fname, fname);
-    }
-    frc::SmartDashboard::PutData("Auto Spline Chooser", &m_autoPathChooser);
-
     // double navXAngVel = m_odom.GetAngVel();
     // double wheelAngVel = m_swerveController.GetRobotAngularVel();
 
@@ -378,6 +428,29 @@ void Robot::ShuffleboardPeriodic() {
 
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
+
+    m_field.SetRobotPose(frc::Pose2d{units::meter_t{x(pos)}, units::meter_t{y(pos)}, units::radian_t{ang}});
+    frc::SmartDashboard::PutData("Robot Field", &m_field);
+
+    // logger
+    m_logger.LogBool("Cams Stale", m_client.IsStale());
+    m_logger.LogBool("Cams Connected", m_client.HasConn());
+    m_logger.LogBool("Tag Detected", m_odom.GetTagDetected());
+    m_logger.LogNum("Pos X", pos.x());
+    m_logger.LogNum("Pos Y", pos.y());
+    m_logger.LogNum("Ang", ang);
+  }
+
+  // ZERO
+  {
+    frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
+    frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+  }
+
+  // MANUAL
+  {
+    frc::SmartDashboard::PutBoolean("Climb Manual", m_climbManual);
+    frc::SmartDashboard::PutBoolean("Wrist Manual", m_wristManual);
   }
 
   // DEBUG

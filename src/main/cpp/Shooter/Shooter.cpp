@@ -1,14 +1,12 @@
 #include "Shooter/Shooter.h"
+#include "Util/SideHelper.h"
 
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
     state_{STOP},
     lflywheel_{ShooterConstants::LEFT_FLYWHEEL, enabled, shuffleboard},
     rflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, shuffleboard},
-    pivot_{"Pivot", enabled, shuffleboard},
-    strollSpeed_{ShooterConstants::STROLL_SPEED},
-    shootData_{ShooterConstants::SHOOT_DATA},
-    kSpin_{ShooterConstants::K_SPIN},
+    pivot_{"Pivot", enabled, false},
     shuff_{name, shuffleboard}
 
     #if SHOOTER_AUTO_TUNE
@@ -48,11 +46,6 @@ void Shooter::CoreTeleopPeriodic(){
         case STOP:
             break;
         case PREPARING:
-            if(lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget()){
-                state_ = PREPARED;
-            }
-            break;
-        case PREPARED:
             break;
         default:
             break;
@@ -105,9 +98,20 @@ void Shooter::Stroll(){
  * 
  * @param toSpeaker field-oriented vector to the speaker 
 */
-void Shooter::Prepare(vec::Vector2D toSpeaker){
+void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
+    targetPos_ = robotPos;
+    targetVel_ = robotVel;
+
+    vec::Vector2D toSpeaker;
+    if(blueSpeaker){
+        toSpeaker = ShooterConstants::BLUE_SPEAKER - targetPos_;
+    }
+    else{
+        toSpeaker = ShooterConstants::RED_SPEAKER - targetPos_;
+    }
+
     double dist = toSpeaker.magn();
-    double ang = toSpeaker.angle();
+    targetYaw_ = toSpeaker.angle();
 
     auto shot = shootData_.lower_bound(dist);
     if(shot == shootData_.begin() || shot == shootData_.end()){ //No shot in data (too far or too close)
@@ -130,7 +134,14 @@ void Shooter::Prepare(vec::Vector2D toSpeaker){
     double shotVel = percent*lowerShot.vel + upperPercent*upperShot.vel;
 
     //Add spin
-    double spin = -ang * kSpin_; //Spin opposite to way pointing
+    double angToSpeaker = targetYaw_;
+    if(angToSpeaker > M_PI/2.0){
+        angToSpeaker -= M_PI;
+    }
+    if(angToSpeaker < -M_PI/2.0){
+        angToSpeaker += M_PI;
+    }
+    double spin = -angToSpeaker * kSpin_; //Spin opposite to way pointing
 
     SetUp(shotVel, spin, pivotAng);
 }
@@ -139,6 +150,10 @@ void Shooter::Prepare(vec::Vector2D toSpeaker){
  * Internal method to shoot at vel, spin and pivot angle
 */
 void Shooter::SetUp(double vel, double spin, double pivot){
+    shot_.vel = vel;
+    shot_.ang = pivot;
+    spin_ = spin;
+
     lflywheel_.SetTarget(vel - spin);
     rflywheel_.SetTarget(vel + spin);
     pivot_.SetAngle(pivot);
@@ -147,17 +162,94 @@ void Shooter::SetUp(double vel, double spin, double pivot){
 }
 
 /**
+ * Calculates the forward kinematics of the shot
+ * 
+ * Returns if it will make the shot and how much off
+*/
+Shooter::FKRes Shooter::CalculateForwardKinematics(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw, vec::Vector2D target, ShooterConstants::ShootConfig shot){
+    const FKRes miss{
+        .score = false,
+        .aimed = false,
+        .error = ShooterConstants::ABSOLUTE_MISS
+    };
+
+    FKRes res;
+    vec::Vector2D toTarget = target - robotPos;
+
+    vec::Vector2D shotVel{cos(robotYaw), sin(robotYaw)};
+    shotVel *= shot.vel * cos(shot.ang);
+    shotVel += robotVel;
+
+    if(shotVel.x() == 0.0){
+        return miss;
+    }
+
+    double t = toTarget.x()/shotVel.x();
+    if(t < 0.0){
+        return miss;
+    }
+
+    res.error.x(toTarget.y() - (shotVel.y() * t)); // error = target - v*t
+
+    double z = -9.81/2.0*t*t + shot.vel*sin(shot.ang)*t + ShooterConstants::SHOOTER_HEIGHT;
+    res.error.y(ShooterConstants::SPEAKER_CENTER - z);
+
+    res.score = (abs(res.error.x()) < ShooterConstants::SPEAKER_WIDTH/2.0) && 
+                (abs(res.error.y()) < ShooterConstants::SPEAKER_HEIGHT/2.0); //If it makes it into the box
+    res.aimed  = true;
+    return res;
+}
+
+/**
+ * Calculate inverse kinematics of a shot
+ * 
+ * target -> shot
+*/
+Shooter::IKRes Shooter::CalculateInverseKinematics(vec::Vector2D target){ 
+    IKRes res;
+
+    return res;
+}
+
+/**
  * Returns if you can shoot
 */
-bool Shooter::CanShoot(){
-    return state_ == PREPARED;
+bool Shooter::CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw){
+    if(state_ != PREPARING){
+        return false;
+    }
+    if((robotPos - targetPos_).magn() < posTol_){
+        return false;
+    }
+    if((robotVel - targetVel_).magn() < velTol_){
+        return false;
+    }
+    if((robotYaw - targetYaw_) < yawTol_){
+        return false;
+    }
+    return lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget();
+}
+
+/**
+ * Returns ideal robot angle
+*/
+double Shooter::GetTargetRobotYaw(){
+    return targetYaw_;
+}
+
+/**
+ * Debug odometry
+*/
+void Shooter::SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw){
+    robotPos_ = robotPos;
+    robotVel_ = robotVel;
+    robotYaw_ = robotYaw;
 }
 
 std::string Shooter::StateToString(State state){
     switch(state){
         case STOP: return "Stop";
         case PREPARING: return "Preparing";
-        case PREPARED: return "Prepared";
         case STROLL: return "Stroll";
         default: return "Unknown";
     }
@@ -179,6 +271,10 @@ void Shooter::CoreShuffleboardInit(){
 
     //State (rightside)
     shuff_.PutString("State", StateToString(state_), {2,1,4,0});
+    shuff_.PutBoolean("Can Shoot", false, {1,1,5,0});
+    shuff_.PutBoolean("FK make it", false, {1,1,6,0});
+    shuff_.PutBoolean("Aimed", false, {1,1,7,0});
+    shuff_.PutString("Shot Error", "", {2,1,6,1});
 
     #if SHOOTER_AUTO_TUNE
     shuff_.add("Lfly Autotune", &lflyTuning_, {1,1,3,1}, true);
@@ -210,10 +306,23 @@ void Shooter::CoreShuffleboardInit(){
 
     //KSpin (row 3)
     shuff_.add("kSpin", &kSpin_, {1,1,0,3}, true);
+
+    //Tolerance (row 4)
+    shuff_.add("pos tol", &posTol_, {1,1,0,4}, true);
+    shuff_.add("vel tol", &velTol_, {1,1,1,4}, true);
+    shuff_.add("yaw tol", &yawTol_, {1,1,2,4}, true);
+
 }
 
 void Shooter::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
+    shuff_.PutBoolean("Can Shoot", CanShoot(robotPos_, robotVel_, robotYaw_));
+    
+    vec::Vector2D targ = SideHelper::IsBlue? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
+    FKRes fk = CalculateForwardKinematics(robotPos_, robotVel_, robotYaw_, targ, shot_);
+    shuff_.PutBoolean("FK make it", fk.score);
+    shuff_.PutBoolean("Aimed", fk.aimed);
+    shuff_.PutString("Shot Error", fk.error.toString());
 
     shuff_.update(true);
 }

@@ -87,14 +87,14 @@ void Wrist::ChangeSetPt(double newSetpt){
 }
 
 void Wrist::Coast(){
-    m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
-    m_state = COAST;
+    // m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
+    // m_state = COAST;
 }
 
 void Wrist::MoveToSetPt(){
     m_setPt = m_newSetPt;
     double vel = std::clamp(m_curVel, -MAX_VEL, MAX_VEL);
-    double acc = std::clamp(m_curVel, -MAX_ACC, MAX_ACC);
+    double acc = std::clamp(m_curAcc, -MAX_ACC, MAX_ACC);
     
     m_trapezoidalProfile.setTarget({m_curPos, vel, acc}, {m_setPt, 0.0, 0.0});
     ResetPID();
@@ -147,6 +147,7 @@ double Wrist::FFPIDCalculate(){
         m_shuff.PutNumber("vel targ", targetVel); 
 
         // m_shuff.PutNumber("posErr", posErr); 
+        m_shuff.PutNumber("posErr", posErr); 
         m_shuff.PutNumber("velErr", velErr); 
         m_shuff.PutNumber("ff out", ff); 
         m_shuff.PutNumber("pid out", pid); 
@@ -254,4 +255,11 @@ void Wrist::ResetPID(){
 void Wrist::SetVoltage(){
     m_state = CONST_VOLTAGE;
     m_voltReq = std::clamp(m_voltReq, -MAX_VOLTS, MAX_VOLTS);
+}
+
+/**
+ * Gets max volts for wrist
+*/
+double Wrist::GetMaxVolts() {
+    return MAX_VOLTS;
 }

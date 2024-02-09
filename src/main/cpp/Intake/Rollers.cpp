@@ -126,5 +126,5 @@ switch(m_state){
 void Rollers::SetRollerVolts(double volts, double v2) {
     volts = std::clamp(volts, -MAX_VOLTS, MAX_VOLTS);
     m_rollerMotor.SetVoltage(units::volt_t{volts});
-    m_rollerMotorBack.SetVoltage(units::volt_t{v2});
+    m_rollerMotorBack.SetVoltage(units::volt_t{-v2});
 }

@@ -23,9 +23,10 @@ namespace AutoLineupConstants {
 
   const std::vector<vec::Vector2D> BLUE_SHOOT_LOCATIONS = 
   {
-    {0.722, 4.706}, // R under speaker
-    {1.313, 5.733}, // M under speaker
-    {0.636, 6.921}, // L under speaker
-    {2.798, 4.295}  // safe zone
+    {1.842, 7.861}, // safe zone by source
+    {0.636, 6.921}, // L under speaker on blue
+    {1.313, 5.733}, // M under speaker on blue
+    {0.722, 4.706}, // R under speaker on blue
+    {2.798, 4.295}  // safe zone on podium
   };
 }
