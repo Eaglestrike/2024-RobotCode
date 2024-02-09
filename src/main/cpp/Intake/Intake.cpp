@@ -58,6 +58,12 @@ void Intake::CoreTeleopPeriodic(){
     DebounceBeamBreak1();
     
     switch(m_actionState){
+         case FEED_TO_SHOOTER:
+            if(!InChannel){
+                m_channel.SetState(Channel::RETAIN);
+                m_actionState = NONE;
+            }
+            return;
         case MANUAL_WRIST:
             m_wrist.ManualPeriodic(m_manualVolts);
             break;
@@ -79,12 +85,9 @@ void Intake::CoreTeleopPeriodic(){
             }
             break; 
         case PASSTHROUGH:
-            // if (m_wrist.ProfileDone()&& m_wrist.GetSetpt() == INTAKE_POS)
-            //     m_wrist.Coast();
-            // if (GetBeamBreak1()){
-            //     m_wrist.MoveTo(PASSTHROUGH_POS);
-            //     m_rollers.SetState(Rollers::STOP);
-            // }
+            if (m_wrist.ProfileDone() && m_rollers.GetState() == Rollers::STOP){
+                m_rollers.SetState(Rollers::INTAKE);
+            }
             if (InChannel()){    
                 if (!m_keepIntakeDown) {
                     m_wrist.MoveTo(STOWED_POS);
@@ -134,17 +137,16 @@ void Intake::SetState(ActionState newAction){
             break; 
         case AMP_INTAKE:
             newWristPos = INTAKE_POS;
-            // if (InChannel()){
-            //     m_rollers.SetState(Rollers::OUTTAKE);
-            //     m_channel.SetState(Channel::OUT);
-            // } else {
-                m_rollers.SetState(Rollers::INTAKE);
-                m_channel.SetState(Channel::STOP);
-            // }
+            m_rollers.SetState(Rollers::INTAKE);
+            m_channel.SetState(Channel::STOP);
             break; 
         case PASSTHROUGH:
             newWristPos = PASSTHROUGH_POS;
-            m_rollers.SetState(Rollers::INTAKE);
+            if (InIntake()){
+                m_rollers.SetState(Rollers::RETAIN);
+            } else{
+                m_rollers.SetState(Rollers::INTAKE);
+            }
             m_channel.SetState(Channel::IN);
             break; 
         case AMP_OUTTAKE:
@@ -152,8 +154,7 @@ void Intake::SetState(ActionState newAction){
             newWristPos = AMP_OUT_POS;
             break;
         case FEED_TO_SHOOTER:
-            m_channel.SetState(Channel::THRU);
-            m_actionState = NONE;
+            m_channel.SetState(Channel::IN);
             return;
         default:
             return;
@@ -184,14 +185,16 @@ bool Intake::InIntake(){
     return m_beam1broke;
 }
 
+
 bool Intake::GetBeamBreak1() {
     return !m_beamBreak1.Get();
 }
 
 bool Intake::GetBeamBreak2() {
-    return false;
-    // return !m_beamBreak2.Get();
+    // return false;
+    return !m_beamBreak2.Get();
 }
+
 
 bool Intake::DebounceBeamBreak1(){
      if (m_dbTimer == -1){

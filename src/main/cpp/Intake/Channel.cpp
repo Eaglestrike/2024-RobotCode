@@ -31,10 +31,10 @@ void Channel::CoreTeleopPeriodic() {
     switch (m_state) {
         case IN:
             kickerV = m_kickerInfo.IN_VOLTS;
-            // channelV = m_channelInfo.KEEP_VOLTS;
+            channelV = m_channelInfo.IN_VOLTS;
             break;
         case THRU:
-            kickerV = m_kickerInfo.IN_VOLTS;
+            // kickerV = m_kickerInfo.IN_VOLTS;
             channelV = m_channelInfo.IN_VOLTS;
             break;
         case RETAIN:
