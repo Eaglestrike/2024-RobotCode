@@ -46,12 +46,13 @@ void Shooter::CoreTeleopPeriodic(){
         case STOP:
             break;
         case LOADPIECE:
-            if(hasPiece_){
-                state_ = SHOOT;
+            if(hasPiece_ && hasShot_){
+                SetUp(shot_.vel, spin_, shot_.ang); //Reload
             }
             break;
         case SHOOT:
-            if((Utils::GetCurTimeS() - shootTimer_ > shootTimer_) && (!hasPiece_)){
+            if((!hasPiece_) && (Utils::GetCurTimeS() - shootTimer_ > shootTimer_)){
+                hasShot_ = false;
                 Stroll(); //Stroll after shooting (not seeing piece for some time)
             }
             break;
@@ -160,11 +161,10 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     }
     double spin = -angToSpeaker * kSpin_; //Spin opposite to way pointing
 
+    SetUp(shotVel, spin, pivotAng);
     if(!hasPiece_){
         BringDown();
-        return;
     }
-    SetUp(shotVel, spin, pivotAng);
 }
 
 /**
@@ -179,6 +179,8 @@ void Shooter::SetGamepiece(bool hasPiece){
 
 /**
  * Internal method to shoot at vel, spin and pivot angle
+ * 
+ * Sets state to SHOOT
 */
 void Shooter::SetUp(double vel, double spin, double pivot){
     shot_.vel = vel;
