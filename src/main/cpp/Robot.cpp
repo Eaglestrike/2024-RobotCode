@@ -38,7 +38,7 @@ Robot::Robot() :
   m_autoLineup{false, m_odom},
   m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, /*m_shooter*/},
   m_autoChooser{false, m_auto}
-  {
+{
 
   // navx
   try
@@ -363,6 +363,8 @@ void Robot::TestPeriodic() {
   #endif
 
   m_swerveController.Periodic();
+
+  m_shooter.TeleopPeriodic();
 }
 
 void Robot::SimulationInit() {}
