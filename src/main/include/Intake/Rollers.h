@@ -16,7 +16,7 @@ class Rollers : public Mechanism{
     public:
         enum RollerState {
             INTAKE,
-            INTAKE_STRONG, //Hold and intake strong
+            PASS,
             RETAIN,
             STOP,
             OUTTAKE,
@@ -47,7 +47,8 @@ class Rollers : public Mechanism{
     //Constants
     double MAX_VOLTS = 10.0;
     double KEEP_VOLTS = 0.0;
-    double IN_VOLTS = -4.0;
+    double IN_VOLTS = -2.5;
+    double PASS_VOLTS = -4.0;
     double BACK_ROLLER_IN_VOLTS = -4.0;
     //amp out
     double OUT_VOLTS = 2.8; // 3.3

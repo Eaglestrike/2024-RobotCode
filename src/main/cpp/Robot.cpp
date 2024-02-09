@@ -224,7 +224,7 @@ void Robot::TeleopPeriodic() {
         // if somehow switched from shooter to amp when in channel
         // HANDLE THIS CASE
       }
-    } else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
+    } else if(m_controller.getPressed(INTAKE)){
       if (m_amp)
         m_intake.AmpIntake();
       else
