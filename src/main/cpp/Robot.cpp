@@ -134,6 +134,8 @@ void Robot::RobotPeriodic() {
     }    
   }
 
+  m_shooter.SetGamepiece(m_intake.InChannel());
+
   #if SWERVE_AUTOTUNING
   m_swerveXTuner.ShuffleboardUpdate();
   m_swerveYTuner.ShuffleboardUpdate();
@@ -141,6 +143,7 @@ void Robot::RobotPeriodic() {
   m_logger.Periodic(Utils::GetCurTimeS());
   m_intake.Periodic();
   m_climb.Periodic();
+  m_shooter.Periodic();
 }
 
 /**
@@ -165,6 +168,7 @@ void Robot::AutonomousPeriodic() {
   m_auto.AutoPeriodic();
   m_swerveController.Periodic();
   m_intake.TeleopPeriodic();
+  m_shooter.TeleopPeriodic();
 }
 
 void Robot::TeleopInit() {
@@ -216,25 +220,31 @@ void Robot::TeleopPeriodic() {
     if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
       m_amp = false;
     }
+    //Shooting
     if (m_controller.getPressed(SHOOT)){
       if (m_amp) {
-        m_intake.AmpOuttake();
+        m_intake.AmpOuttake(); //Shoot into amp
       } else {
-        // code shooter later
-        // if somehow switched from shooter to amp when in channel
-        // HANDLE THIS CASE
+        m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetAng());  //Shoot into speaker
+        m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
+        m_autoLineup.Start();
+        if(m_shooter.CanShoot(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetAng())){
+          m_intake.FeedIntoShooter();
+        }
       }
     } else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
       if (m_amp)
         m_intake.AmpIntake();
-      else
+      else{
         m_intake.Passthrough();
+        m_shooter.BringDown();
+      }
     } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
       m_intake.Stow();
     }
   }
 
-  // manual
+  // Manual
   if (m_controller.getTriggerDown(MANUAL_1) && m_controller.getTriggerDown(MANUAL_2)){
     m_climb.SetManualInput(m_controller.getWithDeadband(MANUAL_CLIMB));
     if (m_controller.getPressedOnce(BRAKE)){
@@ -275,7 +285,9 @@ void Robot::TeleopPeriodic() {
 
 
   // auto lineup
-  if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
+  if (m_controller.getPressed(AMP_AUTO_LINEUP) ||
+      (m_controller.getPressed(SHOOT) && !m_amp) //Angle lineup when shooting
+    ) {
     double angVel = m_autoLineup.GetAngVel();
     m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
   } else {
@@ -283,10 +295,13 @@ void Robot::TeleopPeriodic() {
     m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   }
 
+  //Shooter
+
   m_climb.TeleopPeriodic();
   m_intake.TeleopPeriodic();
   m_swerveController.Periodic();
   m_autoLineup.Periodic();
+  m_shooter.TeleopPeriodic();
 }
 
 void Robot::DisabledInit() {}

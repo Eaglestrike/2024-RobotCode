@@ -33,7 +33,7 @@ class Shooter : public Mechanism{
 
         void Stop();
         void Stroll();
-        void Intake();
+        void BringDown(); //Intake into shooter
 
         void SetUp(double vel, double spin, double ang);
         void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker);
@@ -62,17 +62,16 @@ class Shooter : public Mechanism{
 
         //Shooter config
         double strollSpeed_ = ShooterConstants::STROLL_SPEED;
+        double pivotIntake_ = ShooterConstants::PIVOT_INTAKE;
+        double shootTimer_ = ShooterConstants::SHOOT_TIME;
 
         std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;
         double kSpin_ = ShooterConstants::K_SPIN;
-
-        double pivotIntake_ = ShooterConstants::PIVOT_INTAKE;
 
         bool hasShot_;
         ShooterConstants::ShootConfig shot_;
         double spin_;
         
-        double shootTimer_;
 
         //Odometry Targets
         vec::Vector2D targetPos_;

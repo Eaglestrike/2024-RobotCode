@@ -87,9 +87,7 @@ class Robot : public frc::TimedRobot {
     std::string m_prevSelectedStart = "";
 
     // Shooter
-    // Shooter m_shooter{"Shooter", true, true};
-
-    // Shooter shooter_{"Shooter", true, true};
+    Shooter m_shooter{"Shooter", true, true};
 
     // auto lineup
     AutoAngLineup m_autoLineup;

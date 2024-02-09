@@ -104,9 +104,9 @@ void Shooter::Stroll(){
 }
 
 /**
- * Sets pivot down to intake
+ * Sets pivot down to intake into shooter
 */
-void Shooter::Intake(){
+void Shooter::BringDown(){
     pivot_.SetAngle(pivotIntake_);
 }
 
@@ -160,6 +160,10 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     }
     double spin = -angToSpeaker * kSpin_; //Spin opposite to way pointing
 
+    if(!hasPiece_){
+        BringDown();
+        return;
+    }
     SetUp(shotVel, spin, pivotAng);
 }
 
@@ -246,15 +250,24 @@ bool Shooter::CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double ro
     if(state_ != SHOOT){
         return false;
     }
+    //Can only shoot within target
     if((robotPos - targetPos_).magn() < posTol_){
         return false;
     }
     if((robotVel - targetVel_).magn() < velTol_){
         return false;
     }
-    if((robotYaw - targetYaw_) < yawTol_){
+    double yawError = std::fmod(robotYaw - targetYaw_, 2.0*M_PI);
+    if(yawError > M_PI){
+        yawError -= 2.0*M_PI;
+    }
+    if(yawError < -M_PI){
+        yawError += 2.0*M_PI;
+    }
+    if(std::abs(yawError) < yawTol_){
         return false;
     }
+    //Return if everything's prepared
     return lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget();
 }
 
@@ -333,8 +346,9 @@ void Shooter::CoreShuffleboardInit(){
             double vel = shuff_.GetNumber("Vel", 0.0);
             double pivot = shuff_.GetNumber("Pivot", 0.0);
             shootData_.insert({distance, {vel, pivot}});
-            std::cout<<"Added"<<" distance:"<<distance<<" vel:"<<vel<<" pivot:"<<pivot<<std::endl;
+            std::cout<<"Added distance:"<<distance<<" vel:"<<vel<<" pivot:"<<pivot<<std::endl;
         }, {1,1,4,2});
+    shuff_.add("Shoot timer", &shootTimer_, {1,1,5,2}, true);
 
     //KSpin (row 3)
     shuff_.add("kSpin", &kSpin_, {1,1,0,3}, true);
