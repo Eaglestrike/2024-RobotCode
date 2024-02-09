@@ -12,7 +12,8 @@ using ctre::phoenix::motorcontrol::can::WPI_TalonSRX;
 class Channel : public Mechanism{
     public:
         enum ChannelState {
-            ON,
+            IN,
+            THRU,
             STOP,
             RETAIN,
             OUT

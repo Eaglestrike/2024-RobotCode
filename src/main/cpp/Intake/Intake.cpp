@@ -71,7 +71,7 @@ void Intake::CoreTeleopPeriodic(){
             break; 
         case AMP_OUTTAKE:
             if (m_wrist.ProfileDone()){
-                m_channel.SetState(Channel::ON);
+                m_channel.SetState(Channel::IN);
                 m_rollers.SetState(Rollers::OUTTAKE);
             }
             if (m_timer >= OUTTAKE_WAIT_s){
@@ -120,14 +120,14 @@ void Intake::SetState(ActionState newAction){
         case PASSTHROUGH:
             newWristPos = PASSTHROUGH_POS;
             m_rollers.SetState(Rollers::INTAKE);
-            m_channel.SetState(Channel::ON);
+            m_channel.SetState(Channel::IN);
             break; 
         case AMP_OUTTAKE:
             m_rollers.SetState(Rollers::OUTTAKE);
             newWristPos = AMP_OUT_POS;
             break;
         case FEED_TO_SHOOTER:
-            m_channel.SetState(Channel::ON);
+            m_channel.SetState(Channel::THRU);
             m_actionState = NONE;
             return;
         default:
