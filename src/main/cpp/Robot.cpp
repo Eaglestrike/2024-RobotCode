@@ -27,7 +27,7 @@ Robot::Robot() :
   m_prevIsLogging{false},
   //Mechanisms
   m_swerveController{true, false},
-  m_intake{true, true},
+  m_intake{true, false},
   m_climb{true, false},
   m_shooter{"Shooter", true, true},
   //Sensors

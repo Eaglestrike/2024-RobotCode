@@ -18,8 +18,8 @@ using ctre::phoenix6::controls::Follower;
 Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     Mechanism(name, enabled, shuffleboard),
     state_{STOP},
-    motor_{ShooterConstants::PIVOT_ID, rev::CANSparkMax::MotorType::kBrushless},
-    motorChild_{ShooterConstants::PIVOT_CHILD_ID, rev::CANSparkMax::MotorType::kBrushless},
+    motor_{ShooterConstants::PIVOT_ID},
+    motorChild_{ShooterConstants::PIVOT_CHILD_ID},
     volts_{0.0},
     maxVolts_{ShooterConstants::PIVOT_MAX_VOLTS},
     encoder_{ShooterConstants::PIVOT_ENCODER_ID, ShooterConstants::SHOOTER_CANBUS},
@@ -36,11 +36,11 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     currPose_{0.0, 0.0, 0.0},
     shuff_{name, shuffleboard}
 {
-    motor_.RestoreFactoryDefaults();
-    motorChild_.RestoreFactoryDefaults();
+    // motor_.RestoreFactoryDefaults();
+    // motorChild_.RestoreFactoryDefaults();
 
-    motor_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
-    motorChild_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
+    // motor_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
+    // motorChild_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
 
     motor_.SetInverted(true);
     motorChild_.SetInverted(false);

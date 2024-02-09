@@ -6,7 +6,7 @@ Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     state_{STOP},
     lflywheel_{ShooterConstants::LEFT_FLYWHEEL, enabled, shuffleboard},
     rflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, shuffleboard},
-    pivot_{"Pivot", enabled, false},
+    pivot_{"Pivot", enabled, shuffleboard},
     shuff_{name, shuffleboard}
 
     #if SHOOTER_AUTO_TUNE
