@@ -13,11 +13,14 @@ Channel::ChannelState Channel::GetState() {
 Channel::Channel(bool enabled, bool dbg): 
 Mechanism("Channel", enabled, dbg), 
 m_shuff{"Channel", dbg},
-m_channelMotor{IntakeConstants::CHANNEL_MOTOR}, 
+m_channelMotor{IntakeConstants::CHANNEL_MOTOR, rev::CANSparkLowLevel::MotorType::kBrushless}, 
 m_kickerMotor{IntakeConstants::KICKER_MOTOR, rev::CANSparkLowLevel::MotorType::kBrushless}{
     m_kickerMotor.RestoreFactoryDefaults();
     m_kickerMotor.SetIdleMode(rev::CANSparkBase::IdleMode::kCoast);
-    m_kickerMotor.SetInverted(false);
+    m_kickerMotor.SetInverted(true);
+    m_channelMotor.RestoreFactoryDefaults();
+    m_channelMotor.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
+    m_channelMotor.SetInverted(false);
     // m_channelMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
 }
 
@@ -44,7 +47,7 @@ void Channel::CoreTeleopPeriodic() {
             break;
     }
 
-    m_kickerMotor.SetVoltage(units::volt_t{std::clamp(-kickerV, -m_kickerInfo.MAX_VOLTS, m_kickerInfo.MAX_VOLTS)});
+    m_kickerMotor.SetVoltage(units::volt_t{std::clamp(kickerV, -m_kickerInfo.MAX_VOLTS, m_kickerInfo.MAX_VOLTS)});
     m_channelMotor.SetVoltage(units::volt_t{std::clamp(channelV, -m_channelInfo.MAX_VOLTS, m_channelInfo.MAX_VOLTS)});
 }
 

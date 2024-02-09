@@ -29,7 +29,7 @@ class Channel : public Mechanism{
 private:
   void SetVoltage();
   ChannelState m_state{STOP};
-  WPI_TalonSRX m_channelMotor;
+  rev::CANSparkMax m_channelMotor;
   rev::CANSparkMax m_kickerMotor;
   ShuffleboardSender m_shuff;
 
