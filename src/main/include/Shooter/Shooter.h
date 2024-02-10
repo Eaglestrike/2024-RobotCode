@@ -1,13 +1,14 @@
 #pragma once
 
-#define SHOOTER_AUTO_TUNE false
+
+#define PIVOT_AUTO_TUNE true
 
 #include <map>
 
 #include "Util/Mechanism.h"
 #include "Util/simplevectors.hpp"
 
-#if SHOOTER_AUTO_TUNE
+#if PIVOT_AUTO_TUNE
 #include "FFAutotuner/FFAutotuner.h"
 #endif
 
@@ -17,6 +18,8 @@
 #include "Submechanisms/Pivot.h"
 
 #include "Constants/ShooterConstants.h"
+
+#include <rev/CANSparkMax.h>
 
 namespace vec = svector;
 
@@ -59,6 +62,9 @@ class Shooter : public Mechanism{
         Flywheel lflywheel_;
         Flywheel rflywheel_;
         Pivot pivot_;
+        
+        // rev::CANSparkMax m_kickerMotor;
+        // double kickerVolts_ = -8.0;
 
         //Shooter config
         double strollSpeed_ = ShooterConstants::STROLL_SPEED;
@@ -105,9 +111,9 @@ class Shooter : public Mechanism{
         std::string StateToString(State state);
         ShuffleboardSender shuff_;
 
-        #if SHOOTER_AUTO_TUNE
+        #if PIVOT_AUTO_TUNE
         //Tuning will override any state
-        bool lflyTuning_, rflyTuning_, pivotTuning_;
-        FFAutotuner lflyTuner_, rflyTuner_, pivotTuner_;
+        bool pivotTuning_;
+        FFAutotuner pivotTuner_;
         #endif
 };

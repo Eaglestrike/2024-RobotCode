@@ -43,12 +43,12 @@ namespace ShooterConstants{
     const double FLYWHEEL_GEARING = 24.0/36.0;
 
     const double FLYWHEEL_R = 0.0508;
-    const double FLYWHEEL_MAX_A = 0.0; //Max Acceleration
-    const double FLYWHEEL_MAX_VOLTS = 0.0;
+    const double FLYWHEEL_MAX_A = 40.0; //Max Acceleration
+    const double FLYWHEEL_MAX_VOLTS = 10.0; //Max velocity -> ~20.0
 
     const PID FLYWHEEL_PID = {
-        .kp = 0.0,
-        .ki = 0.0,
+        .kp = 0.1,
+        .ki = 0.1,
         .kd = 0.0
     };
 

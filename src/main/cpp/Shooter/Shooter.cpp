@@ -7,16 +7,18 @@ Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     lflywheel_{ShooterConstants::LEFT_FLYWHEEL, enabled, shuffleboard},
     rflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, shuffleboard},
     pivot_{"Pivot", enabled, shuffleboard},
+    
+    // m_kickerMotor{0, rev::CANSparkLowLevel::MotorType::kBrushless},//TODO DELETE
     shuff_{name, shuffleboard}
 
-    #if SHOOTER_AUTO_TUNE
-    ,lflyTuning_{false}, rflyTuning_{false}, pivotTuning_{false},
-    lflyTuner_{"left flywheel tuner", FFAutotuner::SIMPLE},
-    rflyTuner_{"right flywheel tuner", FFAutotuner::SIMPLE}, 
+    #if PIVOT_AUTO_TUNE
+    ,pivotTuning_{false},
     pivotTuner_{"pivot tuner", FFAutotuner::ARM}
     #endif
 {
-
+    // m_kickerMotor.RestoreFactoryDefaults();
+    // m_kickerMotor.SetIdleMode(rev::CANSparkBase::IdleMode::kCoast);
+    // m_kickerMotor.SetInverted(false);
 }
 
 /**
@@ -76,6 +78,8 @@ void Shooter::CoreTeleopPeriodic(){
         pivot_.SetVoltage(pivotTuner_.getVoltage());
     }
     #endif
+
+    // m_kickerMotor.SetVoltage(units::volt_t{kickerVolts_});
 
     lflywheel_.TeleopPeriodic();
     rflywheel_.TeleopPeriodic();
@@ -323,9 +327,7 @@ void Shooter::CoreShuffleboardInit(){
     // shuff_.PutBoolean("Aimed", false, {1,1,7,0});
     // shuff_.PutString("Shot Error", "", {2,1,6,1});
 
-    #if SHOOTER_AUTO_TUNE
-    shuff_.add("Lfly Autotune", &lflyTuning_, {1,1,3,1}, true);
-    shuff_.add("Rfly Autotune", &rflyTuning_, {1,1,4,1}, true);
+    #if PIVOT_AUTO_TUNE
     shuff_.add("Pivot Autotune", &pivotTuning_, {1,1,5,1}, true);
     #endif
 
@@ -359,6 +361,8 @@ void Shooter::CoreShuffleboardInit(){
     shuff_.add("pos tol", &posTol_, {1,1,0,4}, true);
     shuff_.add("vel tol", &velTol_, {1,1,1,4}, true);
     shuff_.add("yaw tol", &yawTol_, {1,1,2,4}, true);
+
+    // shuff_.add("kicker volts", &kickerVolts_, {1,1,5,4}, true);
 
 }
 

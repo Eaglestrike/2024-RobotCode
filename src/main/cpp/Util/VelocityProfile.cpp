@@ -41,6 +41,7 @@ void VelocityProfile::SetTarget(double finalVel, Poses::Pose1D startPose){
         finalPose_ = startPose_;
         finalTime_ = startTime_;
     }
+    finalPose_.acc = 0.0;
 }
 
 /**
