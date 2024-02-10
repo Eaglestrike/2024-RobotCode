@@ -22,6 +22,7 @@ class Intake: public Mechanism{
             AMP_OUTTAKE,
             FEED_TO_SHOOTER,
             MANUAL_WRIST,
+            PASS_TO_AMP,
             NONE
         };
         
@@ -78,7 +79,9 @@ class Intake: public Mechanism{
 
         double INTAKE_WAIT_s = 0.0;
         double OUTTAKE_WAIT_s = 0.5;
+        double BACK_PROPAGATE_WAIT_s = 0.2;
         double DEBOUNCE_WAIT_s = 1.0;
+
 
         double m_manualVolts = 0;
 
