@@ -14,6 +14,7 @@ class Channel : public Mechanism{
         enum ChannelState {
             IN,
             THRU,
+            TO_SHOOT,
             STOP,
             RETAIN,
             OUT
@@ -39,16 +40,19 @@ private:
     double KEEP_VOLTS;
     double IN_VOLTS;
     double OUT_VOLTS;
+    double PASS_VOLTS;
   };
     motorV m_channelInfo = {8.0,
                             0.0,
                             3.0,
-                            -3.0};
+                            -3.0,
+                            6.0};
 
     motorV m_kickerInfo =  {8.0,
                             0.0,
                             2.0,
-                            -2.0};
+                            -2.0,
+                            4.0};
     
   //for dbg
    double m_kVoltReq = 0.0;

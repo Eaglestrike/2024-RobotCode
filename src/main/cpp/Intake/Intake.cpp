@@ -61,7 +61,7 @@ void Intake::CoreTeleopPeriodic(){
     switch(m_actionState){
          case FEED_TO_SHOOTER:
             if(!InChannel()){
-                m_channel.SetState(Channel::RETAIN);
+                m_channel.SetState(Channel::STOP);
                 m_actionState = NONE;
             }
             return;
@@ -72,9 +72,16 @@ void Intake::CoreTeleopPeriodic(){
             if (m_wrist.GetState() == Wrist::AT_TARGET)
                 m_actionState = NONE;
             break;
-         case HALF_STOW:
+        case HALF_STOW:
             if (m_wrist.GetState() == Wrist::AT_TARGET)
                 m_actionState = NONE;
+            break;
+        case PASS_TO_AMP:
+            if (InIntake()){
+                m_rollers.SetStateBuffer(Rollers::STOP, BACK_PROPAGATE_WAIT_s);
+                m_channel.SetState(Channel::STOP);
+                m_actionState = AMP_INTAKE;
+            }
             break;
         case AMP_INTAKE:
             if (m_wrist.ProfileDone())
@@ -120,6 +127,7 @@ void Intake::CoreTeleopPeriodic(){
 void Intake::SetState(ActionState newAction){
     if (newAction == m_actionState) return;
 
+    if (newAction == AMP_INTAKE && (InChannel() || m_channel.GetState() == Channel::OUT)) newAction = PASS_TO_AMP;
     if (newAction == AMP_INTAKE && (m_wrist.GetState() == Wrist::COAST || m_timer !=-1 || InIntake())) return;
     if (newAction == PASSTHROUGH && InChannel()) return;
     if (m_actionState == AMP_INTAKE) m_timer = -1;
@@ -147,6 +155,11 @@ void Intake::SetState(ActionState newAction){
             m_rollers.SetState(Rollers::INTAKE);
             m_channel.SetState(Channel::STOP);
             break; 
+        case PASS_TO_AMP:
+            newWristPos = INTAKE_POS;
+            m_rollers.SetState(Rollers::OUTTAKE);
+            m_channel.SetState(Channel::OUT);
+            break; 
         case PASSTHROUGH:
             newWristPos = PASSTHROUGH_POS;
             if (InIntake()){
@@ -161,7 +174,7 @@ void Intake::SetState(ActionState newAction){
             newWristPos = AMP_OUT_POS;
             break;
         case FEED_TO_SHOOTER:
-            m_channel.SetState(Channel::IN);
+            m_channel.SetState(Channel::TO_SHOOT);
             return;
         default:
             return;
@@ -241,6 +254,7 @@ void Intake::CoreShuffleboardInit(){
     m_shuff.add("Amp", &AMP_OUT_POS, {1,1,3,1}, true);
     m_shuff.add("wait time", &INTAKE_WAIT_s, {1,1,6,1}, true);
     m_shuff.add("out wait time", &OUTTAKE_WAIT_s, {1,1,7,1}, true);
+    m_shuff.add("back wait time", &BACK_PROPAGATE_WAIT_s, {1,1,7,2}, true);
     m_shuff.add("debounce wait time", &DEBOUNCE_WAIT_s, {1,1,7,1}, true);
 
     //Go to NONE state (row 2)
@@ -269,6 +283,9 @@ void Intake::CoreShuffleboardPeriodic(){
             break;
         case CLIMB:
             m_shuff.PutString("State", "Climb");
+            break;
+        case PASS_TO_AMP:
+            m_shuff.PutString("State", "PTA");
             break;
         case NONE:
             m_shuff.PutString("State", "None");
