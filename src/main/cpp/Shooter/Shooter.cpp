@@ -263,13 +263,13 @@ bool Shooter::CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double ro
         shuff_.PutNumber("Vel Error", velError, {1,1,9,2});
         shuff_.PutNumber("Yaw Error", yawError, {1,1,10,2});
     }
-    if(posError < posTol_){
+    if(posError > posTol_){
         return false;
     }
-    if(velError < velTol_){
+    if(velError > velTol_){
         return false;
     }
-    if(std::abs(yawError) < yawTol_){
+    if(std::abs(yawError) > yawTol_){
         return false;
     }
     //Return if everything's prepared
