@@ -72,11 +72,12 @@ void Channel::CoreShuffleboardInit(){
      m_shuff.add("kicker keep", &m_kickerInfo.KEEP_VOLTS,{1,1,1,2}, true);
      m_shuff.add("kicker in", &m_kickerInfo.IN_VOLTS,{1,1,2,2}, true);
      m_shuff.add("kicker out", &m_kickerInfo.OUT_VOLTS,{1,1,3,2}, true);
+       m_shuff.add("kicker SHOOT", &m_kickerInfo.PASS_VOLTS,{1,1,3,3}, true);
 
      m_shuff.add("channel max", &m_channelInfo.MAX_VOLTS, {1,1,0,3}, true);
      m_shuff.add("channel keep", &m_channelInfo.KEEP_VOLTS, {1,1,1,3},true);
      m_shuff.add("channel in", &m_channelInfo.IN_VOLTS, {1,1,2,3},true);
-     m_shuff.add("channel out", &m_channelInfo.OUT_VOLTS, {1,1,3,3},true);
+     m_shuff.add("channel SHOOT", &m_channelInfo.PASS_VOLTS, {1,1,3,4},true);
 
 }
 
