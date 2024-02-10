@@ -101,14 +101,16 @@ namespace ShooterConstants{
     };
 
     const std::map<double, ShootConfig> SHOOT_DATA = { //Distance -> ang, vel
-        //{0.0, {0.0, 0.0}}
+        {1.32, {1.0, 19.0}},
+        {2.06, {0.8, 19.0}},
+        {2.65, {0.7, 19.0}}
     };
 
     const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
     const double STROLL_SPEED = 0.3; //Voltage of strolling
 
-    const double PIVOT_INTAKE = 0.0; //Angle for pivot to intake piece into shooter
+    const double PIVOT_INTAKE = PIVOT_MIN; //Angle for pivot to intake piece into shooter
     const double SHOOT_TIME = 1.0; //Time for piece to exit shooter
 
     //Tolerances
