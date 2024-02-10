@@ -12,7 +12,8 @@ using ctre::phoenix::motorcontrol::can::WPI_TalonSRX;
 class Channel : public Mechanism{
     public:
         enum ChannelState {
-            ON,
+            IN,
+            THRU,
             STOP,
             RETAIN,
             OUT
@@ -28,7 +29,7 @@ class Channel : public Mechanism{
 private:
   void SetVoltage();
   ChannelState m_state{STOP};
-  WPI_TalonSRX m_channelMotor;
+  rev::CANSparkMax m_channelMotor;
   rev::CANSparkMax m_kickerMotor;
   ShuffleboardSender m_shuff;
 

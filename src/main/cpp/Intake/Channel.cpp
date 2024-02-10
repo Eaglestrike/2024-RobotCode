@@ -13,11 +13,14 @@ Channel::ChannelState Channel::GetState() {
 Channel::Channel(bool enabled, bool dbg): 
 Mechanism("Channel", enabled, dbg), 
 m_shuff{"Channel", dbg},
-m_channelMotor{IntakeConstants::CHANNEL_MOTOR}, 
+m_channelMotor{IntakeConstants::CHANNEL_MOTOR, rev::CANSparkLowLevel::MotorType::kBrushless}, 
 m_kickerMotor{IntakeConstants::KICKER_MOTOR, rev::CANSparkLowLevel::MotorType::kBrushless}{
     m_kickerMotor.RestoreFactoryDefaults();
     m_kickerMotor.SetIdleMode(rev::CANSparkBase::IdleMode::kCoast);
-    m_kickerMotor.SetInverted(false);
+    m_kickerMotor.SetInverted(true);
+    m_channelMotor.RestoreFactoryDefaults();
+    m_channelMotor.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
+    m_channelMotor.SetInverted(true);
     // m_channelMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
 }
 
@@ -26,8 +29,12 @@ void Channel::CoreTeleopPeriodic() {
     double channelV = 0;
 
     switch (m_state) {
-        case ON:
+        case IN:
             kickerV = m_kickerInfo.IN_VOLTS;
+            channelV = m_channelInfo.IN_VOLTS;
+            break;
+        case THRU:
+            // kickerV = m_kickerInfo.IN_VOLTS;
             channelV = m_channelInfo.IN_VOLTS;
             break;
         case RETAIN:
@@ -40,7 +47,7 @@ void Channel::CoreTeleopPeriodic() {
             break;
     }
 
-    m_kickerMotor.SetVoltage(units::volt_t{std::clamp(-kickerV, -m_kickerInfo.MAX_VOLTS, m_kickerInfo.MAX_VOLTS)});
+    m_kickerMotor.SetVoltage(units::volt_t{std::clamp(kickerV, -m_kickerInfo.MAX_VOLTS, m_kickerInfo.MAX_VOLTS)});
     m_channelMotor.SetVoltage(units::volt_t{std::clamp(channelV, -m_channelInfo.MAX_VOLTS, m_channelInfo.MAX_VOLTS)});
 }
 
@@ -75,8 +82,11 @@ void Channel::CoreShuffleboardPeriodic(){
         case STOP:
             m_shuff.PutString("State", "stop");
             break;
-        case ON:
-            m_shuff.PutString("State", "on");
+        case IN:
+            m_shuff.PutString("State", "In");
+            break;
+        case THRU:
+            m_shuff.PutString("State", "thru");
             break;
         case RETAIN:
             m_shuff.PutString("State", "retain");

@@ -243,7 +243,7 @@ void Robot::TeleopPeriodic() {
           m_intake.FeedIntoShooter();
         }
       }
-    } else if(m_controller.getPressed(INTAKE) && (!m_intake.HasGamePiece())){
+    } else if(m_controller.getPressed(INTAKE)){
       if (m_amp)
         m_intake.AmpIntake();
       else{
@@ -286,6 +286,7 @@ void Robot::TeleopPeriodic() {
   // climb
   if (!m_climbManual) {
     if (m_controller.getPOVDownOnce(CLIMB)){
+      m_intake.Climb();
       m_climb.PullUp();
     } else if (m_controller.getPOVDownOnce(STOW)){
       m_climb.Stow();

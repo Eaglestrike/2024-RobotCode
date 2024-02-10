@@ -15,6 +15,7 @@ class Intake: public Mechanism{
         Intake(bool enable, bool dbg);
         enum ActionState{
             STOW, 
+            CLIMB,
             HALF_STOW,
             AMP_INTAKE, 
             PASSTHROUGH, 
@@ -26,6 +27,7 @@ class Intake: public Mechanism{
         
         ActionState GetState();
         void Stow();
+        void Climb();
         void HalfStow();
         void Passthrough();
         void AmpOuttake();
@@ -74,9 +76,9 @@ class Intake: public Mechanism{
         PASSTHROUGH_POS = -0.64,
         AMP_OUT_POS = 1.364; // 1.26 
 
-        double INTAKE_WAIT_s = 0.1;
+        double INTAKE_WAIT_s = 0.0;
         double OUTTAKE_WAIT_s = 0.5;
-        double DEBOUNCE_WAIT_s = 2.0;
+        double DEBOUNCE_WAIT_s = 1.0;
 
         double m_manualVolts = 0;
 

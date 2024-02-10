@@ -19,6 +19,7 @@ void Rollers::SetState(RollerState r) {
 }
 
 void Rollers::SetStateBuffer(RollerState r, double offset_s) {
+    if (offset_s == 0) return;
     m_wait = offset_s;
     m_timer = 0;
     m_nxtState = r;
@@ -42,10 +43,11 @@ void Rollers::CoreTeleopPeriodic() {
     switch (m_state) {
         case INTAKE:
             setVolts = IN_VOLTS;
-            v2 = BACK_ROLLER_IN_VOLTS;
+            // v2 = BACK_ROLLER_IN_VOLTS;
             break;
-        case INTAKE_STRONG:
-            setVolts = MAX_VOLTS;
+        case PASS:
+            setVolts = IN_VOLTS;
+            v2 = BACK_ROLLER_IN_VOLTS;
             break;
         case RETAIN:
             setVolts = KEEP_VOLTS;
@@ -79,6 +81,7 @@ void Rollers::CoreShuffleboardInit(){
     m_shuff.add("Voltage", &m_voltReq, true);
     m_shuff.addButton("Set Voltage", [&]{SetVoltage();}, {2,1});
     m_shuff.add("In volts ", &IN_VOLTS, {1,1,0,4}, true);
+    m_shuff.add("pass volts ", &PASS_VOLTS, {1,1,0,5}, true);
     m_shuff.add("back in volts ", &BACK_ROLLER_IN_VOLTS, {1,1,0,5}, true);
     m_shuff.add("out volts", &OUT_VOLTS, {1,1,1,4}, true);
     m_shuff.add("keep volts", &KEEP_VOLTS, {1,1,2,4}, true);

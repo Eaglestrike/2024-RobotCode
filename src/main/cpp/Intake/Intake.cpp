@@ -21,6 +21,8 @@ void Intake::CorePeriodic(){
     m_rollers.Periodic();
     m_wrist.Periodic();
     m_channel.Periodic();
+    DebounceBeamBreak1();
+
 }
 
 
@@ -55,9 +57,14 @@ void Intake::CoreTeleopPeriodic(){
     m_wrist.TeleopPeriodic();
     m_channel.TeleopPeriodic();
 
-    DebounceBeamBreak1();
     
     switch(m_actionState){
+         case FEED_TO_SHOOTER:
+            if(!InChannel()){
+                m_channel.SetState(Channel::RETAIN);
+                m_actionState = NONE;
+            }
+            return;
         case MANUAL_WRIST:
             m_wrist.ManualPeriodic(m_manualVolts);
             break;
@@ -79,24 +86,21 @@ void Intake::CoreTeleopPeriodic(){
             }
             break; 
         case PASSTHROUGH:
-            // if (m_wrist.ProfileDone()&& m_wrist.GetSetpt() == INTAKE_POS)
-            //     m_wrist.Coast();
-            // if (GetBeamBreak1()){
-            //     m_wrist.MoveTo(PASSTHROUGH_POS);
-            //     m_rollers.SetState(Rollers::STOP);
-            // }
+            if (m_wrist.ProfileDone() && m_rollers.GetState() == Rollers::STOP){
+                m_rollers.SetState(Rollers::PASS);
+            }
             if (InChannel()){    
-                if (!m_keepIntakeDown) {
-                    m_wrist.MoveTo(STOWED_POS);
-                }
                 m_rollers.SetState(Rollers::STOP);
                 m_channel.SetState(Channel::RETAIN);
-                m_actionState = NONE;
+                if (!m_keepIntakeDown) {
+                   SetState(STOW);
+                } else 
+                    m_actionState = NONE;
             }
             break; 
         case AMP_OUTTAKE:
             if (m_wrist.ProfileDone()){
-                m_channel.SetState(Channel::ON);
+                m_channel.SetState(Channel::IN);
                 m_rollers.SetState(Rollers::OUTTAKE);
             }
             if (m_timer >= OUTTAKE_WAIT_s){
@@ -116,7 +120,8 @@ void Intake::CoreTeleopPeriodic(){
 void Intake::SetState(ActionState newAction){
     if (newAction == m_actionState) return;
 
-    if (newAction == AMP_INTAKE && (m_wrist.GetState() == Wrist::COAST || m_timer !=-1)) return;
+    if (newAction == AMP_INTAKE && (m_wrist.GetState() == Wrist::COAST || m_timer !=-1 || InIntake())) return;
+    if (newAction == PASSTHROUGH && InChannel()) return;
     if (m_actionState == AMP_INTAKE) m_timer = -1;
     m_actionState = newAction;
     
@@ -129,31 +134,34 @@ void Intake::SetState(ActionState newAction){
                 m_channel.SetState(Channel::STOP);
             }
             break; 
+        case CLIMB:
+            newWristPos = INTAKE_POS;
+            m_rollers.SetState(Rollers::STOP);
+            m_channel.SetState(Channel::STOP);
+            break;
         case HALF_STOW:
             newWristPos = HALF_STOW;
             break; 
         case AMP_INTAKE:
             newWristPos = INTAKE_POS;
-            // if (InChannel()){
-            //     m_rollers.SetState(Rollers::OUTTAKE);
-            //     m_channel.SetState(Channel::OUT);
-            // } else {
-                m_rollers.SetState(Rollers::INTAKE);
-                m_channel.SetState(Channel::STOP);
-            // }
+            m_rollers.SetState(Rollers::INTAKE);
+            m_channel.SetState(Channel::STOP);
             break; 
         case PASSTHROUGH:
             newWristPos = PASSTHROUGH_POS;
-            m_rollers.SetState(Rollers::INTAKE);
-            m_channel.SetState(Channel::ON);
+            if (InIntake()){
+                m_rollers.SetState(Rollers::STOP);
+            } else{
+                m_rollers.SetState(Rollers::PASS);
+            }
+            m_channel.SetState(Channel::IN);
             break; 
         case AMP_OUTTAKE:
             m_rollers.SetState(Rollers::OUTTAKE);
             newWristPos = AMP_OUT_POS;
             break;
         case FEED_TO_SHOOTER:
-            m_channel.SetState(Channel::ON);
-            m_actionState = NONE;
+            m_channel.SetState(Channel::IN);
             return;
         default:
             return;
@@ -184,14 +192,16 @@ bool Intake::InIntake(){
     return m_beam1broke;
 }
 
+
 bool Intake::GetBeamBreak1() {
     return !m_beamBreak1.Get();
 }
 
 bool Intake::GetBeamBreak2() {
-    return false;
-    // return !m_beamBreak2.Get();
+    // return false;
+    return !m_beamBreak2.Get();
 }
+
 
 bool Intake::DebounceBeamBreak1(){
      if (m_dbTimer == -1){
@@ -257,6 +267,9 @@ void Intake::CoreShuffleboardPeriodic(){
         case MANUAL_WRIST:
             m_shuff.PutString("State", "Manual Wrist");
             break;
+        case CLIMB:
+            m_shuff.PutString("State", "Climb");
+            break;
         case NONE:
             m_shuff.PutString("State", "None");
             break;
@@ -294,6 +307,10 @@ Intake::ActionState Intake::GetState(){
 
 void Intake::Stow(){
     SetState(STOW);
+}
+
+void Intake::Climb(){
+    SetState(CLIMB);
 }
 
 void Intake::HalfStow(){
