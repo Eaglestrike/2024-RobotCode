@@ -90,12 +90,12 @@ void Intake::CoreTeleopPeriodic(){
                 m_rollers.SetState(Rollers::PASS);
             }
             if (InChannel()){    
-                if (!m_keepIntakeDown) {
-                    m_wrist.MoveTo(STOWED_POS);
-                }
                 m_rollers.SetState(Rollers::STOP);
                 m_channel.SetState(Channel::RETAIN);
-                m_actionState = NONE;
+                if (!m_keepIntakeDown) {
+                   SetState(STOW);
+                } else 
+                    m_actionState = NONE;
             }
             break; 
         case AMP_OUTTAKE:
@@ -121,6 +121,7 @@ void Intake::SetState(ActionState newAction){
     if (newAction == m_actionState) return;
 
     if (newAction == AMP_INTAKE && (m_wrist.GetState() == Wrist::COAST || m_timer !=-1 || InIntake())) return;
+    if (newAction == PASSTHROUGH && InChannel()) return;
     if (m_actionState == AMP_INTAKE) m_timer = -1;
     m_actionState = newAction;
     

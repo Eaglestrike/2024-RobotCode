@@ -20,7 +20,7 @@ m_kickerMotor{IntakeConstants::KICKER_MOTOR, rev::CANSparkLowLevel::MotorType::k
     m_kickerMotor.SetInverted(true);
     m_channelMotor.RestoreFactoryDefaults();
     m_channelMotor.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
-    m_channelMotor.SetInverted(false);
+    m_channelMotor.SetInverted(true);
     // m_channelMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
 }
 
