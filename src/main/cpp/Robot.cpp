@@ -241,6 +241,7 @@ void Robot::TeleopPeriodic() {
         m_autoLineup.Start();
         if(m_shooter.CanShoot(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetAng())){
           m_intake.FeedIntoShooter();
+          std::cout<<"Feedin"<<std::endl;
         }
       }
     } else if(m_controller.getPressed(INTAKE)){
@@ -252,6 +253,10 @@ void Robot::TeleopPeriodic() {
       }
     } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
       m_intake.Stow();
+      m_shooter.Stroll();
+    }
+    else{
+      m_shooter.Stroll();
     }
   }
 
@@ -345,6 +350,24 @@ void Robot::DisabledPeriodic() {
 void Robot::TestInit() {}
 
 void Robot::TestPeriodic() {
+  // Swerve
+  double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
+  double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
+  double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
+
+  double mult = SwerveConstants::NORMAL_SWERVE_MULT;
+  if (m_controller.getPressed(SLOW_MODE)) {
+    mult = SwerveConstants::SLOW_SWERVE_MULT;
+  }
+  double vx = std::clamp(lx, -1.0, 1.0) * mult;
+  double vy = std::clamp(ly, -1.0, 1.0) * mult;
+  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
+
+  // velocity vectors
+  vec::Vector2D setVel = {-vy, -vx};
+  double curYaw = m_odom.GetAngNorm();
+  double curJoystickAng = m_odom.GetJoystickAng();
+
   double curAng = m_navx->GetAngle();
   if (!SwerveConstants::NAVX_UPSIDE_DOWN) {
     curAng = -curAng;
@@ -365,9 +388,19 @@ void Robot::TestPeriodic() {
   m_swerveController.SetRobotVelocity({xVolts, yVolts}, 0.0, angNavX);
   #endif
 
-  m_swerveController.Periodic();
 
+  if(m_controller.getPressed(INTAKE)){
+    m_intake.Passthrough();
+  }
+  if(m_controller.getPressed(SHOOT)){
+    m_intake.FeedIntoShooter();
+  }
+
+  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
+  
+  m_swerveController.Periodic();
   m_shooter.TeleopPeriodic();
+  m_intake.TeleopPeriodic();
 }
 
 void Robot::SimulationInit() {}

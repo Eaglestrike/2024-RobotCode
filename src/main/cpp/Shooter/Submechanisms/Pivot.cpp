@@ -71,6 +71,9 @@ void Pivot::CorePeriodic(){
 void Pivot::CoreTeleopPeriodic(){
     double t = Utils::GetCurTimeS();
     double dt = t - prevT_;
+    if(dt > 0.3){
+        dt = 0.0;
+    }
     switch(state_){
         case STOP:
             volts_ = 0.0;
@@ -92,12 +95,15 @@ void Pivot::CoreTeleopPeriodic(){
             volts_ = ff + pid;
 
             bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
-            if(state_ == AIMING){ //if case deal with fallthrough
+            if(state_ == AIMING && profile_.isFinished()){ //if case deal with fallthrough
                 if(atTarget){
                     state_ = AT_TARGET; //At target due to tolerances
                 }
+                else{
+                    profile_.regenerate(currPose_);
+                }
             }
-            else{
+            if (state_ == AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
                     profile_.regenerate(currPose_);
                     state_ = AIMING;
@@ -140,10 +146,18 @@ void Pivot::SetAngle(double angle){
     if(angle > bounds_.max || angle < bounds_.min){
         return;
     }
-
-    profile_.setTarget(currPose_, {.pos = angle, .vel = 0.0, .acc = 0.0});
+    Poses::Pose1D target = {.pos = angle, .vel = 0.0, .acc = 0.0};
+    profile_.setTarget(currPose_, target);
     accum_ = 0.0;
-    state_ = AIMING;
+
+    Poses::Pose1D error = target - currPose_;
+    bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
+    if(atTarget){
+        state_ = AT_TARGET;
+    }
+    else{
+        state_ = AIMING;
+    }
 }
 
 /**
@@ -165,7 +179,8 @@ void Pivot::Zero(){
  * Is at target
 */
 bool Pivot::AtTarget(){
-    return state_ == AT_TARGET;
+    //std::cout<<"Pivot: "<<StateToString(state_)<<std::endl;
+    return (state_ == AT_TARGET);
 }
 
 /**

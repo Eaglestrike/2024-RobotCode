@@ -101,9 +101,10 @@ namespace ShooterConstants{
     };
 
     const std::map<double, ShootConfig> SHOOT_DATA = { //Distance -> ang, vel
+        {0.0,  {1.1, 17.0}},
         {1.32, {1.0, 17.0}},
-        {2.06, {0.8, 17.0}},
-        {2.65, {0.7, 17.0}}
+        {2.06, {0.75, 17.0}},
+        {2.65, {0.65, 17.0}}
     };
 
     const double K_SPIN = 0.0; //Constant of how much the robot spins the note

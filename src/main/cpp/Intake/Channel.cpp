@@ -33,7 +33,7 @@ void Channel::CoreTeleopPeriodic() {
             kickerV = m_kickerInfo.IN_VOLTS;
             channelV = m_channelInfo.IN_VOLTS;
             break;
-          case TO_SHOOT:
+        case TO_SHOOT:
             kickerV = m_kickerInfo.PASS_VOLTS;
             channelV = m_channelInfo.PASS_VOLTS;
             break;

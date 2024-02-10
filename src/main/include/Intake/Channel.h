@@ -46,13 +46,13 @@ private:
                             0.0,
                             3.0,
                             -3.0,
-                            6.0};
+                            8.0};
 
     motorV m_kickerInfo =  {8.0,
                             0.0,
                             2.0,
                             -2.0,
-                            8.0};
+                            5.0};
     
   //for dbg
    double m_kVoltReq = 0.0;

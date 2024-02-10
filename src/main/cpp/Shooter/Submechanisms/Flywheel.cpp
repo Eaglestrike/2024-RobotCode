@@ -54,12 +54,15 @@ void Flywheel::CoreTeleopPeriodic(){
             volts_ = ff + pid;
 
             bool atTarget = (std::abs(error.vel) < velTol_); //TODO check if need acc tol
-            if(state_ == State::RAMPING){ //if case deal with fallthrough
+            if(state_ == State::RAMPING && profile_.isFinished()){ //if case deal with fallthrough
                 if(atTarget){
                     state_ = State::AT_TARGET; //At target due to tolerances
                 }
+                else{
+                    profile_.Regenerate(currPose_);
+                }
             }
-            else{
+            if (state_ == State::AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
                     profile_.Regenerate(currPose_);
                     state_ = State::RAMPING;
@@ -96,7 +99,14 @@ void Flywheel::Stop(){
 void Flywheel::SetTarget(double vel){
     profile_.SetTarget(vel, currPose_);
     accum_ = 0.0;
-    state_ = State::RAMPING;
+
+    bool atTarget = (std::abs(vel - currPose_.vel) < velTol_);
+    if(atTarget){
+        state_ = State::AT_TARGET;
+    }
+    else{
+        state_ = State::RAMPING;
+    }
 }
 
 /**
@@ -119,7 +129,8 @@ Flywheel::State Flywheel::GetState(){
  * If the flywheel is at the target speed
 */
 bool Flywheel::AtTarget(){
-    return state_ == State::AT_TARGET;
+    //std::cout<<"State: "<<StateToString(state_)<<std::endl;
+    return (state_ == State::AT_TARGET);
 }
 
 /**

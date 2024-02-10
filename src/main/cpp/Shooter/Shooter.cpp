@@ -113,8 +113,12 @@ void Shooter::BringDown(){
  * @param toSpeaker field-oriented vector to the speaker 
 */
 void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
+    if(!hasPiece_){
+        Stroll();
+    }
+
     targetPos_ = robotPos;
-    targetVel_ = robotVel;
+    targetVel_ = {0.0, 0.0};
 
     vec::Vector2D toSpeaker;
     if(blueSpeaker){
@@ -141,11 +145,12 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     double lowerDist = shot->first;
     ShooterConstants::ShootConfig lowerShot = shot->second;
 
-    double percent = (dist - lowerDist) / (upperDist - lowerDist); //Will break if there are 2 data points with the same distance
+    double percent = (dist - lowerDist) / (upperDist - lowerDist);
     double upperPercent = 1.0 - percent;
 
     double pivotAng = percent*lowerShot.ang + upperPercent*upperShot.ang;
     double shotVel = percent*lowerShot.vel + upperPercent*upperShot.vel;
+
 
     //Add spin
     double angToSpeaker = targetYaw_;
@@ -246,6 +251,9 @@ Shooter::IKRes Shooter::CalculateInverseKinematics(vec::Vector2D target){
 */
 bool Shooter::CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw){
     if(state_ != SHOOT){
+        if(shuff_.isEnabled()){
+            shuff_.PutBoolean("Can Shoot", false);
+        }
         return false;
     }
     //Can only shoot within target
@@ -258,22 +266,20 @@ bool Shooter::CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double ro
     if(yawError < -M_PI){
         yawError += 2.0*M_PI;
     }
+    bool canShoot = (posError < posTol_) && (velError < velTol_) && (std::abs(yawError) < yawTol_);
     if(shuff_.isEnabled()){
         shuff_.PutNumber("Pos Error", posError, {1,1,8,2});
         shuff_.PutNumber("Vel Error", velError, {1,1,9,2});
         shuff_.PutNumber("Yaw Error", yawError, {1,1,10,2});
-    }
-    if(posError > posTol_){
-        return false;
-    }
-    if(velError > velTol_){
-        return false;
-    }
-    if(std::abs(yawError) > yawTol_){
-        return false;
+        
+        shuff_.PutBoolean("lfly at targ", lflywheel_.AtTarget(), {1,1,8,3});
+        shuff_.PutBoolean("rfly at targ", rflywheel_.AtTarget(), {1,1,9,3});
+        shuff_.PutBoolean("pivot at targ", pivot_.AtTarget(), {1,1,10,3});
+
+        shuff_.PutBoolean("Can Shoot", canShoot);
     }
     //Return if everything's prepared
-    return lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget();
+    return canShoot && lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget();
 }
 
 /**
@@ -353,8 +359,11 @@ void Shooter::CoreShuffleboardInit(){
         }, {1,1,4,2});
     shuff_.add("Shoot timer", &shootTimer_, {1,1,5,2}, true);
 
-    //KSpin (row 3)
+    //Shot data (row 3)
     shuff_.add("kSpin", &kSpin_, {1,1,0,3}, true);
+    shuff_.add("Shot Vel", &shot_.vel, {1,1,1,3});
+    shuff_.add("Shot Ang", &shot_.ang, {1,1,2,3});
+    
 
     //Tolerance (row 4)
     shuff_.add("pos tol", &posTol_, {1,1,0,4}, true);
@@ -367,7 +376,7 @@ void Shooter::CoreShuffleboardInit(){
 
 void Shooter::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
-    shuff_.PutBoolean("Can Shoot", CanShoot(robotPos_, robotVel_, robotYaw_));
+    //shuff_.PutBoolean("Can Shoot", CanShoot(robotPos_, robotVel_, robotYaw_));
 
     //Kinematics
     // vec::Vector2D targ = SideHelper::IsBlue? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
