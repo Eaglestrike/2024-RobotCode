@@ -1,7 +1,7 @@
 #pragma once
 
 
-#define PIVOT_AUTO_TUNE true
+#define PIVOT_AUTO_TUNE false
 
 #include <map>
 

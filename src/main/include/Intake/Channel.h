@@ -40,7 +40,7 @@ private:
     double KEEP_VOLTS;
     double IN_VOLTS;
     double OUT_VOLTS;
-    double PASS_VOLTS;
+    double PASS_VOLTS; //Pass to shooter
   };
     motorV m_channelInfo = {8.0,
                             0.0,
@@ -52,7 +52,7 @@ private:
                             0.0,
                             2.0,
                             -2.0,
-                            4.0};
+                            8.0};
     
   //for dbg
    double m_kVoltReq = 0.0;

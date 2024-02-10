@@ -58,7 +58,7 @@ namespace ShooterConstants{
         .ka = 0.01142
     };
 
-    const double FLYWHEEL_VEL_TOL = 0.0;
+    const double FLYWHEEL_VEL_TOL = 0.5;
 
     //Pivot Constants
     const int PIVOT_ID = 37;
@@ -88,11 +88,11 @@ namespace ShooterConstants{
         .kg = 0.32
     };
 
-    const double PIVOT_MAX_V = 0.0;
-    const double PIVOT_MAX_A = 0.0;
+    const double PIVOT_MAX_V = 9.0;
+    const double PIVOT_MAX_A = 3.0;
 
-    const double PIVOT_POS_TOL = 0.0;
-    const double PIVOT_VEL_TOL = 0.0;
+    const double PIVOT_POS_TOL = 0.05;
+    const double PIVOT_VEL_TOL = 0.1;
 
     //Shooter data
     struct ShootConfig{
@@ -101,16 +101,16 @@ namespace ShooterConstants{
     };
 
     const std::map<double, ShootConfig> SHOOT_DATA = { //Distance -> ang, vel
-        {1.32, {1.0, 19.0}},
-        {2.06, {0.8, 19.0}},
-        {2.65, {0.7, 19.0}}
+        {1.32, {1.0, 17.0}},
+        {2.06, {0.8, 17.0}},
+        {2.65, {0.7, 17.0}}
     };
 
     const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
     const double STROLL_SPEED = 0.3; //Voltage of strolling
 
-    const double PIVOT_INTAKE = PIVOT_MIN; //Angle for pivot to intake piece into shooter
+    const double PIVOT_INTAKE = PIVOT_MIN + 0.1; //Angle for pivot to intake piece into shooter
     const double SHOOT_TIME = 1.0; //Time for piece to exit shooter
 
     //Tolerances

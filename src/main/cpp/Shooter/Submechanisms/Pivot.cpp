@@ -120,7 +120,7 @@ void Pivot::CoreTeleopPeriodic(){
     else if((currPose_.pos < bounds_.min) && (volts_ < ff_.kg*cos(bounds_.min))){
         volts_ = 0.0;
     }
-    motor_.SetVoltage(units::volt_t{volts_ + 0.2*Utils::Sign(volts_)});
+    motor_.SetVoltage(units::volt_t{volts_ + 0.2*Utils::Sign(volts_)}); //This motor has more weight
     motorChild_.SetVoltage(units::volt_t{volts_});
 
     prevT_ = t;
@@ -210,7 +210,7 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("vel", &currPose_.vel, {1,1,5,1}, false);
     shuff_.add("acc", &currPose_.acc, {1,1,6,1}, false);
     shuff_.add("volts", &volts_, {1,1,4,2}, false);
-    shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,5,2});
+    shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
 
     //Bounds (middle-bottom)
     shuff_.add("min", &bounds_.min, {1,1,4,4}, true);

@@ -53,10 +53,10 @@ void Shooter::CoreTeleopPeriodic(){
             }
             break;
         case SHOOT:
-            // if((!hasPiece_) && (Utils::GetCurTimeS() - shootTimer_ > shootTimer_)){
-            //     hasShot_ = false;
-            //     Stroll(); //Stroll after shooting (not seeing piece for some time)
-            // }
+            if((!hasPiece_) && (Utils::GetCurTimeS() - shootTimer_ > shootTimer_)){
+                hasShot_ = false;
+                Stroll(); //Stroll after shooting (not seeing piece for some time)
+            }
             break;
         case STROLL:
             break;
@@ -249,18 +249,25 @@ bool Shooter::CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double ro
         return false;
     }
     //Can only shoot within target
-    if((robotPos - targetPos_).magn() < posTol_){
-        return false;
-    }
-    if((robotVel - targetVel_).magn() < velTol_){
-        return false;
-    }
+    double posError = (robotPos - targetPos_).magn();
+    double velError = (robotVel - targetVel_).magn();
     double yawError = std::fmod(robotYaw - targetYaw_, 2.0*M_PI);
     if(yawError > M_PI){
         yawError -= 2.0*M_PI;
     }
     if(yawError < -M_PI){
         yawError += 2.0*M_PI;
+    }
+    if(shuff_.isEnabled()){
+        shuff_.PutNumber("Pos Error", posError, {1,1,8,2});
+        shuff_.PutNumber("Vel Error", velError, {1,1,9,2});
+        shuff_.PutNumber("Yaw Error", yawError, {1,1,10,2});
+    }
+    if(posError < posTol_){
+        return false;
+    }
+    if(velError < velTol_){
+        return false;
     }
     if(std::abs(yawError) < yawTol_){
         return false;
