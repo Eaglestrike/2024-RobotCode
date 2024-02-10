@@ -36,7 +36,7 @@ namespace ShooterConstants{
 
     const FlywheelConfig RIGHT_FLYWHEEL{
         .name = "Top Flywheel",
-        .id = 3,
+        .id = 25,
         .inverted = true
     };
     
@@ -68,24 +68,24 @@ namespace ShooterConstants{
 
     const double PIVOT_GEARING = 12.0/196.0;
     
-    const double PIVOT_MIN = 0.312;
-    const double PIVOT_MAX = PIVOT_MIN + 0.816988623;
+    const double PIVOT_MIN = 17.7 * M_PI/180.0;
+    const double PIVOT_MAX = 67.2 * M_PI/180.0;
 
     const double PIVOT_MAX_VOLTS = 10.0;
 
-    const double PIVOT_OFFSET = 0.34535;
+    const double PIVOT_OFFSET = 3.456;
 
     const PID PIVOT_PID = {
-        .kp = 0.0,
-        .ki = 0.0,
+        .kp = 7.0,
+        .ki = 0.1,
         .kd = 0.0
     };
 
     const Feedforward PIVOT_FF = {
-        .ks = 1.0,
-        .kv = 0.663,
-        .ka = 0.1579,
-        .kg = 0.297
+        .ks = 0.1308,
+        .kv = 0.336,
+        .ka = 0.0352,
+        .kg = 0.32
     };
 
     const double PIVOT_MAX_V = 0.0;
@@ -106,7 +106,7 @@ namespace ShooterConstants{
 
     const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
-    const double STROLL_SPEED = 0.0; //Voltage of strolling
+    const double STROLL_SPEED = 0.3; //Voltage of strolling
 
     const double PIVOT_INTAKE = 0.0; //Angle for pivot to intake piece into shooter
     const double SHOOT_TIME = 1.0; //Time for piece to exit shooter

@@ -2,6 +2,7 @@
 
 #include <ctre/phoenix6/CANcoder.hpp>
 #include <ctre/phoenix6/TalonFX.hpp>
+#include <ctre/phoenix6/controls/Follower.hpp>
 //#include <rev/CANSparkMax.h>
 
 #include "FFAutotuner/FFAutotuner.h"
@@ -16,6 +17,7 @@
 
 using CANcoder = ctre::phoenix6::hardware::CANcoder;
 using TalonFX = ctre::phoenix6::hardware::TalonFX;
+using Follower = ctre::phoenix6::controls::Follower;
 
 class Pivot : public Mechanism{
     public:
@@ -49,6 +51,8 @@ class Pivot : public Mechanism{
 
         TalonFX motor_;
         TalonFX motorChild_;
+        //Follower follower_;
+        
         double gearing_;
         
         double volts_;

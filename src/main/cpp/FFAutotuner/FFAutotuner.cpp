@@ -168,7 +168,7 @@ void FFAutotuner::resetProfile(bool center){
         ShuffData_.PutNumber("avg pos error", avgPosError);
     }
     double maxVel = maxDist/testTime_;
-    double maxAcc = maxVel;
+    double maxAcc = maxVel * (((random() % 100000L) / 100000.0 - 0.5)*0.5 + 1.0);
     profile_.setMaxVel(maxVel);
     profile_.setMaxAcc(maxAcc);
 

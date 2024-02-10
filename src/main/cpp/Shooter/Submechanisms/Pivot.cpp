@@ -18,13 +18,17 @@ using ctre::phoenix6::controls::Follower;
 Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     Mechanism(name, enabled, shuffleboard),
     state_{STOP},
+
     motor_{ShooterConstants::PIVOT_ID},
     motorChild_{ShooterConstants::PIVOT_CHILD_ID},
+    //follower_{ShooterConstants::PIVOT_ID, true},
     gearing_{ShooterConstants::PIVOT_GEARING},
     volts_{0.0},
     maxVolts_{ShooterConstants::PIVOT_MAX_VOLTS},
+
     encoder_{ShooterConstants::PIVOT_ENCODER_ID, ShooterConstants::SHOOTER_CANBUS},
     offset_{ShooterConstants::PIVOT_OFFSET},
+
     bounds_{
         .min = ShooterConstants::PIVOT_MIN,
         .max = ShooterConstants::PIVOT_MAX
@@ -43,8 +47,13 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     // motor_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
     // motorChild_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
 
+    motor_.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
+    motorChild_.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
+
     motor_.SetInverted(true);
     motorChild_.SetInverted(false);
+
+    //motorChild_.SetControl(follower_);
 
     //motorChild_.Follow(motor_, true);
 }
@@ -96,8 +105,8 @@ void Pivot::CoreTeleopPeriodic(){
             }
 
             if(shuff_.isEnabled()){ //Shuff prints
-                shuff_.PutNumber("pos error", error.vel, {1,1,5,3});
-                shuff_.PutNumber("vel error", error.acc, {1,1,6,3});
+                shuff_.PutNumber("pos error", error.pos, {1,1,5,3});
+                shuff_.PutNumber("vel error", error.vel, {1,1,6,3});
             }
             break;
         }
@@ -111,7 +120,7 @@ void Pivot::CoreTeleopPeriodic(){
     else if((currPose_.pos < bounds_.min) && (volts_ < ff_.kg*cos(bounds_.min))){
         volts_ = 0.0;
     }
-    motor_.SetVoltage(units::volt_t{volts_});
+    motor_.SetVoltage(units::volt_t{volts_ + 0.2*Utils::Sign(volts_)});
     motorChild_.SetVoltage(units::volt_t{volts_});
 
     prevT_ = t;

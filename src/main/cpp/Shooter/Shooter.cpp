@@ -8,12 +8,12 @@ Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     rflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, shuffleboard},
     pivot_{"Pivot", enabled, shuffleboard},
     
-    // m_kickerMotor{0, rev::CANSparkLowLevel::MotorType::kBrushless},//TODO DELETE
+    // m_kickerMotor{0, rev::CANSparkLowLevel::MotorType::kBrushless},
     shuff_{name, shuffleboard}
 
     #if PIVOT_AUTO_TUNE
     ,pivotTuning_{false},
-    pivotTuner_{"pivot tuner", FFAutotuner::ARM}
+    pivotTuner_{"pivot tuner", FFAutotuner::ARM, ShooterConstants::PIVOT_MIN, ShooterConstants::PIVOT_MAX}
     #endif
 {
     // m_kickerMotor.RestoreFactoryDefaults();
@@ -53,10 +53,10 @@ void Shooter::CoreTeleopPeriodic(){
             }
             break;
         case SHOOT:
-            if((!hasPiece_) && (Utils::GetCurTimeS() - shootTimer_ > shootTimer_)){
-                hasShot_ = false;
-                Stroll(); //Stroll after shooting (not seeing piece for some time)
-            }
+            // if((!hasPiece_) && (Utils::GetCurTimeS() - shootTimer_ > shootTimer_)){
+            //     hasShot_ = false;
+            //     Stroll(); //Stroll after shooting (not seeing piece for some time)
+            // }
             break;
         case STROLL:
             break;
@@ -64,15 +64,7 @@ void Shooter::CoreTeleopPeriodic(){
             break;
     }
 
-    #if SHOOTER_AUTO_TUNE
-    if(lflyTuning_){
-        lflyTuner_.setPose(lflywheel_.GetPose());
-        lflywheel_.SetVoltage(lflyTuner_.getVoltage());
-    }
-    if(rflyTuning_){
-        rflyTuner_.setPose(rflywheel_.GetPose());
-        rflywheel_.SetVoltage(rflyTuner_.getVoltage());
-    }
+    #if PIVOT_AUTO_TUNE
     if(pivotTuning_){
         pivotTuner_.setPose(pivot_.GetPose());
         pivot_.SetVoltage(pivotTuner_.getVoltage());
@@ -318,8 +310,8 @@ void Shooter::CoreShuffleboardInit(){
         }, {1,1,1,0});
 
     //State (rightside)
-    shuff_.PutString("State", StateToString(state_), {2,1,4,0});
-    shuff_.add("Has piece", &hasPiece_, {2,1,4,1}, false);
+    shuff_.PutString("State", StateToString(state_), {2,1,3,0});
+    shuff_.add("Has piece", &hasPiece_, {2,1,3,1}, false);
     shuff_.PutBoolean("Can Shoot", false, {1,1,5,0});
 
     // Kinematics
@@ -363,7 +355,7 @@ void Shooter::CoreShuffleboardInit(){
     shuff_.add("yaw tol", &yawTol_, {1,1,2,4}, true);
 
     // shuff_.add("kicker volts", &kickerVolts_, {1,1,5,4}, true);
-
+    
 }
 
 void Shooter::CoreShuffleboardPeriodic(){
@@ -378,4 +370,8 @@ void Shooter::CoreShuffleboardPeriodic(){
     // shuff_.PutString("Shot Error", fk.error.toString());
 
     shuff_.update(true);
+
+    #if PIVOT_AUTO_TUNE
+    pivotTuner_.ShuffleboardUpdate();
+    #endif
 }
