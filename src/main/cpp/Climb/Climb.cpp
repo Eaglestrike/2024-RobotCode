@@ -1,5 +1,15 @@
 #include "Climb/Climb.h"
 
+Climb::Climb(bool enabled, bool dbg): 
+    m_shuff{"Climb", dbg},
+    Mechanism{"climb", enabled, dbg}
+{
+    m_master.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
+    Zero();
+    // m_slave.SetControl(Follower(Ids::MASTER_CLIMB_MOTOR, false));
+}
+
+
 void Climb::CorePeriodic(){
     UpdatePos();
 }
@@ -105,13 +115,6 @@ bool Climb::AtTarget(double target, bool up){
     else if (!up && (m_pos <= target+POS_TOLERANCE))
         return true;
     return false;
-}
-
-Climb::Climb(bool enabled, bool dbg): 
-    Mechanism("climb", enabled, dbg){
-    m_master.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
-    Zero();
-    // m_slave.SetControl(Follower(Ids::MASTER_CLIMB_MOTOR, false));
 }
 
 void Climb::Extend(){

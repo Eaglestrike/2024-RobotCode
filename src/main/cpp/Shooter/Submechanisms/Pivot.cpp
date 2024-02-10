@@ -53,8 +53,8 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
  * Core functions
 */
 void Pivot::CorePeriodic(){
-    double pos = (gearing_ * 2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_);
-    double vel = (gearing_ * 2*M_PI * encoder_.GetVelocity().GetValueAsDouble()); //Rotations -> Radians
+    double pos = -2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_;
+    double vel = -2*M_PI * encoder_.GetVelocity().GetValueAsDouble(); //Rotations -> Radians
     double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
     currPose_ = {pos, vel, acc};
 }
@@ -149,7 +149,7 @@ void Pivot::SetVoltage(double volts){
  * Zeros the encoder (should be level)
 */
 void Pivot::Zero(){
-    offset_ = -2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble(); 
+    offset_ = 2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + bounds_.min;
 }
 
 /**

@@ -105,7 +105,7 @@ void Robot::RobotInit() {
   m_climb.Init();
   m_client.Init();
   m_swerveController.Init();
-  // shooter_.Init();
+  m_shooter.Init();
 }
 
 /**
