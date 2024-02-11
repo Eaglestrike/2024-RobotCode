@@ -70,11 +70,11 @@ namespace ShooterConstants{
     
     const double PIVOT_MIN = 17.7 * M_PI/180.0;
     const double PIVOT_MAX = 67.2 * M_PI/180.0;
-
+   
     const double PIVOT_MAX_VOLTS = 3.0;
 
     const double PIVOT_OFFSET = 3.456;
-
+ 
     const PID PIVOT_PID = {
         .kp = 7.0,
         .ki = 0.1,
