@@ -30,7 +30,51 @@ void AutoAngLineup::Start() {
   }
 
   double curAng = m_odom.GetAngNorm();
+  double dist = CalcDist(curAng);
+  CalcTimes(dist, 0);
+  
+  m_curExpectedAng = curAng;
+  m_prevAngErr = 0;
+  m_totalAngErr = 0;
+  m_state = EXECUTING_TARGET;
+}
 
+/**
+ * Recalculates profile in the middle of moving, useful for auto aiming while moving
+ * 
+ * @param targAng new target angle
+*/
+void AutoAngLineup::Recalc(double targAng) {
+  if (m_state != EXECUTING_TARGET) {
+    SetTarget(targAng);
+    Start();
+    return;
+  }
+
+  m_targetAng = Utils::NormalizeAng(targAng);
+  double curAng = m_odom.GetAngNorm();
+  double curAngVel = m_odom.GetAngVel();
+  double prevDir = m_angVecDir;
+  double dist = CalcDist(curAng);
+  if (m_angVecDir != prevDir) {
+    curAngVel = -curAngVel;
+  }
+  CalcTimes(dist, curAngVel);
+
+  m_curExpectedAng = curAng;
+  m_prevAngErr = 0;
+  m_totalAngErr = 0;
+  m_state = EXECUTING_TARGET;
+}
+
+/**
+ * Calculates angular distance
+ * 
+ * @param curAng current angle
+ * 
+ * @returns Angular distance to target
+*/
+double AutoAngLineup::CalcDist(double curAng) {
   // calculates angular distance
   double dist;
   if (std::abs(m_targetAng - curAng) < M_PI) {
@@ -49,12 +93,7 @@ void AutoAngLineup::Start() {
     dist = 2 * M_PI - std::abs(m_targetAng - curAng);
   }
 
-  CalcTimes(dist);
-  
-  m_curExpectedAng = curAng;
-  m_prevAngErr = 0;
-  m_totalAngErr = 0;
-  m_state = EXECUTING_TARGET;
+  return dist;
 }
 
 /**
@@ -65,11 +104,18 @@ void AutoAngLineup::Stop() {
 }
 
 /**
+ * Regenerates
+*/
+
+/**
  * Starts executing the move in one of translational/rotational
  * 
- * @param dist The distance to move
+ * @note This only calculates speed, no velocity
+ * 
+ * @param dist The distance to move, must be positive
+ * @param speed0 Initial speed, could be negative if we wnat to move in opp direction
 */
-void AutoAngLineup::CalcTimes(double dist) {
+void AutoAngLineup::CalcTimes(double dist, double speed0) {
   double curT = Utils::GetCurTimeS();
 
   if (Utils::NearZero(m_maxAccel) || Utils::NearZero(m_maxSpeed)) {
@@ -77,21 +123,22 @@ void AutoAngLineup::CalcTimes(double dist) {
   }
 
   // time to accelerate/decelerate
-  double increaseT = m_maxSpeed / m_maxAccel;
+  double increaseT = (m_maxSpeed - speed0) / m_maxAccel;
   // time to maintain max speed
   double maintainT = 0;
   if (increaseT * m_maxSpeed > dist) {
     // check math, may be wrong
-    increaseT = std::sqrt(dist / m_maxAccel);
+    increaseT = std::sqrt(dist / m_maxAccel) - speed0 / m_maxAccel;
     maintainT = 0;
   } else {
-    maintainT = (dist - increaseT * m_maxSpeed) / m_maxSpeed;
+    double maintainArea = dist - (m_maxSpeed * m_maxSpeed) / (2 * m_maxAccel) - increaseT * (speed0 + m_maxSpeed) / 2;
+    maintainT = maintainArea / m_maxSpeed;
   }
 
   m_angTimes.startT = curT;
   m_angTimes.maxSpeedT = curT + increaseT;
   m_angTimes.descentT = curT + increaseT + maintainT;
-  m_angTimes.endT = curT + increaseT * 2 + maintainT;
+  m_angTimes.endT = curT + increaseT + maintainT + m_maxSpeed / m_maxAccel;
 
   // std::cout << "max speed" << m_maxSpeed << std::endl;
   // std::cout << "max ac" << m_maxAccel << std::endl;
