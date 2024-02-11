@@ -137,7 +137,7 @@ void Auto::AutoPeriodic(){
         NextBlock();
     }
     
-    if(shooterTiming_.hasStarted && (!shooterTiming_.finished)){
+    if(shooterTiming_.hasStarted && (!shooterTiming_.finished) && intake_.hasPiece()){
         autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
         autoLineup_.Start();
         autoLineup_.Periodic();

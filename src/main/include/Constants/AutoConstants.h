@@ -95,7 +95,7 @@ namespace AutoConstants {
   const double SHOOT_PADDING = -0.5; //Shoot earlier bc channel
 
   //Pos tol for shoot aiming
-  const double SHOOT_POS_TOL = 0.3;
+  const double SHOOT_POS_TOL = 0.0;
 
   // starting positions
   const StartPose BLUE_L = {{0.666, 6.721}, 4.2309};
