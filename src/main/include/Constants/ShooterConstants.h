@@ -76,23 +76,23 @@ namespace ShooterConstants{
     const double PIVOT_OFFSET = 3.456;
  
     const PID PIVOT_PID = {
-        .kp = 7.0,
-        .ki = 0.1,
-        .kd = 0.0
+        .kp = 3.0,
+        .ki = 0.02,
+        .kd = 0.02
     };
 
     const Feedforward PIVOT_FF = {
         .ks = 0.1308,
         .kv = 0.336,
         .ka = 0.0352,
-        .kg = 0.32
+        .kg = 0.36
     };
 
     const double PIVOT_MAX_V = 2.0;
-    const double PIVOT_MAX_A = 2.0;
+    const double PIVOT_MAX_A = 5.0;
 
-    const double PIVOT_POS_TOL = 0.05;
-    const double PIVOT_VEL_TOL = 0.1;
+    const double PIVOT_POS_TOL = 0.02;
+    const double PIVOT_VEL_TOL = 0.05;
 
     //Shooter data
     struct ShootConfig{
@@ -103,8 +103,11 @@ namespace ShooterConstants{
     const std::map<double, ShootConfig> SHOOT_DATA = { //Distance -> ang, vel
         {0.0,  {1.1, 17.0}},
         {1.32, {1.0, 17.0}},
-        {2.06, {0.75, 17.0}},
-        {2.65, {0.65, 17.0}}
+        {2.06, {0.8, 17.0}},
+        {2.65, {0.7, 17.0}},
+        {2.86, {0.65, 18.0}},
+        {3.39, {0.6, 19.0}},
+        {4.14, {0.55, 19.0}}
     };
 
     const double K_SPIN = 0.0; //Constant of how much the robot spins the note

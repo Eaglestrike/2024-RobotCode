@@ -115,6 +115,7 @@ void Shooter::BringDown(){
 void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
     if(!hasPiece_){
         Stroll();
+        return;
     }
 
     targetPos_ = robotPos;
