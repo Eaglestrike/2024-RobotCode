@@ -26,6 +26,8 @@ Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLine
     ResetTiming(intakeTiming_);
     ResetTiming(shooterTiming_);
     ResetTiming(driveTiming_);
+
+    //SetPath(0, {{SHOOT, AFTER});
 }
 
 /**
@@ -137,7 +139,9 @@ void Auto::AutoPeriodic(){
         NextBlock();
     }
     
-    if(shooterTiming_.hasStarted && (!shooterTiming_.finished) && intake_.HasGamePiece()){
+    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) && intake_.HasGamePiece();
+    
+    if(useAngLineup && false){
         autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
         autoLineup_.Start();
         autoLineup_.Periodic();
@@ -192,9 +196,13 @@ void Auto::ShooterPeriodic(double t){
         if(shooter_.CanShoot() || (t > shooterTiming_.end + SHOOT_PADDING)){ 
             intake_.FeedIntoShooter();
         }
+
+        if(inChannel_ && intake_.InChannel()){
+            inChannel_ = false;
+        }
         
         //Finish shooting when can't see piece for a bit
-        if(!intake_.HasGamePiece()){ 
+        if(!inChannel_ && !intake_.HasGamePiece()){ 
             if(!channelTiming_.hasStarted){ //Start channel timer
                 channelTiming_.end = t + CHANNEL_TIME;
                 channelTiming_.hasStarted = true;
@@ -237,6 +245,7 @@ void Auto::IntakePeriodic(double t){
         if( (intake_.HasGamePiece()) || // End intake if has game piece
             (t > maxTime + INTAKE_PADDING)){ 
             intakeTiming_.finished = true;
+            inChannel_ = true;
         }
     }
     else{
@@ -487,6 +496,8 @@ void Auto::ShuffleboardInit(){
     shuff_.add("Shooter Padding", &SHOOT_PADDING, {1,1,4,2}, true);
     shuff_.add("Shooter Time", &SHOOT_TIME, {1,1,5,2}, true);
     shuff_.add("Shoot pos tol", &SHOOT_POS_TOL, {1,1,6,2}, true);
+
+    shuff_.add("Shooter Padding", &CHANNEL_TIME, {1,1,4,2}, true);
 
     //Intake Timing (row 3)
     shuff_.add("Intake Start", &intakeTiming_.start, {1,1,0,3});

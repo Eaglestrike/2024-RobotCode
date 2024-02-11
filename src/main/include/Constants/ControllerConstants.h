@@ -84,8 +84,8 @@ namespace ControllerConstants{
     const Button BB_UP          = {BUTTONBOARD, {BUTTON_BUTTON, 13}}; //15
     const Button BB_LEFT        = {BUTTONBOARD, {BUTTON_BUTTON, 14}}; //16
     const Button BB_RIGHT       = {BUTTONBOARD, {BUTTON_BUTTON, 15}}; //13
-    const Button BB_X_TRIM_UP   = {BUTTONBOARD, {BUTTON_BUTTON, 18}};
-    const Button BB_X_TRIM_DOWN = {BUTTONBOARD, {BUTTON_BUTTON, 17}};
+    const Button BB_X_TRIM_LEFT   = {BUTTONBOARD, {BUTTON_BUTTON, 18}};
+    const Button BB_X_TRIM_RIGHT = {BUTTONBOARD, {BUTTON_BUTTON, 17}};
     const Button BB_Y_TRIM_UP   = {BUTTONBOARD, {BUTTON_BUTTON, 16}};
     const Button BB_Y_TRIM_DOWN = {BUTTONBOARD, {BUTTON_BUTTON, 19}};
 }

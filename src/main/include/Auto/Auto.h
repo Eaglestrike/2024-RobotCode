@@ -60,6 +60,7 @@ class Auto{
         };        
         void ResetTiming(SubsystemTiming& timing);
 
+        bool inChannel_; //Boolean to store data about the blinds spot
         SubsystemTiming driveTiming_;
         vec::Vector2D shootPos_;
         SubsystemTiming channelTiming_; //Used to time channel loading time 

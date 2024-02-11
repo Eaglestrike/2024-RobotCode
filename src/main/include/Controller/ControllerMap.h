@@ -3,6 +3,9 @@
 #include <vector>
 
 #include "Constants/ControllerConstants.h"
+#include "Util/simplevectors.hpp"
+
+namespace vec = svector;
 
 namespace Actions{
     enum Action{
@@ -115,15 +118,12 @@ namespace ControllerMapData{
         {BB_L3, 3}
     };
 
-    const double TRIM_SIZE = 0.05; // in m
-    const std::vector<ValueMapElement<double>> GET_TRIM_X = {
-        {BB_X_TRIM_UP, TRIM_SIZE},
-        {BB_X_TRIM_DOWN, -TRIM_SIZE}
-    };
-
-    const std::vector<ValueMapElement<double>> GET_TRIM_Y = {
-        {BB_Y_TRIM_UP, TRIM_SIZE},
-        {BB_Y_TRIM_DOWN, -TRIM_SIZE}
+    const double TRIM_SIZE = 0.075; // shooter units
+    const std::vector<ValueMapElement<vec::Vector2D>> GET_SHOOTER_TRIM = {
+        {BB_X_TRIM_LEFT,    {-TRIM_SIZE, 0.0}},
+        {BB_X_TRIM_RIGHT,   {TRIM_SIZE, 0.0}},
+        {BB_Y_TRIM_UP,      {0.0, TRIM_SIZE}},
+        {BB_Y_TRIM_DOWN,    {0.0,-TRIM_SIZE}}
     };
 
     //Takes the range from min to max
