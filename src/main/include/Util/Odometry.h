@@ -23,6 +23,7 @@ public:
   Odometry(const bool &shuffleboard);
 
   void SetStartingConfig(const vec::Vector2D &pos, const double &ang, const double &joystickAng);
+  void SetAuto(const bool &autoMode);
   void Reset();
 
   vec::Vector2D GetPos() const;

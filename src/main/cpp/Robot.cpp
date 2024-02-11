@@ -168,6 +168,7 @@ void Robot::RobotPeriodic() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
+  m_odom.SetAuto(true);
   m_swerveController.SetAngCorrection(false);
   m_swerveController.SetAutoMode(true);
   
@@ -182,6 +183,7 @@ void Robot::AutonomousPeriodic() {
 }
 
 void Robot::TeleopInit() {
+  m_odom.SetAuto(false);
   m_swerveController.SetAngCorrection(true);
   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
   m_swerveController.SetAutoMode(false);
@@ -236,13 +238,17 @@ void Robot::TeleopPeriodic() {
       if (m_amp) {
         m_intake.AmpOuttake(); //Shoot into amp
       } else {
-        m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
         if(m_intake.HasGamePiece()){
+          m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
           m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
           m_autoLineup.Start();
+          if(m_shooter.CanShoot()){
+            m_intake.FeedIntoShooter();
+          }
         }
-        if(m_shooter.CanShoot(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetAng())){
-          m_intake.FeedIntoShooter();
+        else{
+          m_intake.Passthrough();
+          m_shooter.BringDown();
         }
       }
     } else if(m_controller.getPressed(INTAKE)){

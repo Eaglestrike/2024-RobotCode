@@ -88,8 +88,8 @@ namespace ShooterConstants{
         .kg = 0.36
     };
 
-    const double PIVOT_MAX_V = 2.0;
-    const double PIVOT_MAX_A = 5.0;
+    const double PIVOT_MAX_V = 1.0;
+    const double PIVOT_MAX_A = 2.0;
 
     const double PIVOT_POS_TOL = 0.02;
     const double PIVOT_VEL_TOL = 0.05;
@@ -114,7 +114,7 @@ namespace ShooterConstants{
 
     const double STROLL_SPEED = 0.3; //Voltage of strolling
 
-    const double PIVOT_INTAKE = PIVOT_MIN + 0.1; //Angle for pivot to intake piece into shooter
+    const double PIVOT_INTAKE = PIVOT_MIN; //Angle for pivot to intake piece into shooter
     const double SHOOT_TIME = 1.0; //Time for piece to exit shooter
 
     //Tolerances
