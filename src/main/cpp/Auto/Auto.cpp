@@ -15,12 +15,12 @@ using enum AutoConstants::AutoAction;
  * 
  * @note does not call periodic calls of mechanisms
 */
-Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autolineup, Intake &intake/*, Shooter &shooter*/):
+Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autolineup, Intake &intake, Shooter &shooter):
     segments_{shuffleboard, swerve, odom},
     odometry_{odom},
     autoLineup_{autolineup},
     intake_{intake},
-    //shooter_{shooter},
+    shooter_{shooter},
     shuff_{"Auto", shuffleboard}
 {
     ResetTiming(intakeTiming_);
@@ -137,17 +137,15 @@ void Auto::AutoPeriodic(){
         NextBlock();
     }
     
-    // if(shooterTiming_.hasStarted && (!shooterTiming_.finished)){
-    //     autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
-    //     autoLineup_.Start();
-    //     autoLineup_.Periodic();
-    //     segments_.Periodic(autoLineup_.GetAngVel());
-    // }
-    // else{
+    if(shooterTiming_.hasStarted && (!shooterTiming_.finished)){
+        autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
+        autoLineup_.Start();
+        autoLineup_.Periodic();
+        segments_.Periodic(autoLineup_.GetAngVel());
+    }
+    else{
         segments_.Periodic();
-
-        //std::cout<<"Segments"<<std::endl;
-    //}
+    }
     
     DrivePeriodic(t);
     //std::cout<<"drive"<<std::endl;
@@ -186,12 +184,12 @@ void Auto::ShooterPeriodic(double t){
     }
 
     if(shooterTiming_.finished){
-        //shooter_.Stroll();
+        shooter_.Stroll();
     }
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
         //Feed into shooter when can shoot
-        if(/*shooter_.CanShoot(pos, odometry_.GetVel(), odometry_.GetAng()) || */(t > shooterTiming_.end + SHOOT_PADDING)){ 
+        if(shooter_.CanShoot(pos, odometry_.GetVel(), odometry_.GetAng()) || (t > shooterTiming_.end + SHOOT_PADDING)){ 
             intake_.FeedIntoShooter();
         }
         
@@ -206,16 +204,16 @@ void Auto::ShooterPeriodic(double t){
             }
         }
 
-        // if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target
-        //     shooter_.Prepare(pos, odometry_.GetVel(), SideHelper::IsBlue());
-        // }
-        // else{
-        //     shooter_.Prepare(shootPos_, {0,0}, SideHelper::IsBlue()); //Prepare for the target shot
-        // }
+        if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target
+            shooter_.Prepare(pos, odometry_.GetVel(), SideHelper::IsBlue());
+        }
+        else{
+            shooter_.Prepare(shootPos_, {0,0}, SideHelper::IsBlue()); //Prepare for the target shot
+        }
         
     }
     else{
-        //shooter_.Stroll();
+        shooter_.Stroll();
     }
 }
 
