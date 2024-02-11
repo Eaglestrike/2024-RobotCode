@@ -66,7 +66,12 @@ void Pivot::CoreInit(){
  * Core functions
 */
 void Pivot::CorePeriodic(){
-    Poses::Pose1D newPose = GetRelPose();
+    Poses::Pose1D absPose = GetAbsPose();
+    Poses::Pose1D newPose = GetRelPose(); //Use relative encoder
+    if(std::abs(newPose.pos - absPose.pos) > 0.02){
+        ZeroRelative();
+        newPose = absPose;
+    }
     newPose.acc = (newPose.vel - currPose_.vel)/0.02; //Sorry imma assume
     currPose_ = newPose;
 }
@@ -149,17 +154,22 @@ void Pivot::SetAngle(double angle){
     if(angle > bounds_.max || angle < bounds_.min){
         return;
     }
+    Poses::Pose1D currTarg = profile_.getTargetPose();
     Poses::Pose1D target = {.pos = angle, .vel = 0.0, .acc = 0.0};
-    profile_.setTarget(currPose_, target);
-    accum_ = 0.0;
 
     Poses::Pose1D error = target - currPose_;
     bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
     if(atTarget){
         state_ = AT_TARGET;
+        return;
     }
     else{
         state_ = AIMING;
+    }
+
+    if(std::abs(currTarg.pos - angle) > 0.001){ //Basically the same target
+        profile_.setTarget(currPose_, target);
+        accum_ = 0.0;
     }
 }
 

@@ -150,6 +150,10 @@ double TrapezoidalProfile::getMaxAcc(){
     return maxAcc_;
 }
 
+Poses::Pose1D TrapezoidalProfile::getTargetPose(){
+    return finalPose_;
+}
+
 void TrapezoidalProfile::setMaxVel(double maxVel){
     maxVel_ = maxVel;
 }
