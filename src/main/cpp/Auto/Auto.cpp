@@ -137,7 +137,7 @@ void Auto::AutoPeriodic(){
         NextBlock();
     }
     
-    if(shooterTiming_.hasStarted && (!shooterTiming_.finished) && intake_.hasPiece()){
+    if(shooterTiming_.hasStarted && (!shooterTiming_.finished) && intake_.HasGamePiece()){
         autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
         autoLineup_.Start();
         autoLineup_.Periodic();
@@ -189,7 +189,7 @@ void Auto::ShooterPeriodic(double t){
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
         //Feed into shooter when can shoot
-        if(shooter_.CanShoot(pos, odometry_.GetVel(), odometry_.GetAng()) || (t > shooterTiming_.end + SHOOT_PADDING)){ 
+        if(shooter_.CanShoot() || (t > shooterTiming_.end + SHOOT_PADDING)){ 
             intake_.FeedIntoShooter();
         }
         
