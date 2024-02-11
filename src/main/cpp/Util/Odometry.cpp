@@ -16,7 +16,7 @@ Odometry::Odometry(const bool &shuffleboard) :
   m_shuffleboard{shuffleboard}, m_curAng{0}, m_startAng{0}, m_angVel{0},
   m_curYaw{0}, m_joystickAng{0}, 
   m_prevDriveTime{Utils::GetCurTimeS()}, m_estimator{OdometryConstants::SYS_STD_DEV},
-  m_uniqueId{-1000}, m_prevCamTime{-1000}, m_camStdDevCoef{OdometryConstants::CAM_STD_DEV_COEF} {}
+  m_uniqueId{-1000}, m_prevCamTime{-1000}, m_camStdDevCoef{OdometryConstants::CAM_STD_DEV_COEF_AUTO} {}
 
 /**
  * Sets starting configuration, then resets position.
@@ -31,6 +31,19 @@ void Odometry::SetStartingConfig(const vec::Vector2D &pos, const double &ang, co
   m_joystickAng = joystickAng;
   
   Reset();
+}
+
+/**
+ * Sets auto mode
+ * 
+ * @param autoMode if true, then faster correct on cameras, if false, trusts caeras less
+*/
+void Odometry::SetAuto(const bool &autoMode) {
+  if (autoMode) {
+    m_camStdDevCoef = OdometryConstants::CAM_STD_DEV_COEF_AUTO;
+  } else {
+    m_camStdDevCoef = OdometryConstants::CAM_STD_DEV_COEF_TELE;
+  }
 }
 
 /**

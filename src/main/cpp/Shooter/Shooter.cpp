@@ -59,6 +59,7 @@ void Shooter::CoreTeleopPeriodic(){
             }
             break;
         case STROLL:
+            Stroll();
             break;
         default:
             break;
@@ -92,11 +93,31 @@ void Shooter::Stop(){
  * Sets to low speed/voltage to constantly spin
 */
 void Shooter::Stroll(){
-    // lflywheel_.SetTarget(strollSpeed_);
-    // rflywheel_.SetTarget(strollSpeed_);
-    lflywheel_.SetVoltage(strollSpeed_);
-    rflywheel_.SetVoltage(strollSpeed_);
-    pivot_.Stop();
+    if(!hasPiece_){
+        BringDown();
+        return;
+    }
+
+    vec::Vector2D toSpeaker;
+    if(SideHelper::IsBlue()){
+        toSpeaker = ShooterConstants::BLUE_SPEAKER - robotPos_;
+    }
+    else{
+        toSpeaker = ShooterConstants::RED_SPEAKER - robotPos_;
+    }
+
+    double dist = toSpeaker.magn();
+
+    pivot_.SetAngle(0.7);
+    if(dist < 6.0){
+        lflywheel_.SetTarget(15.0);
+        rflywheel_.SetTarget(15.0);
+    }
+    else{
+        lflywheel_.SetVoltage(strollSpeed_);
+        rflywheel_.SetVoltage(strollSpeed_);
+    }
+    //pivot_.Stop();
     state_ = STROLL;
 }
 
@@ -105,6 +126,9 @@ void Shooter::Stroll(){
 */
 void Shooter::BringDown(){
     pivot_.SetAngle(pivotIntake_);
+    
+    lflywheel_.SetVoltage(strollSpeed_);
+    rflywheel_.SetVoltage(strollSpeed_);  
 }
 
 /**
@@ -113,11 +137,6 @@ void Shooter::BringDown(){
  * @param toSpeaker field-oriented vector to the speaker 
 */
 void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
-    if(!hasPiece_){
-        Stroll();
-        return;
-    }
-
     targetPos_ = robotPos;
     targetVel_ = {0.0, 0.0};
 
@@ -131,6 +150,11 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
 
     double dist = toSpeaker.magn();
     targetYaw_ = toSpeaker.angle();
+
+    if(!hasPiece_){
+        Stroll();
+        return;
+    }
 
     auto shot = shootData_.lower_bound(dist);
     if(shot == shootData_.begin() || shot == shootData_.end()){ //No shot in data (too far or too close)
@@ -250,7 +274,7 @@ Shooter::IKRes Shooter::CalculateInverseKinematics(vec::Vector2D target){
 /**
  * Returns if you can shoot
 */
-bool Shooter::CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw){
+bool Shooter::CanShoot(){
     if(state_ != SHOOT){
         if(shuff_.isEnabled()){
             shuff_.PutBoolean("Can Shoot", false);
@@ -258,9 +282,9 @@ bool Shooter::CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double ro
         return false;
     }
     //Can only shoot within target
-    double posError = (robotPos - targetPos_).magn();
-    double velError = (robotVel - targetVel_).magn();
-    double yawError = std::fmod(robotYaw - targetYaw_, 2.0*M_PI);
+    double posError = (robotPos_ - targetPos_).magn();
+    double velError = (robotVel_ - targetVel_).magn();
+    double yawError = std::fmod(robotYaw_ - targetYaw_, 2.0*M_PI);
     if(yawError > M_PI){
         yawError -= 2.0*M_PI;
     }

@@ -42,7 +42,7 @@ class Shooter : public Mechanism{
         void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker);
         void SetGamepiece(bool hasPiece);
 
-        bool CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);
+        bool CanShoot();
 
         double GetTargetRobotYaw();
 
