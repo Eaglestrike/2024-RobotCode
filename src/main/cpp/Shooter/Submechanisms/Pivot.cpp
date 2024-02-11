@@ -161,7 +161,6 @@ void Pivot::SetAngle(double angle){
     bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
     if(atTarget){
         state_ = AT_TARGET;
-        return;
     }
     else{
         state_ = AIMING;
