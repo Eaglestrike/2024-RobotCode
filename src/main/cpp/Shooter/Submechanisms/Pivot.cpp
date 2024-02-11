@@ -170,12 +170,12 @@ void Pivot::SetAngle(double angle){
         Poses::Pose1D startPose;
         if(profile_.isFinished()){
             startPose = currPose_;
+            accum_ = 0.0;
         }
         else{
             startPose = profile_.currentPose();
         }
         profile_.setTarget(startPose, target);
-        accum_ = 0.0;
     }
 }
 
