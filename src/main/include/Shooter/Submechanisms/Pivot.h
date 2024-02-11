@@ -36,12 +36,17 @@ class Pivot : public Mechanism{
         void SetVoltage(double volts);
 
         void Zero();
+        void ZeroRelative();
 
         bool AtTarget();
 
         Poses::Pose1D GetPose();
 
     private:
+        Poses::Pose1D GetAbsPose();
+        Poses::Pose1D GetRelPose();
+
+        void CoreInit() override;
         void CorePeriodic() override;
         void CoreTeleopPeriodic() override;
 
@@ -60,6 +65,7 @@ class Pivot : public Mechanism{
 
         CANcoder encoder_;
         double offset_;
+        double relOffset_;
 
         struct Bounds{
             double min;

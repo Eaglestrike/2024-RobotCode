@@ -58,14 +58,17 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     //motorChild_.Follow(motor_, true);
 }
 
+void Pivot::CoreInit(){
+    ZeroRelative();
+}
+
 /**
  * Core functions
 */
 void Pivot::CorePeriodic(){
-    double pos = -2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_;
-    double vel = -2*M_PI * encoder_.GetVelocity().GetValueAsDouble(); //Rotations -> Radians
-    double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
-    currPose_ = {pos, vel, acc};
+    Poses::Pose1D newPose = GetRelPose();
+    newPose.acc = (newPose.vel - currPose_.vel)/0.02; //Sorry imma assume
+    currPose_ = newPose;
 }
 
 void Pivot::CoreTeleopPeriodic(){
@@ -169,10 +172,37 @@ void Pivot::SetVoltage(double volts){
 }
 
 /**
- * Zeros the encoder (should be level)
+ * Zeros the encoder (should be at bottom)
 */
 void Pivot::Zero(){
     offset_ = 2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + bounds_.min;
+}
+
+/**
+ * Zeros the relvative encoder (using the absolute encoder)
+*/
+void Pivot::ZeroRelative(){
+    double pos = -2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_;
+
+    relOffset_ = pos - (2*M_PI * motor_.GetPosition().GetValueAsDouble() * gearing_);
+}
+
+/**
+ * Gets pose using absolute encoder
+*/
+Poses::Pose1D Pivot::GetAbsPose(){
+    double pos = -2*M_PI*encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_;
+    double vel = -2*M_PI*encoder_.GetVelocity().GetValueAsDouble(); //Rotations -> Radians
+    return {pos, vel, 0.0};
+}
+
+/**
+ * Gets pose using relative encoder
+*/
+Poses::Pose1D Pivot::GetRelPose(){
+    double pos = 2*M_PI*motor_.GetPosition().GetValueAsDouble()*gearing_ + relOffset_;
+    double vel = 2*M_PI*motor_.GetVelocity().GetValueAsDouble()*gearing_; //Rotations -> Radians
+    return {pos, vel, 0.0};
 }
 
 /**
@@ -226,6 +256,12 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("acc", &currPose_.acc, {1,1,6,1}, false);
     shuff_.add("volts", &volts_, {1,1,4,2}, false);
     shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
+    shuff_.addButton("zero rel", [&](){ZeroRelative(); std::cout<<"Zeroed Rel"<<std::endl;}, {1,1,7,2});
+
+    shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
+    shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
+    shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
+    shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
 
     //Bounds (middle-bottom)
     shuff_.add("min", &bounds_.min, {1,1,4,4}, true);
@@ -264,6 +300,13 @@ void Pivot::CoreShuffleboardInit(){
 
 void Pivot::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
+
+    Poses::Pose1D relPose = GetRelPose();
+    Poses::Pose1D absPose = GetAbsPose();
+    shuff_.PutNumber("relPos", relPose.pos);
+    shuff_.PutNumber("relVel", relPose.vel);
+    shuff_.PutNumber("absPos", absPose.pos);
+    shuff_.PutNumber("absVel", absPose.vel);
 
     shuff_.update(true);
 
