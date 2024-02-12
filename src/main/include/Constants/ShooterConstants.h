@@ -102,7 +102,7 @@ namespace ShooterConstants{
 
     const std::map<double, ShootConfig> SHOOT_DATA = {
     //distance-> ang, vel
-        {0.0,   {1.1,   17.0}},
+        {0.0,   {1.1,   17.0}}, //0 distance shot (used just for interpolation)
         {1.32,  {0.96,  17.0}},
         {1.55,  {0.9,   17.0}},
         {1.7,   {0.87,  17.0}},
@@ -131,6 +131,7 @@ namespace ShooterConstants{
     const vec::Vector2D RED_SPEAKER = {17.0, 5.74};
     const vec::Vector2D BLUE_SPEAKER = {0.0, 5.74};
 
+    //Dimensions of the shootable area
     const double SPEAKER_MIN = 1.98; //height; m
     const double SPEAKER_MAX = 2.11;
     const double SPEAKER_CENTER = (SPEAKER_MIN + SPEAKER_MAX)/2.0;
