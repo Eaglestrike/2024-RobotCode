@@ -21,6 +21,7 @@ Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLine
     autoLineup_{autolineup},
     intake_{intake},
     shooter_{shooter},
+    inChannel_{false},
     shuff_{"Auto", shuffleboard}
 {
     ResetTiming(intakeTiming_);
@@ -122,6 +123,7 @@ void Auto::AutoInit(){
     ResetTiming(driveTiming_);
 
     autoStart_ = Utils::GetCurTimeS();
+    inChannel_ = false;
     
     NextBlock();
     //std::cout << "End Init" <<std::endl;
@@ -134,17 +136,23 @@ void Auto::AutoPeriodic(){
     //std::cout << "Periodic Start" <<std::endl;
     double t = Utils::GetCurTimeS() - autoStart_;
 
+    if(intake_.InIntake()){
+        inChannel_ = true;
+    }
+    if(inChannel_ && intake_.InChannel()){
+        inChannel_ = false;
+    }
+    
     if(driveTiming_.finished && shooterTiming_.finished && intakeTiming_.finished){
         //std::cout << "Next Block Periodic" <<std::endl;
         NextBlock();
     }
     
-    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) && intake_.HasGamePiece();
+    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) && (inChannel_ || intake_.HasGamePiece());
     
     if(useAngLineup && false){
         autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
         autoLineup_.Start();
-        autoLineup_.Periodic();
         segments_.Periodic(autoLineup_.GetAngVel());
     }
     else{
@@ -157,6 +165,7 @@ void Auto::AutoPeriodic(){
     //std::cout<<"shoot"<<std::endl;
     IntakePeriodic(t);
     //std::cout<<"intake"<<std::endl;
+    autoLineup_.Periodic();
 }
 
 /**
@@ -196,13 +205,9 @@ void Auto::ShooterPeriodic(double t){
         if(shooter_.CanShoot() || (t > shooterTiming_.end + SHOOT_PADDING)){ 
             intake_.FeedIntoShooter();
         }
-
-        if(inChannel_ && intake_.InChannel()){
-            inChannel_ = false;
-        }
         
         //Finish shooting when can't see piece for a bit
-        if(!inChannel_ && !intake_.HasGamePiece()){ 
+        if((!inChannel_) && (!intake_.HasGamePiece())){ 
             if(!channelTiming_.hasStarted){ //Start channel timer
                 channelTiming_.end = t + CHANNEL_TIME;
                 channelTiming_.hasStarted = true;
@@ -245,7 +250,6 @@ void Auto::IntakePeriodic(double t){
         if( (intake_.HasGamePiece()) || // End intake if has game piece
             (t > maxTime + INTAKE_PADDING)){ 
             intakeTiming_.finished = true;
-            inChannel_ = true;
         }
     }
     else{
