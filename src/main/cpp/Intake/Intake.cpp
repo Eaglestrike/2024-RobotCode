@@ -88,13 +88,15 @@ void Intake::CoreTeleopPeriodic(){
                 m_wrist.Coast();
             if (/*m_wrist.GetState() == Wrist::COAST && */m_beam1broke){
                 m_rollers.SetStateBuffer(Rollers::RETAIN, INTAKE_WAIT_s);
-                m_wrist.MoveTo(STOWED_POS);
-                m_actionState = NONE;
+                SetState(STOW);
             }
             break; 
         case PASSTHROUGH:
-            if (m_wrist.ProfileDone() && m_rollers.GetState() == Rollers::STOP){
+            if (m_rollers.GetState() == Rollers::STOP){
                 m_rollers.SetState(Rollers::PASS);
+            }
+            if (InIntake()){
+                m_wrist.MoveTo(PASSTHROUGH_POS);
             }
             if (InChannel()){    
                 m_rollers.SetState(Rollers::STOP);
@@ -127,9 +129,13 @@ void Intake::CoreTeleopPeriodic(){
 void Intake::SetState(ActionState newAction){
     if (newAction == m_actionState) return;
 
-    if (newAction == AMP_INTAKE && (InChannel() || m_channel.GetState() == Channel::OUT)) newAction = PASS_TO_AMP;
-    if (newAction == AMP_INTAKE && (m_wrist.GetState() == Wrist::COAST || m_timer !=-1 || InIntake())) return;
+    if (m_timer !=-1) return;
+    if (newAction == AMP_INTAKE && (m_wrist.GetState() == Wrist::COAST || InIntake()) && m_channel.GetState() != Channel::OUT) return;
     if (newAction == PASSTHROUGH && InChannel()) return;
+
+    std::cout << "made it out " << std::endl;
+
+    if (newAction == AMP_INTAKE && (InChannel() || m_channel.GetState() == Channel::OUT)) newAction = PASS_TO_AMP;
     if (m_actionState == AMP_INTAKE) m_timer = -1;
     m_actionState = newAction;
     
@@ -161,7 +167,7 @@ void Intake::SetState(ActionState newAction){
             m_channel.SetState(Channel::OUT);
             break; 
         case PASSTHROUGH:
-            newWristPos = PASSTHROUGH_POS;
+            newWristPos = INTAKE_POS;
             if (InIntake()){
                 m_rollers.SetState(Rollers::STOP);
             } else{
@@ -310,6 +316,7 @@ void Intake::CoreShuffleboardPeriodic(){
     m_shuff.PutBoolean("BeamBreak 1", m_beam1broke);
     m_shuff.PutBoolean("BeamBreak 2", GetBeamBreak2());
     m_shuff.PutNumber("debounce timer", m_dbTimer);
+    m_shuff.PutNumber("REAL timer", m_timer);
     m_shuff.update(true);
 }
 

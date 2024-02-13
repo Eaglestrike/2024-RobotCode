@@ -46,7 +46,7 @@ void Rollers::CoreTeleopPeriodic() {
             // v2 = BACK_ROLLER_IN_VOLTS;
             break;
         case PASS:
-            setVolts = IN_VOLTS;
+            setVolts = PASS_VOLTS;
             v2 = BACK_ROLLER_IN_VOLTS;
             break;
         case RETAIN:

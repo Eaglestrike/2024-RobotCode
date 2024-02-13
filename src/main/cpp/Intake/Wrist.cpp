@@ -87,8 +87,8 @@ void Wrist::ChangeSetPt(double newSetpt){
 }
 
 void Wrist::Coast(){
-    // m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
-    // m_state = COAST;
+    m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
+    m_state = COAST;
 }
 
 void Wrist::MoveToSetPt(){
@@ -207,6 +207,9 @@ void Wrist::CoreShuffleboardInit(){
     m_shuff.PutNumber("pid out", 0.0, {1,1,8,4});
 }
 
+// double Wrist::getSetPt(){
+//     return m_setPt;
+// }
 
 void Wrist::CoreShuffleboardPeriodic(){
     switch(m_state){
