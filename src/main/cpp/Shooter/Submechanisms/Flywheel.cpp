@@ -26,8 +26,8 @@ Flywheel::Flywheel(ShooterConstants::FlywheelConfig config, bool enabled, bool s
 
 //Core Functions
 void Flywheel::CorePeriodic(){
-    double pos = 2*M_PI * motor_.GetPosition().GetValueAsDouble() * ShooterConstants::FLYWHEEL_R;
-    double vel = 2*M_PI * motor_.GetVelocity().GetValueAsDouble() * ShooterConstants::FLYWHEEL_R;
+    double pos = ShooterConstants::FLYWHEEL_GEARING * 2*M_PI * motor_.GetPosition().GetValueAsDouble() * ShooterConstants::FLYWHEEL_R;
+    double vel = ShooterConstants::FLYWHEEL_GEARING * 2*M_PI * motor_.GetVelocity().GetValueAsDouble() * ShooterConstants::FLYWHEEL_R;
     double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
     currPose_ = {pos, vel, acc};
 };
@@ -54,12 +54,15 @@ void Flywheel::CoreTeleopPeriodic(){
             volts_ = ff + pid;
 
             bool atTarget = (std::abs(error.vel) < velTol_); //TODO check if need acc tol
-            if(state_ == State::RAMPING){ //if case deal with fallthrough
+            if(state_ == State::RAMPING && profile_.isFinished()){ //if case deal with fallthrough
                 if(atTarget){
                     state_ = State::AT_TARGET; //At target due to tolerances
                 }
+                else{
+                    profile_.Regenerate(currPose_);
+                }
             }
-            else{
+            if (state_ == State::AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
                     profile_.Regenerate(currPose_);
                     state_ = State::RAMPING;
@@ -94,9 +97,23 @@ void Flywheel::Stop(){
  * @param spin rad/s
 */
 void Flywheel::SetTarget(double vel){
-    profile_.SetTarget(vel, currPose_);
-    accum_ = 0.0;
-    state_ = State::RAMPING;
+    Poses::Pose1D startPose;
+    if(profile_.isFinished()){
+        startPose = currPose_;
+        accum_ = 0.0;
+    }
+    else{
+        startPose = profile_.GetPose();
+    }
+    profile_.SetTarget(vel, startPose);
+
+    bool atTarget = (std::abs(vel - currPose_.vel) < velTol_);
+    if(atTarget){
+        state_ = State::AT_TARGET;
+    }
+    else{
+        state_ = State::RAMPING;
+    }
 }
 
 /**
@@ -119,7 +136,8 @@ Flywheel::State Flywheel::GetState(){
  * If the flywheel is at the target speed
 */
 bool Flywheel::AtTarget(){
-    return state_ == State::AT_TARGET;
+    //std::cout<<"State: "<<StateToString(state_)<<std::endl;
+    return (state_ == State::AT_TARGET);
 }
 
 /**

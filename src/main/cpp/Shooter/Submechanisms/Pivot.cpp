@@ -18,12 +18,17 @@ using ctre::phoenix6::controls::Follower;
 Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     Mechanism(name, enabled, shuffleboard),
     state_{STOP},
-    motor_{ShooterConstants::PIVOT_ID, rev::CANSparkMax::MotorType::kBrushless},
-    motorChild_{ShooterConstants::PIVOT_CHILD_ID, rev::CANSparkMax::MotorType::kBrushless},
+
+    motor_{ShooterConstants::PIVOT_ID},
+    motorChild_{ShooterConstants::PIVOT_CHILD_ID},
+    //follower_{ShooterConstants::PIVOT_ID, true},
+    gearing_{ShooterConstants::PIVOT_GEARING},
     volts_{0.0},
     maxVolts_{ShooterConstants::PIVOT_MAX_VOLTS},
+
     encoder_{ShooterConstants::PIVOT_ENCODER_ID, ShooterConstants::SHOOTER_CANBUS},
     offset_{ShooterConstants::PIVOT_OFFSET},
+
     bounds_{
         .min = ShooterConstants::PIVOT_MIN,
         .max = ShooterConstants::PIVOT_MAX
@@ -36,31 +41,47 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     currPose_{0.0, 0.0, 0.0},
     shuff_{name, shuffleboard}
 {
-    motor_.RestoreFactoryDefaults();
-    motorChild_.RestoreFactoryDefaults();
+    // motor_.RestoreFactoryDefaults();
+    // motorChild_.RestoreFactoryDefaults();
 
-    motor_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
-    motorChild_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
+    // motor_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
+    // motorChild_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
+
+    motor_.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
+    motorChild_.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
 
     motor_.SetInverted(true);
     motorChild_.SetInverted(false);
 
+    //motorChild_.SetControl(follower_);
+
     //motorChild_.Follow(motor_, true);
+}
+
+void Pivot::CoreInit(){
+    ZeroRelative();
 }
 
 /**
  * Core functions
 */
 void Pivot::CorePeriodic(){
-    double pos = (2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_);
-    double vel = (2*M_PI * encoder_.GetVelocity().GetValueAsDouble()); //Rotations -> Radians
-    double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
-    currPose_ = {pos, vel, acc};
+    Poses::Pose1D absPose = GetAbsPose();
+    Poses::Pose1D newPose = GetRelPose(); //Use relative encoder
+    if(std::abs(newPose.pos - absPose.pos) > 0.02){
+        ZeroRelative();
+        newPose = absPose;
+    }
+    newPose.acc = (newPose.vel - currPose_.vel)/0.02; //Sorry imma assume
+    currPose_ = newPose;
 }
 
 void Pivot::CoreTeleopPeriodic(){
     double t = Utils::GetCurTimeS();
     double dt = t - prevT_;
+    if(dt > 0.3){
+        dt = 0.0;
+    }
     switch(state_){
         case STOP:
             volts_ = 0.0;
@@ -82,12 +103,15 @@ void Pivot::CoreTeleopPeriodic(){
             volts_ = ff + pid;
 
             bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
-            if(state_ == AIMING){ //if case deal with fallthrough
+            if(state_ == AIMING && profile_.isFinished()){ //if case deal with fallthrough
                 if(atTarget){
                     state_ = AT_TARGET; //At target due to tolerances
                 }
+                else{
+                    profile_.regenerate(currPose_);
+                }
             }
-            else{
+            if (state_ == AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
                     profile_.regenerate(currPose_);
                     state_ = AIMING;
@@ -95,8 +119,8 @@ void Pivot::CoreTeleopPeriodic(){
             }
 
             if(shuff_.isEnabled()){ //Shuff prints
-                shuff_.PutNumber("pos error", error.vel, {1,1,5,3});
-                shuff_.PutNumber("vel error", error.acc, {1,1,6,3});
+                shuff_.PutNumber("pos error", error.pos, {1,1,5,3});
+                shuff_.PutNumber("vel error", error.vel, {1,1,6,3});
             }
             break;
         }
@@ -104,13 +128,13 @@ void Pivot::CoreTeleopPeriodic(){
             break; //Voltage already set through volts_
     }
     volts_ = std::clamp(volts_, -maxVolts_, maxVolts_);
-    if((currPose_.pos > bounds_.max) && (volts_ > 0.0)){
+    if((currPose_.pos > bounds_.max) && (volts_ > ff_.kg*cos(bounds_.max))){
         volts_ = 0.0;
     }
-    else if((currPose_.pos < bounds_.min) && (volts_ < 0.0)){
+    else if((currPose_.pos < bounds_.min) && (volts_ < ff_.kg*cos(bounds_.min))){
         volts_ = 0.0;
     }
-    motor_.SetVoltage(units::volt_t{volts_});
+    motor_.SetVoltage(units::volt_t{volts_ + 0.2*Utils::Sign(volts_)}); //This motor has more weight
     motorChild_.SetVoltage(units::volt_t{volts_});
 
     prevT_ = t;
@@ -130,10 +154,29 @@ void Pivot::SetAngle(double angle){
     if(angle > bounds_.max || angle < bounds_.min){
         return;
     }
+    Poses::Pose1D currTarg = profile_.getTargetPose();
+    Poses::Pose1D target = {.pos = angle, .vel = 0.0, .acc = 0.0};
 
-    profile_.setTarget(currPose_, {.pos = angle, .vel = 0.0, .acc = 0.0});
-    accum_ = 0.0;
-    state_ = AIMING;
+    Poses::Pose1D error = target - currPose_;
+    bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
+    if(atTarget){
+        state_ = AT_TARGET;
+    }
+    else{
+        state_ = AIMING;
+    }
+
+    if(std::abs(currTarg.pos - angle) > 0.001){ //Basically the same target
+        Poses::Pose1D startPose;
+        if(profile_.isFinished()){
+            startPose = currPose_;
+            accum_ = 0.0;
+        }
+        else{
+            startPose = profile_.currentPose();
+        }
+        profile_.setTarget(startPose, target);
+    }
 }
 
 /**
@@ -145,17 +188,45 @@ void Pivot::SetVoltage(double volts){
 }
 
 /**
- * Zeros the encoder (should be level)
+ * Zeros the encoder (should be at bottom)
 */
 void Pivot::Zero(){
-    offset_ = -2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble(); 
+    offset_ = 2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + bounds_.min;
+}
+
+/**
+ * Zeros the relvative encoder (using the absolute encoder)
+*/
+void Pivot::ZeroRelative(){
+    double pos = -2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_;
+
+    relOffset_ = pos - (2*M_PI * motor_.GetPosition().GetValueAsDouble() * gearing_);
+}
+
+/**
+ * Gets pose using absolute encoder
+*/
+Poses::Pose1D Pivot::GetAbsPose(){
+    double pos = -2*M_PI*encoder_.GetAbsolutePosition().GetValueAsDouble() + offset_;
+    double vel = -2*M_PI*encoder_.GetVelocity().GetValueAsDouble(); //Rotations -> Radians
+    return {pos, vel, 0.0};
+}
+
+/**
+ * Gets pose using relative encoder
+*/
+Poses::Pose1D Pivot::GetRelPose(){
+    double pos = 2*M_PI*motor_.GetPosition().GetValueAsDouble()*gearing_ + relOffset_;
+    double vel = 2*M_PI*motor_.GetVelocity().GetValueAsDouble()*gearing_; //Rotations -> Radians
+    return {pos, vel, 0.0};
 }
 
 /**
  * Is at target
 */
 bool Pivot::AtTarget(){
-    return state_ == AT_TARGET;
+    //std::cout<<"Pivot: "<<StateToString(state_)<<std::endl;
+    return (state_ == AT_TARGET);
 }
 
 /**
@@ -200,7 +271,13 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("vel", &currPose_.vel, {1,1,5,1}, false);
     shuff_.add("acc", &currPose_.acc, {1,1,6,1}, false);
     shuff_.add("volts", &volts_, {1,1,4,2}, false);
-    shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,5,2});
+    shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
+    shuff_.addButton("zero rel", [&](){ZeroRelative(); std::cout<<"Zeroed Rel"<<std::endl;}, {1,1,7,2});
+
+    shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
+    shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
+    shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
+    shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
 
     //Bounds (middle-bottom)
     shuff_.add("min", &bounds_.min, {1,1,4,4}, true);
@@ -239,6 +316,13 @@ void Pivot::CoreShuffleboardInit(){
 
 void Pivot::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
+
+    Poses::Pose1D relPose = GetRelPose();
+    Poses::Pose1D absPose = GetAbsPose();
+    shuff_.PutNumber("relPos", relPose.pos);
+    shuff_.PutNumber("relVel", relPose.vel);
+    shuff_.PutNumber("absPos", absPose.pos);
+    shuff_.PutNumber("absVel", absPose.vel);
 
     shuff_.update(true);
 

@@ -15,11 +15,13 @@
  * @note If file doesn't exist, GetSpline() returns empty spline object
 */
 AutoPathReader::AutoPathReader(const std::string name)
-: m_name{frc::filesystem::GetDeployDirectory() + "/" + name}, m_splinePos{1000}, m_splineAng{1000} {
+: m_name{frc::filesystem::GetDeployDirectory() + "/" + name}, m_exists{false}, m_splinePos{1000}, m_splineAng{1000} {
   std::ifstream fin{m_name};
   if (!fin.is_open()) {
+    m_exists = false;
     return;
   }
+  m_exists = true;
 
   std::string line;
   bool notfirst = false;
@@ -32,6 +34,15 @@ AutoPathReader::AutoPathReader(const std::string name)
   } 
 
   fin.close();
+}
+
+/**
+ * If file exists
+ * 
+ * @returns If file exists
+*/
+bool AutoPathReader::FileExists() const {
+  return m_exists;
 }
 
 /**

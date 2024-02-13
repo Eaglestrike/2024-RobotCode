@@ -53,7 +53,7 @@ class Climb : public Mechanism{
         void UpdatePos();
         bool AtTarget(double target, bool up);
 
-        ShuffleboardSender m_shuff {"Climb", true};
+        ShuffleboardSender m_shuff;
 
         TalonFX m_master {Ids::MASTER_CLIMB_MOTOR};//, m_slave {Ids::SLAVE_CLIMB_MOTOR};
         

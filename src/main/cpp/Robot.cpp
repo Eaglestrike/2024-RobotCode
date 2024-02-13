@@ -20,16 +20,25 @@
 using namespace Actions;
 
 Robot::Robot() :
+  //Controller
+  m_controller{},
+  //Logger
   m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang"}},
+  m_prevIsLogging{false},
+  //Mechanisms
   m_swerveController{true, false},
+  m_intake{true, false},
+  m_climb{true, false},
+  m_shooter{"Shooter", true, false},
+  //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
-  m_prevIsLogging{false},
+  //Auto
   m_autoLineup{false, m_odom},
-  m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, /*m_shooter*/},
+  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter},
   m_autoChooser{false, m_auto}
-  {
+{
 
   // navx
   try
@@ -96,7 +105,7 @@ void Robot::RobotInit() {
   m_climb.Init();
   m_client.Init();
   m_swerveController.Init();
-  // shooter_.Init();
+  m_shooter.Init();
 }
 
 /**
@@ -134,6 +143,10 @@ void Robot::RobotPeriodic() {
     }    
   }
 
+  m_shooter.Trim(m_controller.getValueOnce(ControllerMapData::GET_SHOOTER_TRIM, {0,0})); //Trim shooter
+  m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetYaw());
+  m_shooter.SetGamepiece(m_intake.HasGamePiece());
+
   #if SWERVE_AUTOTUNING
   m_swerveXTuner.ShuffleboardUpdate();
   m_swerveYTuner.ShuffleboardUpdate();
@@ -141,6 +154,7 @@ void Robot::RobotPeriodic() {
   m_logger.Periodic(Utils::GetCurTimeS());
   m_intake.Periodic();
   m_climb.Periodic();
+  m_shooter.Periodic();
 }
 
 /**
@@ -155,6 +169,7 @@ void Robot::RobotPeriodic() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
+  m_odom.SetAuto(true);
   m_swerveController.SetAngCorrection(false);
   m_swerveController.SetAutoMode(true);
   
@@ -165,9 +180,11 @@ void Robot::AutonomousPeriodic() {
   m_auto.AutoPeriodic();
   m_swerveController.Periodic();
   m_intake.TeleopPeriodic();
+  m_shooter.TeleopPeriodic();
 }
 
 void Robot::TeleopInit() {
+  m_odom.SetAuto(false);
   m_swerveController.SetAngCorrection(true);
   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
   m_swerveController.SetAutoMode(false);
@@ -202,6 +219,7 @@ void Robot::TeleopPeriodic() {
 
   // auto lineup to amp
   if (m_controller.getPressedOnce(AMP_AUTO_LINEUP)) {
+    m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
     m_autoLineup.Start();
   }
 
@@ -216,25 +234,41 @@ void Robot::TeleopPeriodic() {
     if(m_controller.getPressedOnce(INTAKE_TO_CHANNEL)){
       m_amp = false;
     }
+    //Shooting
     if (m_controller.getPressed(SHOOT)){
       if (m_amp) {
-        m_intake.AmpOuttake();
+        m_intake.AmpOuttake(); //Shoot into amp
       } else {
-        // code shooter later
-        // if somehow switched from shooter to amp when in channel
-        // HANDLE THIS CASE
+        if(m_intake.HasGamePiece()){
+          m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
+          m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
+          m_autoLineup.Start();
+          if(m_shooter.CanShoot()){
+            m_intake.FeedIntoShooter();
+          }
+        }
+        else{
+          m_intake.Passthrough();
+          m_shooter.BringDown();
+        }
       }
     } else if(m_controller.getPressed(INTAKE)){
       if (m_amp)
         m_intake.AmpIntake();
-      else
+      else{
         m_intake.Passthrough();
+        m_shooter.BringDown();
+      }
     } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
       m_intake.Stow();
+      m_shooter.Stroll();
+    }
+    else{
+      m_shooter.Stroll();
     }
   }
 
-  // manual
+  // Manual
   if (m_controller.getTriggerDown(MANUAL_1) && m_controller.getTriggerDown(MANUAL_2)){
     m_climb.SetManualInput(m_controller.getWithDeadband(MANUAL_CLIMB));
     if (m_controller.getPressedOnce(BRAKE)){
@@ -276,7 +310,9 @@ void Robot::TeleopPeriodic() {
 
 
   // auto lineup
-  if (m_controller.getPressed(AMP_AUTO_LINEUP)) {
+  if (m_controller.getPressed(AMP_AUTO_LINEUP) ||
+      (m_controller.getPressed(SHOOT) && !m_amp) //Angle lineup when shooting
+    ) {
     double angVel = m_autoLineup.GetAngVel();
     m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
   } else {
@@ -284,10 +320,13 @@ void Robot::TeleopPeriodic() {
     m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   }
 
+  //Shooter
+
   m_climb.TeleopPeriodic();
   m_intake.TeleopPeriodic();
   m_swerveController.Periodic();
   m_autoLineup.Periodic();
+  m_shooter.TeleopPeriodic();
 }
 
 void Robot::DisabledInit() {}
@@ -319,6 +358,24 @@ void Robot::DisabledPeriodic() {
 void Robot::TestInit() {}
 
 void Robot::TestPeriodic() {
+  // Swerve
+  double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
+  double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
+  double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
+
+  double mult = SwerveConstants::NORMAL_SWERVE_MULT;
+  if (m_controller.getPressed(SLOW_MODE)) {
+    mult = SwerveConstants::SLOW_SWERVE_MULT;
+  }
+  double vx = std::clamp(lx, -1.0, 1.0) * mult;
+  double vy = std::clamp(ly, -1.0, 1.0) * mult;
+  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
+
+  // velocity vectors
+  vec::Vector2D setVel = {-vy, -vx};
+  double curYaw = m_odom.GetAngNorm();
+  double curJoystickAng = m_odom.GetJoystickAng();
+
   double curAng = m_navx->GetAngle();
   if (!SwerveConstants::NAVX_UPSIDE_DOWN) {
     curAng = -curAng;
@@ -339,7 +396,19 @@ void Robot::TestPeriodic() {
   m_swerveController.SetRobotVelocity({xVolts, yVolts}, 0.0, angNavX);
   #endif
 
+
+  if(m_controller.getPressed(INTAKE)){
+    m_intake.Passthrough();
+  }
+  if(m_controller.getPressed(SHOOT)){
+    m_intake.FeedIntoShooter();
+  }
+
+  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
+  
   m_swerveController.Periodic();
+  m_shooter.TeleopPeriodic();
+  m_intake.TeleopPeriodic();
 }
 
 void Robot::SimulationInit() {}

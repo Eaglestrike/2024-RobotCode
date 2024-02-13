@@ -1,13 +1,14 @@
 #pragma once
 
-#define SHOOTER_AUTO_TUNE false
+
+#define PIVOT_AUTO_TUNE false
 
 #include <map>
 
 #include "Util/Mechanism.h"
 #include "Util/simplevectors.hpp"
 
-#if SHOOTER_AUTO_TUNE
+#if PIVOT_AUTO_TUNE
 #include "FFAutotuner/FFAutotuner.h"
 #endif
 
@@ -18,13 +19,16 @@
 
 #include "Constants/ShooterConstants.h"
 
+#include <rev/CANSparkMax.h>
+
 namespace vec = svector;
 
 class Shooter : public Mechanism{
     public:
         enum State{
             STOP,
-            PREPARING,
+            LOADPIECE,
+            SHOOT,
             STROLL //Set to low speed
         };
   
@@ -32,11 +36,15 @@ class Shooter : public Mechanism{
 
         void Stop();
         void Stroll();
+        void BringDown(); //Intake into shooter
 
         void SetUp(double vel, double spin, double ang);
         void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker);
+        void SetGamepiece(bool hasPiece);
 
-        bool CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);
+        void Trim(vec::Vector2D trim); //Up/down left/right trim for target
+
+        bool CanShoot();
 
         double GetTargetRobotYaw();
 
@@ -51,28 +59,38 @@ class Shooter : public Mechanism{
         void CoreShuffleboardPeriodic() override;
 
         State state_;
+        bool hasPiece_;
 
         Flywheel lflywheel_;
         Flywheel rflywheel_;
         Pivot pivot_;
+        
+        // rev::CANSparkMax m_kickerMotor;
+        // double kickerVolts_ = -8.0;
 
         //Shooter config
         double strollSpeed_ = ShooterConstants::STROLL_SPEED;
+        double pivotIntake_ = ShooterConstants::PIVOT_INTAKE;
+        double shootTimer_ = ShooterConstants::SHOOT_TIME;
 
         std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;
         double kSpin_ = ShooterConstants::K_SPIN;
 
+        bool hasShot_;
         ShooterConstants::ShootConfig shot_;
         double spin_;
+        
 
         //Odometry Targets
         vec::Vector2D targetPos_;
         vec::Vector2D targetVel_;
         double targetYaw_;
 
-        double posTol_ = ShooterConstants::SHOOT_POS_TOL;
-        double velTol_ = ShooterConstants::SHOOT_VEL_TOL;
-        double yawTol_ = ShooterConstants::SHOOT_YAW_TOL;
+        vec::Vector2D trim_;
+
+        double posTol_ = ShooterConstants::SHOOT_POS_TOL; //Driving position tolerance
+        double velTol_ = ShooterConstants::SHOOT_VEL_TOL; //Driving velocity tolerance
+        double yawTol_ = ShooterConstants::SHOOT_YAW_TOL; //Driving yaw tolerance
 
         //Debug odom vals
         vec::Vector2D robotPos_;
@@ -97,9 +115,9 @@ class Shooter : public Mechanism{
         std::string StateToString(State state);
         ShuffleboardSender shuff_;
 
-        #if SHOOTER_AUTO_TUNE
+        #if PIVOT_AUTO_TUNE
         //Tuning will override any state
-        bool lflyTuning_, rflyTuning_, pivotTuning_;
-        FFAutotuner lflyTuner_, rflyTuner_, pivotTuner_;
+        bool pivotTuning_;
+        FFAutotuner pivotTuner_;
         #endif
 };

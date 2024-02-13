@@ -16,6 +16,7 @@ class TrapezoidalProfile{
         double getTime();
         double getDuration();
         double getDisplacement();
+        Poses::Pose1D getTargetPose();
 
         double getMaxVel();
         double getMaxAcc();

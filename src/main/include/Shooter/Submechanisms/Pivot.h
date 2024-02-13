@@ -1,7 +1,9 @@
 #pragma once
 
 #include <ctre/phoenix6/CANcoder.hpp>
-#include <rev/CANSparkMax.h>
+#include <ctre/phoenix6/TalonFX.hpp>
+#include <ctre/phoenix6/controls/Follower.hpp>
+//#include <rev/CANSparkMax.h>
 
 #include "FFAutotuner/FFAutotuner.h"
 
@@ -14,6 +16,9 @@
 #include "Constants/ShooterConstants.h"
 
 using CANcoder = ctre::phoenix6::hardware::CANcoder;
+using TalonFX = ctre::phoenix6::hardware::TalonFX;
+using Follower = ctre::phoenix6::controls::Follower;
+
 class Pivot : public Mechanism{
     public:
         enum State{
@@ -31,12 +36,17 @@ class Pivot : public Mechanism{
         void SetVoltage(double volts);
 
         void Zero();
+        void ZeroRelative();
 
         bool AtTarget();
 
         Poses::Pose1D GetPose();
 
     private:
+        Poses::Pose1D GetAbsPose();
+        Poses::Pose1D GetRelPose();
+
+        void CoreInit() override;
         void CorePeriodic() override;
         void CoreTeleopPeriodic() override;
 
@@ -44,13 +54,18 @@ class Pivot : public Mechanism{
         void CoreShuffleboardPeriodic() override;
         State state_;
 
-        rev::CANSparkMax motor_;
-        rev::CANSparkMax motorChild_;
+        TalonFX motor_;
+        TalonFX motorChild_;
+        //Follower follower_;
+        
+        double gearing_;
+        
         double volts_;
         double maxVolts_;
 
         CANcoder encoder_;
         double offset_;
+        double relOffset_;
 
         struct Bounds{
             double min;

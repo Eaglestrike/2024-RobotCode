@@ -15,17 +15,20 @@ using enum AutoConstants::AutoAction;
  * 
  * @note does not call periodic calls of mechanisms
 */
-Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autolineup, Intake &intake/*, Shooter &shooter*/):
+Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autolineup, Intake &intake, Shooter &shooter):
     segments_{shuffleboard, swerve, odom},
     odometry_{odom},
     autoLineup_{autolineup},
     intake_{intake},
-    //shooter_{shooter},
+    shooter_{shooter},
+    inChannel_{false},
     shuff_{"Auto", shuffleboard}
 {
     ResetTiming(intakeTiming_);
     ResetTiming(shooterTiming_);
     ResetTiming(driveTiming_);
+
+    //SetPath(0, {{SHOOT, AFTER});
 }
 
 /**
@@ -120,6 +123,7 @@ void Auto::AutoInit(){
     ResetTiming(driveTiming_);
 
     autoStart_ = Utils::GetCurTimeS();
+    inChannel_ = false;
     
     NextBlock();
     //std::cout << "End Init" <<std::endl;
@@ -132,22 +136,28 @@ void Auto::AutoPeriodic(){
     //std::cout << "Periodic Start" <<std::endl;
     double t = Utils::GetCurTimeS() - autoStart_;
 
+    if(intake_.InIntake()){
+        inChannel_ = true;
+    }
+    if(inChannel_ && intake_.InChannel()){
+        inChannel_ = false;
+    }
+    
     if(driveTiming_.finished && shooterTiming_.finished && intakeTiming_.finished){
         //std::cout << "Next Block Periodic" <<std::endl;
         NextBlock();
     }
     
-    // if(shooterTiming_.hasStarted && (!shooterTiming_.finished)){
-    //     autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
-    //     autoLineup_.Start();
-    //     autoLineup_.Periodic();
-    //     segments_.Periodic(autoLineup_.GetAngVel());
-    // }
-    // else{
+    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) && (inChannel_ || intake_.HasGamePiece());
+    
+    if(useAngLineup && false){
+        autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
+        autoLineup_.Start();
+        segments_.Periodic(autoLineup_.GetAngVel());
+    }
+    else{
         segments_.Periodic();
-
-        //std::cout<<"Segments"<<std::endl;
-    //}
+    }
     
     DrivePeriodic(t);
     //std::cout<<"drive"<<std::endl;
@@ -155,6 +165,7 @@ void Auto::AutoPeriodic(){
     //std::cout<<"shoot"<<std::endl;
     IntakePeriodic(t);
     //std::cout<<"intake"<<std::endl;
+    autoLineup_.Periodic();
 }
 
 /**
@@ -186,17 +197,17 @@ void Auto::ShooterPeriodic(double t){
     }
 
     if(shooterTiming_.finished){
-        //shooter_.Stroll();
+        shooter_.Stroll();
     }
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
         //Feed into shooter when can shoot
-        if(/*shooter_.CanShoot(pos, odometry_.GetVel(), odometry_.GetAng()) || */(t > shooterTiming_.end + SHOOT_PADDING)){ 
+        if(shooter_.CanShoot() || (t > shooterTiming_.end + SHOOT_PADDING)){ 
             intake_.FeedIntoShooter();
         }
         
         //Finish shooting when can't see piece for a bit
-        if(!intake_.HasGamePiece()){ 
+        if((!inChannel_) && (!intake_.HasGamePiece())){ 
             if(!channelTiming_.hasStarted){ //Start channel timer
                 channelTiming_.end = t + CHANNEL_TIME;
                 channelTiming_.hasStarted = true;
@@ -206,16 +217,16 @@ void Auto::ShooterPeriodic(double t){
             }
         }
 
-        // if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target
-        //     shooter_.Prepare(pos, odometry_.GetVel(), SideHelper::IsBlue());
-        // }
-        // else{
-        //     shooter_.Prepare(shootPos_, {0,0}, SideHelper::IsBlue()); //Prepare for the target shot
-        // }
+        if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target
+            shooter_.Prepare(pos, odometry_.GetVel(), SideHelper::IsBlue());
+        }
+        else{
+            shooter_.Prepare(shootPos_, {0,0}, SideHelper::IsBlue()); //Prepare for the target shot
+        }
         
     }
     else{
-        //shooter_.Stroll();
+        shooter_.Stroll();
     }
 }
 
@@ -489,6 +500,8 @@ void Auto::ShuffleboardInit(){
     shuff_.add("Shooter Padding", &SHOOT_PADDING, {1,1,4,2}, true);
     shuff_.add("Shooter Time", &SHOOT_TIME, {1,1,5,2}, true);
     shuff_.add("Shoot pos tol", &SHOOT_POS_TOL, {1,1,6,2}, true);
+
+    shuff_.add("Shooter Padding", &CHANNEL_TIME, {1,1,4,2}, true);
 
     //Intake Timing (row 3)
     shuff_.add("Intake Start", &intakeTiming_.start, {1,1,0,3});

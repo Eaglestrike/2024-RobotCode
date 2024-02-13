@@ -15,7 +15,7 @@
 
 class Auto{
     public:
-        Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autoLineup, Intake &intake/*, Shooter &shooter*/);
+        Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autoLineup, Intake &intake, Shooter &shooter);
         void SetPath(uint index, AutoConstants::AutoPath path);
         void SetSegment(uint index, std::string to, std::string back); //Drive -> Intake -> Drive -> Shoot
         void SetSegment(uint index, std::string path); //Just Drives
@@ -36,7 +36,7 @@ class Auto{
         Odometry &odometry_;
         AutoAngLineup &autoLineup_;
         Intake &intake_;
-        //Shooter &shooter_;
+        Shooter &shooter_;
 
         std::vector<AutoConstants::AutoPath> paths_; //Path instructions
 
@@ -60,6 +60,7 @@ class Auto{
         };        
         void ResetTiming(SubsystemTiming& timing);
 
+        bool inChannel_; //Boolean to store data about the blinds spot
         SubsystemTiming driveTiming_;
         vec::Vector2D shootPos_;
         SubsystemTiming channelTiming_; //Used to time channel loading time 
