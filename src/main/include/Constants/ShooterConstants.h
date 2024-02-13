@@ -77,19 +77,19 @@ namespace ShooterConstants{
  
     const PID PIVOT_PID = {
         .kp = 3.0,
-        .ki = 0.02,
-        .kd = 0.02
+        .ki = 0.8,
+        .kd = 0.2
     };
 
     const Feedforward PIVOT_FF = {
-        .ks = 0.1308,
-        .kv = 0.336,
+        .ks = 0.07,
+        .kv = 0.366,
         .ka = 0.0352,
-        .kg = 0.36
+        .kg = 0.32
     };
 
-    const double PIVOT_MAX_V = 1.0;
-    const double PIVOT_MAX_A = 2.0;
+    const double PIVOT_MAX_V = 2.0;
+    const double PIVOT_MAX_A = 3.0;
 
     const double PIVOT_POS_TOL = 0.02;
     const double PIVOT_VEL_TOL = 0.05;
@@ -112,8 +112,11 @@ namespace ShooterConstants{
         {2.65,  {0.7,   17.0}},
         {2.86,  {0.65,  18.0}},
         {3.39,  {0.6,   19.0}},
-        {4.14,  {0.55,  19.0}}
+        {4.14,  {0.55,  19.0}},
+        {5.461, {0.43, 19.0}}
     };
+
+    
 
     const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
