@@ -108,13 +108,13 @@ void Pivot::CoreTeleopPeriodic(){
                     state_ = AT_TARGET; //At target due to tolerances
                 }
                 else{
-                    // profile_.regenerate(currPose_);
+                    profile_.regenerate(currPose_);
                 }
             }
             if (state_ == AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
-                    // profile_.regenerate(currPose_);
-                    // state_ = AIMING;
+                    profile_.regenerate(currPose_);
+                    state_ = AIMING;
                 }
             }
 

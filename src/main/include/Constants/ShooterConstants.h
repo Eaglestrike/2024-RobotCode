@@ -83,7 +83,7 @@ namespace ShooterConstants{
 
     const Feedforward PIVOT_FF = {
         .ks = 0.07,
-        .kv = 0.366,
+        .kv = 0.346,
         .ka = 0.0352,
         .kg = 0.32
     };
@@ -102,7 +102,7 @@ namespace ShooterConstants{
 
     const std::map<double, ShootConfig> SHOOT_DATA = {
     //distance-> ang, vel
-        {0.0,   {1.1,   17.0}}, //0 distance shot (used just for interpolation)
+        {0.0,   {0.96,  17.0}}, //0 distance shot (used just for interpolation)
         {1.32,  {0.96,  17.0}},
         {1.55,  {0.9,   17.0}},
         {1.7,   {0.87,  17.0}},
@@ -115,8 +115,6 @@ namespace ShooterConstants{
         {4.14,  {0.55,  19.0}},
         {5.461, {0.43, 19.0}}
     };
-
-    
 
     const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
@@ -131,6 +129,7 @@ namespace ShooterConstants{
     const double SHOOT_YAW_TOL = 0.05;
 
     //Kinematics calc (Field Data + robot stats)
+
     const vec::Vector2D RED_SPEAKER = {17.0, 5.74};
     const vec::Vector2D BLUE_SPEAKER = {0.0, 5.74};
 
@@ -144,4 +143,9 @@ namespace ShooterConstants{
     const double SHOOTER_HEIGHT = 0.0;
 
     const vec::Vector2D ABSOLUTE_MISS = {10000000.0, 10000000.0}; //Forward kinematic miss
+
+    //Constants for time calculation (t = kD * d + cT)
+    const double kD = 0.0424441;
+    const double cT = 0.0834987;
+    const double prepareT = 0.1;
 }
