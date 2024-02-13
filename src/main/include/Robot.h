@@ -63,7 +63,7 @@ class Robot : public frc::TimedRobot {
     bool m_prevIsLogging;
 
     // Swerve
-    SwerveControl m_swerveController{true, false};
+    SwerveControl m_swerveController{false, false};
 
     //intake
     Intake m_intake {true, true};

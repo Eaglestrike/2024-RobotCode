@@ -74,7 +74,7 @@ class Intake: public Mechanism{
         double STOWED_POS = M_PI / 2,
         HALF_STOWED_POS = 1.0,
         INTAKE_POS = -0.7, 
-        PASSTHROUGH_POS = -0.64,
+        PASSTHROUGH_POS = -0.5,
         AMP_OUT_POS = 1.364; // 1.26 
 
         double INTAKE_WAIT_s = 0.0;
