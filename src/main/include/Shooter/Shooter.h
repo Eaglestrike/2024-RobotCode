@@ -42,7 +42,9 @@ class Shooter : public Mechanism{
         void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker);
         void SetGamepiece(bool hasPiece);
 
-        bool CanShoot(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);
+        void Trim(vec::Vector2D trim); //Up/down left/right trim for target
+
+        bool CanShoot();
 
         double GetTargetRobotYaw();
 
@@ -83,6 +85,8 @@ class Shooter : public Mechanism{
         vec::Vector2D targetPos_;
         vec::Vector2D targetVel_;
         double targetYaw_;
+
+        vec::Vector2D trim_;
 
         double posTol_ = ShooterConstants::SHOOT_POS_TOL; //Driving position tolerance
         double velTol_ = ShooterConstants::SHOOT_VEL_TOL; //Driving velocity tolerance

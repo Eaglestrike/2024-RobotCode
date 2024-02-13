@@ -29,14 +29,14 @@ Robot::Robot() :
   m_swerveController{true, false},
   m_intake{true, false},
   m_climb{true, false},
-  m_shooter{"Shooter", true, true},
+  m_shooter{"Shooter", true, false},
   //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
   //Auto
   m_autoLineup{false, m_odom},
-  m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, /*m_shooter*/},
+  m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter},
   m_autoChooser{false, m_auto}
 {
 
@@ -143,8 +143,9 @@ void Robot::RobotPeriodic() {
     }    
   }
 
+  m_shooter.Trim(m_controller.getValueOnce(ControllerMapData::GET_SHOOTER_TRIM, {0,0})); //Trim shooter
   m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetYaw());
-  m_shooter.SetGamepiece(m_intake.InChannel());
+  m_shooter.SetGamepiece(m_intake.HasGamePiece());
 
   #if SWERVE_AUTOTUNING
   m_swerveXTuner.ShuffleboardUpdate();
@@ -168,6 +169,7 @@ void Robot::RobotPeriodic() {
  * make sure to add them to the chooser code above as well.
  */
 void Robot::AutonomousInit() {
+  m_odom.SetAuto(true);
   m_swerveController.SetAngCorrection(false);
   m_swerveController.SetAutoMode(true);
   
@@ -182,6 +184,7 @@ void Robot::AutonomousPeriodic() {
 }
 
 void Robot::TeleopInit() {
+  m_odom.SetAuto(false);
   m_swerveController.SetAngCorrection(true);
   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
   m_swerveController.SetAutoMode(false);
@@ -236,13 +239,17 @@ void Robot::TeleopPeriodic() {
       if (m_amp) {
         m_intake.AmpOuttake(); //Shoot into amp
       } else {
-        m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
         if(m_intake.HasGamePiece()){
+          m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
           m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
           m_autoLineup.Start();
+          if(m_shooter.CanShoot()){
+            m_intake.FeedIntoShooter();
+          }
         }
-        if(m_shooter.CanShoot(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetAng())){
-          m_intake.FeedIntoShooter();
+        else{
+          m_intake.Passthrough();
+          m_shooter.BringDown();
         }
       }
     } else if(m_controller.getPressed(INTAKE)){

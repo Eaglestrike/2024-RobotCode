@@ -77,19 +77,19 @@ namespace ShooterConstants{
  
     const PID PIVOT_PID = {
         .kp = 3.0,
-        .ki = 0.02,
-        .kd = 0.02
+        .ki = 0.8,
+        .kd = 0.2
     };
 
     const Feedforward PIVOT_FF = {
-        .ks = 0.1308,
-        .kv = 0.336,
+        .ks = 0.07,
+        .kv = 0.366,
         .ka = 0.0352,
-        .kg = 0.36
+        .kg = 0.32
     };
 
     const double PIVOT_MAX_V = 2.0;
-    const double PIVOT_MAX_A = 5.0;
+    const double PIVOT_MAX_A = 3.0;
 
     const double PIVOT_POS_TOL = 0.02;
     const double PIVOT_VEL_TOL = 0.05;
@@ -100,23 +100,31 @@ namespace ShooterConstants{
         double vel;
     };
 
-    const std::map<double, ShootConfig> SHOOT_DATA = { //Distance -> ang, vel
-        {0.0,  {1.1, 17.0}},
-        {1.32, {1.0, 17.0}},
-        {2.06, {0.8, 17.0}},
-        {2.65, {0.7, 17.0}},
-        {2.86, {0.65, 18.0}},
-        {3.39, {0.6, 19.0}},
-        {4.14, {0.55, 19.0}}
+    const std::map<double, ShootConfig> SHOOT_DATA = {
+    //distance-> ang, vel
+        {0.0,   {1.1,   17.0}}, //0 distance shot (used just for interpolation)
+        {1.32,  {0.96,  17.0}},
+        {1.55,  {0.9,   17.0}},
+        {1.7,   {0.87,  17.0}},
+        {1.857, {0.84,  17.0}},
+        {1.97,  {0.82,  17.0}},
+        {2.06,  {0.8,   17.0}},
+        {2.65,  {0.7,   17.0}},
+        {2.86,  {0.65,  18.0}},
+        {3.39,  {0.6,   19.0}},
+        {4.14,  {0.55,  19.0}},
+        {5.461, {0.43, 19.0}}
     };
+
+    
 
     const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
     const double STROLL_SPEED = 0.3; //Voltage of strolling
 
-    const double PIVOT_INTAKE = PIVOT_MIN + 0.1; //Angle for pivot to intake piece into shooter
+    const double PIVOT_INTAKE = PIVOT_MIN; //Angle for pivot to intake piece into shooter
     const double SHOOT_TIME = 1.0; //Time for piece to exit shooter
-
+ 
     //Tolerances
     const double SHOOT_POS_TOL = 0.3;
     const double SHOOT_VEL_TOL = 0.3;
@@ -126,6 +134,7 @@ namespace ShooterConstants{
     const vec::Vector2D RED_SPEAKER = {17.0, 5.74};
     const vec::Vector2D BLUE_SPEAKER = {0.0, 5.74};
 
+    //Dimensions of the shootable area
     const double SPEAKER_MIN = 1.98; //height; m
     const double SPEAKER_MAX = 2.11;
     const double SPEAKER_CENTER = (SPEAKER_MIN + SPEAKER_MAX)/2.0;

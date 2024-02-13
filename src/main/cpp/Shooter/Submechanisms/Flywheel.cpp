@@ -97,8 +97,15 @@ void Flywheel::Stop(){
  * @param spin rad/s
 */
 void Flywheel::SetTarget(double vel){
-    profile_.SetTarget(vel, currPose_);
-    accum_ = 0.0;
+    Poses::Pose1D startPose;
+    if(profile_.isFinished()){
+        startPose = currPose_;
+        accum_ = 0.0;
+    }
+    else{
+        startPose = profile_.GetPose();
+    }
+    profile_.SetTarget(vel, startPose);
 
     bool atTarget = (std::abs(vel - currPose_.vel) < velTol_);
     if(atTarget){

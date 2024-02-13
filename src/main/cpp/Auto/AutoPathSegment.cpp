@@ -45,6 +45,9 @@ void AutoPathSegment::LoadAutoPath(const std::string path) {
     return;
   }
   AutoPathReader reader{path};
+  if (!reader.FileExists()) {
+    return;
+  }
   m_loadedSplines.insert({path, {.pos = reader.GetSplinePos(), .ang = reader.GetSplineAng()}});
 }
 

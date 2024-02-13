@@ -108,13 +108,13 @@ void Pivot::CoreTeleopPeriodic(){
                     state_ = AT_TARGET; //At target due to tolerances
                 }
                 else{
-                    profile_.regenerate(currPose_);
+                    // profile_.regenerate(currPose_);
                 }
             }
             if (state_ == AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
-                    profile_.regenerate(currPose_);
-                    state_ = AIMING;
+                    // profile_.regenerate(currPose_);
+                    // state_ = AIMING;
                 }
             }
 
@@ -161,15 +161,21 @@ void Pivot::SetAngle(double angle){
     bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
     if(atTarget){
         state_ = AT_TARGET;
-        return;
     }
     else{
         state_ = AIMING;
     }
 
     if(std::abs(currTarg.pos - angle) > 0.001){ //Basically the same target
-        profile_.setTarget(currPose_, target);
-        accum_ = 0.0;
+        Poses::Pose1D startPose;
+        if(profile_.isFinished()){
+            startPose = currPose_;
+            accum_ = 0.0;
+        }
+        else{
+            startPose = profile_.currentPose();
+        }
+        profile_.setTarget(startPose, target);
     }
 }
 
