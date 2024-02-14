@@ -32,7 +32,7 @@ void AutoAngLineup::Start() {
   double curAng = m_odom.GetAngNorm();
   double dist = CalcDist(curAng);
   CalcTimes(dist, 0);
-  
+
   m_curExpectedAng = curAng;
   m_prevAngErr = 0;
   m_totalAngErr = 0;
@@ -46,25 +46,35 @@ void AutoAngLineup::Start() {
 */
 void AutoAngLineup::Recalc(double targAng) {
   if (m_state != EXECUTING_TARGET) {
+    // std::cout << "starting" << std::endl;
     SetTarget(targAng);
     Start();
     return;
   }
 
+  // std::cout << m_targetAng << " " << targAng << std::endl;
+
+  if (Utils::NearZero(targAng - m_targetAng, AutoLineupConstants::ANG_TOL)) {
+    // std::cout << "same target" << std::endl;
+    return;
+  }
+
+
   m_targetAng = Utils::NormalizeAng(targAng);
-  double curAng = m_odom.GetAngNorm();
-  double curAngVel = m_odom.GetAngVel();
+  double curAng = m_curExpectedAng;
+  double curAngVel = m_curExpectedAngVel;
   double prevDir = m_angVecDir;
   double dist = CalcDist(curAng);
   if (m_angVecDir != prevDir) {
     curAngVel = -curAngVel;
   }
+  // std::cout << "cur ex: " << curAng << " " << curAngVel << std::endl;
   CalcTimes(dist, curAngVel);
 
-  m_curExpectedAng = curAng;
-  m_prevAngErr = 0;
-  m_totalAngErr = 0;
-  m_state = EXECUTING_TARGET;
+  // m_curExpectedAng = curAng;
+  // m_prevAngErr = 0;
+  // m_totalAngErr = 0;
+  //m_state = EXECUTING_TARGET;
 }
 
 /**
@@ -122,14 +132,22 @@ void AutoAngLineup::CalcTimes(double dist, double speed0) {
     return;
   }
 
+  m_speed0 = speed0;
+
   // time to accelerate/decelerate
   double increaseT = (m_maxSpeed - speed0) / m_maxAccel;
+  double decreaseT = increaseT;
   // time to maintain max speed
   double maintainT = 0.0;
   double triangleDist = (m_maxSpeed * m_maxSpeed) / (2.0 * m_maxAccel) + speed0 * increaseT + 0.5 * m_maxAccel * increaseT * increaseT;
   if (triangleDist > dist) {
     // check math, may be wrong
-    increaseT = std::sqrt(dist / m_maxAccel) - speed0 / m_maxAccel;
+    decreaseT = std::sqrt((dist + 0.5*(speed0*speed0)/m_maxAccel)/m_maxAccel);
+    increaseT = decreaseT - (speed0 / m_maxAccel);
+    if (increaseT < 0) {
+      increaseT = 0;
+      decreaseT = speed0 / m_maxAccel;
+    }
     maintainT = 0;
   } else {
     double maintainArea = dist - (m_maxSpeed * m_maxSpeed) / (2.0 * m_maxAccel) - increaseT * (speed0 + m_maxSpeed) / 2.0;
@@ -139,7 +157,8 @@ void AutoAngLineup::CalcTimes(double dist, double speed0) {
   m_angTimes.startT = curT;
   m_angTimes.maxSpeedT = curT + increaseT;
   m_angTimes.descentT = curT + increaseT + maintainT;
-  m_angTimes.endT = curT + increaseT + maintainT + m_maxSpeed / m_maxAccel;
+  m_angTimes.endT = curT + increaseT + maintainT + decreaseT;
+  // m_angTimes.endT = curT + increaseT * 2 + maintainT;
 
   // std::cout << "max speed" << m_maxSpeed << std::endl;
   // std::cout << "max ac" << m_maxAccel << std::endl;
@@ -147,6 +166,9 @@ void AutoAngLineup::CalcTimes(double dist, double speed0) {
   // std::cout << "maxSpeedT: " << m_angTimes.maxSpeedT << std::endl;
   // std::cout << "descentT: " << m_angTimes.descentT << std::endl;
   // std::cout << "endT: " << m_angTimes.endT << std::endl;
+  // std::cout << "increaseT: " << increaseT << std::endl;
+  // std::cout << "decreaseT: " << decreaseT << std::endl;
+  // std::cout << "maintainT: " << maintainT << std::endl;
 }
 
 /**
@@ -290,7 +312,7 @@ double AutoAngLineup::GetSpeed() {
 
   double speed;
   if (curT < m_angTimes.maxSpeedT) {
-    speed = m_maxAccel * (curT - m_angTimes.startT);
+    speed = m_maxAccel * (curT - m_angTimes.startT) + m_speed0 * m_angVecDir;
   } else if (curT < m_angTimes.descentT) {
     speed = m_maxSpeed;
   } else {

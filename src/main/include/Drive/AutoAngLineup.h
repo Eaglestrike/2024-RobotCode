@@ -59,6 +59,7 @@ private:
     double m_angVecDir;
     double m_prevTime;
     double m_curAngVel;
+    double m_speed0;
 
     double CalcDist(double curAng);
     void CalcTimes(double dist, double speed0);
