@@ -52,6 +52,27 @@ void Intake::SetManualInput(double manualInput) {
 }
 
 
+void Intake::EjectForward(){
+    m_channel.SetState(Channel::IN);
+    m_actionState = NONE;
+}
+
+void Intake::EjectBack(){
+    m_channel.SetState(Channel::OUT);
+    m_actionState = NONE;
+}
+        
+void Intake::EjectSplit(){
+    m_channel.SetState(Channel::SPLIT);
+    m_actionState = NONE;
+}
+
+void Intake::EjectStop(){
+    m_channel.SetState(Channel::STOP);
+    m_actionState = NONE;
+}
+
+
 void Intake::CoreTeleopPeriodic(){
     m_rollers.TeleopPeriodic();
     m_wrist.TeleopPeriodic();
@@ -92,11 +113,11 @@ void Intake::CoreTeleopPeriodic(){
             }
             break; 
         case PASSTHROUGH:
-            if (m_rollers.GetState() == Rollers::STOP){
-                m_rollers.SetState(Rollers::PASS);
-            }
             if (InIntake()){
                 m_wrist.MoveTo(PASSTHROUGH_POS);
+            }
+            if (m_rollers.GetState() == Rollers::STOP && m_wrist.ProfileDone()){
+                m_rollers.SetState(Rollers::PASS);
             }
             if (InChannel()){    
                 m_rollers.SetState(Rollers::STOP);

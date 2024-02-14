@@ -22,6 +22,7 @@ class Intake: public Mechanism{
             AMP_OUTTAKE,
             FEED_TO_SHOOTER,
             MANUAL_WRIST,
+            MANUAL_CHANNEL,
             PASS_TO_AMP,
             NONE
         };
@@ -39,6 +40,11 @@ class Intake: public Mechanism{
         void Zero();
         void SetManual(bool manual);
         void SetManualInput(double manualInput);
+
+        void EjectForward();
+        void EjectBack();
+        void EjectSplit();
+        void EjectStop();
 
         bool HasGamePiece();
         bool InChannel();

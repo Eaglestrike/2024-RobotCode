@@ -13,10 +13,10 @@ class Channel : public Mechanism{
     public:
         enum ChannelState {
             IN,
-            THRU,
             TO_SHOOT,
             STOP,
             RETAIN,
+            SPLIT,
             OUT
         };
 

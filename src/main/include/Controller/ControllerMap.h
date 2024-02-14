@@ -18,9 +18,7 @@ namespace Actions{
         SLOW_MODE,
         INTAKE,
         INTAKE_TO_AMP,
-        HALF_STOW,
         INTAKE_TO_CHANNEL,
-        AMP_AUTO_LINEUP,
         SHOOT,
         MANUAL_CLIMB,
         MANUAL_INTAKE_WRIST,
@@ -28,6 +26,8 @@ namespace Actions{
         UNBRAKE,
         MANUAL_1,
         MANUAL_2,
+        MANUAL_EJECT_IN,
+        MANUAL_EJECT_OUT,
         ZERO_1,
         ZERO_2,
         ZERO_CLIMB,
@@ -40,9 +40,9 @@ namespace Actions{
         NO_POV_ACTION = -1,
         TEMP,
         CLIMB,
+        AMP_AUTO_LINEUP,
+        HALF_STOW,
         EXTEND,
-        STOW,
-        TOGGLE_BRAKE,
         ACTION_COUNT_POV //Just the number of actions, as it is at the end of a enum
     };
 }
@@ -76,8 +76,8 @@ namespace ControllerMapData{
         {XBOX_RJOY_X,           NONE},
         {XBOX_RJOY_Y,           MANUAL_INTAKE_WRIST},
         {XBOX_A_BUTTON ,        INTAKE_TO_AMP},
-        {XBOX_B_BUTTON ,        AMP_AUTO_LINEUP},
-        {XBOX_X_BUTTON ,        HALF_STOW},
+        {XBOX_B_BUTTON ,        MANUAL_EJECT_OUT}, // moved amp autolineup to pov right
+        {XBOX_X_BUTTON ,        MANUAL_EJECT_IN}, // moved half stow to pov left
         {XBOX_Y_BUTTON ,        INTAKE_TO_CHANNEL},
         {XBOX_L_BUMPER ,        ZERO_1},
         {XBOX_LTRIGGER ,        MANUAL_1},
@@ -147,7 +147,7 @@ namespace ControllerMapData{
     const std::vector<POVMapElement> POVMap = {
         {XBOX_POV, POV_UP, EXTEND},
         {XBOX_POV, POV_DOWN, CLIMB},
-        {XBOX_POV, POV_LEFT, STOW},
-        {XBOX_POV, POV_RIGHT, TOGGLE_BRAKE},
+        {XBOX_POV, POV_LEFT, HALF_STOW},
+        {XBOX_POV, POV_RIGHT, AMP_AUTO_LINEUP},
     };
 };
