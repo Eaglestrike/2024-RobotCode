@@ -161,7 +161,7 @@ void Intake::SetState(ActionState newAction){
     if (newAction == AMP_INTAKE && (m_wrist.GetState() == Wrist::COAST || InIntake()) && m_channel.GetState() != Channel::OUT) return;
     if (newAction == PASSTHROUGH && InChannel()) return;
 
-    std::cout << "made it out " << std::endl;
+    // std::cout << "made it out " << std::endl;
 
     if (newAction == AMP_INTAKE && (InChannel() || m_channel.GetState() == Channel::OUT)) newAction = PASS_TO_AMP;
     if (m_actionState == AMP_INTAKE) m_timer = -1;
