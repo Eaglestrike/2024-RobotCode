@@ -241,8 +241,7 @@ void Robot::TeleopPeriodic() {
       } else {
         if(m_intake.HasGamePiece()){
           m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
-          m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
-          m_autoLineup.Start();
+          m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
           if(m_shooter.CanShoot()){
             m_intake.FeedIntoShooter();
           }
