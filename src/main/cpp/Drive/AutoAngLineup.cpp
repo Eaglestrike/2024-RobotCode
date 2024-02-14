@@ -125,13 +125,14 @@ void AutoAngLineup::CalcTimes(double dist, double speed0) {
   // time to accelerate/decelerate
   double increaseT = (m_maxSpeed - speed0) / m_maxAccel;
   // time to maintain max speed
-  double maintainT = 0;
-  if (increaseT * m_maxSpeed > dist) {
+  double maintainT = 0.0;
+  double triangleDist = (m_maxSpeed * m_maxSpeed) / (2.0 * m_maxAccel) + speed0 * increaseT + 0.5 * m_maxAccel * increaseT * increaseT;
+  if (triangleDist > dist) {
     // check math, may be wrong
     increaseT = std::sqrt(dist / m_maxAccel) - speed0 / m_maxAccel;
     maintainT = 0;
   } else {
-    double maintainArea = dist - (m_maxSpeed * m_maxSpeed) / (2 * m_maxAccel) - increaseT * (speed0 + m_maxSpeed) / 2;
+    double maintainArea = dist - (m_maxSpeed * m_maxSpeed) / (2.0 * m_maxAccel) - increaseT * (speed0 + m_maxSpeed) / 2.0;
     maintainT = maintainArea / m_maxSpeed;
   }
 
