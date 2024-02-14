@@ -29,7 +29,7 @@ Robot::Robot() :
   m_swerveController{true, false},
   m_intake{true, false},
   m_climb{true, false},
-  m_shooter{"Shooter", false, false},
+  m_shooter{"Shooter", true, false},
   //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
