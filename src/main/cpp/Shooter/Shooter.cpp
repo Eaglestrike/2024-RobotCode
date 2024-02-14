@@ -249,6 +249,9 @@ void Shooter::SetUp(double vel, double spin, double pivot){
     hasShot_ = true;
 }
 
+/**
+ * Shifts target by some distance (along y axis)
+*/
 void Shooter::Trim(vec::Vector2D trim){
     trim_ += trim;
 }
