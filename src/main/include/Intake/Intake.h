@@ -22,6 +22,7 @@ class Intake: public Mechanism{
             AMP_OUTTAKE,
             FEED_TO_SHOOTER,
             MANUAL_WRIST,
+            MANUAL_CHANNEL,
             PASS_TO_AMP,
             NONE
         };
@@ -39,6 +40,11 @@ class Intake: public Mechanism{
         void Zero();
         void SetManual(bool manual);
         void SetManualInput(double manualInput);
+
+        void EjectForward();
+        void EjectBack();
+        void EjectSplit();
+        void EjectStop();
 
         bool HasGamePiece();
         bool InChannel();
@@ -74,7 +80,7 @@ class Intake: public Mechanism{
         double STOWED_POS = M_PI / 2,
         HALF_STOWED_POS = 1.0,
         INTAKE_POS = -0.7, 
-        PASSTHROUGH_POS = -0.7,
+        PASSTHROUGH_POS = -0.64,
         AMP_OUT_POS = 1.364; // 1.26 
 
         double INTAKE_WAIT_s = 0.0;

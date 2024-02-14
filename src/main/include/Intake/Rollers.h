@@ -48,8 +48,8 @@ class Rollers : public Mechanism{
     double MAX_VOLTS = 10.0;
     double KEEP_VOLTS = 0.0;
     double IN_VOLTS = -2.5;
-    double PASS_VOLTS = -5.0;
-    double BACK_ROLLER_IN_VOLTS = -6.0;
+    double PASS_VOLTS = -4.0;
+    double BACK_ROLLER_IN_VOLTS = -4.0;
     //amp out
     double OUT_VOLTS = 2.8; // 3.3
 

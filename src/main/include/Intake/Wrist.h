@@ -46,7 +46,7 @@ class Wrist: public Mechanism{
         bool ProfileDone();
         double GetPos();
         MechState GetState();
-
+        // double getSetPt();
         double GetMaxVolts();
     private:
         void MoveToSetPt();
