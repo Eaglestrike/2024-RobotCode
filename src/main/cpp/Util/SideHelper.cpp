@@ -5,6 +5,7 @@
 
 #include <frc/DriverStation.h>
 
+#include "Constants/AutoConstants.h"
 #include "Constants/AutoLineupConstants.h"
 #include "Constants/FieldConstants.h"
 #include "Util/Utils.h"
@@ -130,9 +131,9 @@ AutoConstants::StartPose SideHelper::GetStartingPose(int idx) {
 AutoConstants::StartPose SideHelper::GetStartingPose(std::string pos) {
   int idx = 1;
 
-  if (pos == "Left") {
+  if (pos == AutoConstants::L_START) {
     idx = 0;
-  } else if (pos == "Right") {
+  } else if (pos == AutoConstants::R_START) {
     idx = 2;
   }
 
