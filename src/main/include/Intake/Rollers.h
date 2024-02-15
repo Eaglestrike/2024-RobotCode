@@ -37,7 +37,7 @@ class Rollers : public Mechanism{
   private:
     RollerState m_state{STOP};
     TalonFX m_rollerMotor{IntakeConstants::ROLLER_MOTOR, "rio"};
-    WPI_TalonSRX m_rollerMotorBack{IntakeConstants::ROLLER_MOTOR_BACK};
+    TalonFX m_rollerMotorBack{IntakeConstants::ROLLER_MOTOR_BACK, "rio"};
     ShuffleboardSender m_shuff;
 
     double m_timer = 0;
