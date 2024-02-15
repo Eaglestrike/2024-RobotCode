@@ -127,4 +127,6 @@ namespace AutoConstants {
   const std::string L_SCORE = "LeftScore";
   const std::string M_SCORE = "MidScore";
   const std::string R_SCORE = "RightScore";
+
+  const double SAFETY_DIST = 0.5; //Distance to stop path if it starts off
 }

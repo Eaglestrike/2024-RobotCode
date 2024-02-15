@@ -85,8 +85,39 @@ void Auto::SetSegment(uint index, std::string path){
     }
     SetPath(
         index,
+        {
+            {DRIVE, AFTER, path},
+            {INTAKE, AT_START},
+            {SHOOT, BEFORE_END}
+        }
+    );
+}
+
+/**
+ * Sets an auto segment to just drive
+ * 
+ * @param path filename of drive path (ex: to.csv)
+*/
+void Auto::SetDrive(uint index, std::string path){
+    if(index == 0){
+        std::cout<<"bad index 0 Auto::SetSegment"<<std::endl;
+        return;
+    }
+    if(path == ""){ //Check if it's an empty path
+        SetPath(index, {});
+        return;
+    }
+    SetPath(
+        index,
         {{DRIVE, AFTER, path}}
     );
+}
+
+/**
+ * Clears the pathing
+*/
+void Auto::Clear(){
+    paths_.clear();
 }
 
 /**
@@ -111,7 +142,7 @@ void Auto::AutoInit(){
             }
         }
     }
-    if((startPos - odometry_.GetPos()).magn() > 0.5){ //If starting pos too far away
+    if((startPos - odometry_.GetPos()).magn() > AutoConstants::SAFETY_DIST){ //If starting pos too far away
         pathNum_ = 100000; //Give up
     }
 
@@ -175,6 +206,13 @@ void Auto::DrivePeriodic(double t){
     if(!driveTiming_.hasStarted && t > driveTiming_.start){
         segments_.Start();
         driveTiming_.hasStarted = true;
+
+        //Path safety check
+        if((segments_.GetPos(t) - odometry_.GetPos()).magn() > AutoConstants::SAFETY_DIST){
+            pathNum_ = 100000; //Give up
+            segments_.Stop();
+            return;
+        }
     }
 
     if(segments_.AtTarget()){
@@ -320,7 +358,7 @@ void Auto::NextBlock(){
 
     //Get the shooter position target
     if(!shooterTiming_.finished){
-        shootPos_ = segments_.GetPos(shooterTiming_.end + autoStart_); 
+        shootPos_ = segments_.GetPos(shooterTiming_.end + autoStart_);
     }
 
     if(index_ >= (int)path.size()){//Finished this path
@@ -482,8 +520,8 @@ void Auto::ShuffleboardInit(){
     shuff_.PutNumber("time", 0.0, {1,1,4,0});
 
     //Drive Timing (row 1)
-    shuff_.add("Drive Start", &driveTiming_.start, {1,1,0,1});
-    shuff_.add("Drive End", &driveTiming_.end, {1,1,1,1});
+    // shuff_.add("Drive Start", &driveTiming_.start, {1,1,0,1});
+    // shuff_.add("Drive End", &driveTiming_.end, {1,1,1,1});
     shuff_.add("Drive Has Started", &driveTiming_.hasStarted, {1,1,2,1});
     shuff_.add("Drive Has Finished", &driveTiming_.finished, {1,1,3,1});
 
@@ -492,8 +530,8 @@ void Auto::ShuffleboardInit(){
     shuff_.PutNumber("Drive Progress", 0.0, {1,1,5,1});
 
     //Shooter Timing (row 2)
-    shuff_.add("Shooter Start", &shooterTiming_.start, {1,1,0,2});
-    shuff_.add("Shooter End", &shooterTiming_.end, {1,1,1,2});
+    // shuff_.add("Shooter Start", &shooterTiming_.start, {1,1,0,2});
+    // shuff_.add("Shooter End", &shooterTiming_.end, {1,1,1,2});
     shuff_.add("Shooter Has Started", &shooterTiming_.hasStarted, {1,1,2,2});
     shuff_.add("Shooter Has Finished", &shooterTiming_.finished, {1,1,3,2});
     
@@ -501,11 +539,14 @@ void Auto::ShuffleboardInit(){
     shuff_.add("Shooter Time", &SHOOT_TIME, {1,1,5,2}, true);
     shuff_.add("Shoot pos tol", &SHOOT_POS_TOL, {1,1,6,2}, true);
 
-    shuff_.add("Shooter Padding", &CHANNEL_TIME, {1,1,4,2}, true);
+    shuff_.add("Shooter Padding", &CHANNEL_TIME, {1,1,7,2}, true);
+
+    shuff_.PutNumber("Shoot x", shootPos_.x(), {1,1,6,3});
+    shuff_.PutNumber("Shoot y", shootPos_.y(), {1,1,7,3});
 
     //Intake Timing (row 3)
-    shuff_.add("Intake Start", &intakeTiming_.start, {1,1,0,3});
-    shuff_.add("Intake End", &intakeTiming_.end, {1,1,1,3});
+    // shuff_.add("Intake Start", &intakeTiming_.start, {1,1,0,3});
+    // shuff_.add("Intake End", &intakeTiming_.end, {1,1,1,3});
     shuff_.add("Intake Has Started", &intakeTiming_.hasStarted, {1,1,2,3});
     shuff_.add("Intake Has Finished", &intakeTiming_.finished, {1,1,3,3});
     
@@ -532,6 +573,9 @@ void Auto::ShuffleboardPeriodic(){
 
     shuff_.PutNumber("time", Utils::GetCurTimeS() - autoStart_);
     shuff_.PutNumber("Drive Progress", segments_.GetProgress());
+
+    shuff_.PutNumber("Shoot x", shootPos_.x());
+    shuff_.PutNumber("Shoot y", shootPos_.y());
 
     shuff_.update(true);
 }
