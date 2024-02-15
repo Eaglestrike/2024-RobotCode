@@ -218,14 +218,14 @@ void Robot::TeleopPeriodic() {
   double curJoystickAng = m_odom.GetJoystickAng();
 
   // auto lineup to amp
-  if (m_controller.getPressedOnce(AMP_AUTO_LINEUP)) {
+  if (m_controller.getPOVDownOnce(AMP_AUTO_LINEUP)) {
     m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
     m_autoLineup.Start();
   }
 
   // Intake
   if (!m_wristManual) {
-    if(m_controller.getPressedOnce(HALF_STOW)){
+    if(m_controller.getPOVDownOnce(HALF_STOW)){
       m_intake.HalfStow();
     }
     if(m_controller.getPressedOnce(INTAKE_TO_AMP)){
@@ -241,8 +241,7 @@ void Robot::TeleopPeriodic() {
       } else {
         if(m_intake.HasGamePiece()){
           m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
-          m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
-          m_autoLineup.Start();
+          m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
           if(m_shooter.CanShoot()){
             m_intake.FeedIntoShooter();
           }
@@ -262,8 +261,7 @@ void Robot::TeleopPeriodic() {
     } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
       m_intake.Stow();
       m_shooter.Stroll();
-    }
-    else{
+    } else{
       m_shooter.Stroll();
     }
   }
@@ -295,22 +293,34 @@ void Robot::TeleopPeriodic() {
     m_climbManual = false;
     m_wristManual = false;
   }
+
+  if (m_controller.getPressed(MANUAL_EJECT_IN) || m_controller.getPressed(MANUAL_EJECT_OUT)){
+    m_eject = true;
+    if (m_controller.getPressed(MANUAL_EJECT_IN) && m_controller.getPressed(MANUAL_EJECT_OUT)){
+      m_intake.EjectSplit();
+    } else if (m_controller.getPressed(MANUAL_EJECT_IN)){
+      m_intake.EjectForward();
+    }else {
+      m_intake.EjectBack();
+    }
+  } else if (m_eject == true){
+    m_eject = false;
+    m_intake.EjectStop();
+  }
   
   // climb
   if (!m_climbManual) {
     if (m_controller.getPOVDownOnce(CLIMB)){
       m_intake.Climb();
       m_climb.PullUp();
-    } else if (m_controller.getPOVDownOnce(STOW)){
-      m_climb.Stow();
-    }  else if (m_controller.getPOVDownOnce(EXTEND)){
+    } else if (m_controller.getPOVDownOnce(EXTEND)){
       m_climb.Extend();
     } 
   }
 
 
   // auto lineup
-  if (m_controller.getPressed(AMP_AUTO_LINEUP) ||
+  if (m_controller.getPOVDownOnce(AMP_AUTO_LINEUP) ||
       (m_controller.getPressed(SHOOT) && !m_amp) //Angle lineup when shooting
     ) {
     double angVel = m_autoLineup.GetAngVel();

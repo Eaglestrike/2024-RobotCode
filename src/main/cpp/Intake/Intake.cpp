@@ -52,6 +52,34 @@ void Intake::SetManualInput(double manualInput) {
 }
 
 
+void Intake::EjectForward(){
+    Stow();
+    m_channel.SetState(Channel::IN);
+    m_rollers.SetState(Rollers::INTAKE); // can change to back only later if needed
+    m_actionState = NONE;
+}
+
+void Intake::EjectBack(){
+    Stow();
+    m_channel.SetState(Channel::OUT);
+    m_rollers.SetState(Rollers::OUTTAKE); // can change to back only later if needed
+    m_actionState = NONE;
+}
+        
+void Intake::EjectSplit(){
+    Stow();
+    m_channel.SetState(Channel::SPLIT);
+    m_rollers.SetState(Rollers::OUTTAKE); // can change to back only later if needed
+    m_actionState = NONE;
+}
+
+void Intake::EjectStop(){
+    m_rollers.StopRollers();
+    m_channel.SetState(Channel::STOP);
+    m_actionState = NONE;
+}
+
+
 void Intake::CoreTeleopPeriodic(){
     m_rollers.TeleopPeriodic();
     m_wrist.TeleopPeriodic();
@@ -92,11 +120,11 @@ void Intake::CoreTeleopPeriodic(){
             }
             break; 
         case PASSTHROUGH:
-            if (m_rollers.GetState() == Rollers::STOP){
-                m_rollers.SetState(Rollers::PASS);
-            }
             if (InIntake()){
                 m_wrist.MoveTo(PASSTHROUGH_POS);
+            }
+            if (m_rollers.GetState() == Rollers::STOP && m_wrist.ProfileDone()){
+                m_rollers.SetState(Rollers::PASS);
             }
             if (InChannel()){    
                 m_rollers.SetState(Rollers::STOP);
@@ -133,7 +161,8 @@ void Intake::SetState(ActionState newAction){
     if (newAction == AMP_INTAKE && (m_wrist.GetState() == Wrist::COAST || InIntake()) && m_channel.GetState() != Channel::OUT) return;
     if (newAction == PASSTHROUGH && InChannel()) return;
 
-    
+    // std::cout << "made it out " << std::endl;
+
     if (newAction == AMP_INTAKE && (InChannel() || m_channel.GetState() == Channel::OUT)) newAction = PASS_TO_AMP;
     if (m_actionState == AMP_INTAKE) m_timer = -1;
     m_actionState = newAction;
