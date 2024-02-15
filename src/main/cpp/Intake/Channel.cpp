@@ -37,8 +37,8 @@ void Channel::CoreTeleopPeriodic() {
             kickerV = m_kickerInfo.PASS_VOLTS;
             channelV = m_channelInfo.PASS_VOLTS;
             break;
-        case THRU:
-            // kickerV = m_kickerInfo.IN_VOLTS;
+        case SPLIT:
+            kickerV = m_kickerInfo.OUT_VOLTS;
             channelV = m_channelInfo.IN_VOLTS;
             break;
         case RETAIN:
@@ -90,11 +90,17 @@ void Channel::CoreShuffleboardPeriodic(){
         case IN:
             m_shuff.PutString("State", "In");
             break;
-        case THRU:
-            m_shuff.PutString("State", "thru");
-            break;
         case RETAIN:
             m_shuff.PutString("State", "retain");
+            break;
+        case TO_SHOOT:
+            m_shuff.PutString("State", "to shoot");
+            break;
+        case SPLIT:
+            m_shuff.PutString("State", "split");
+            break;
+         case OUT:
+            m_shuff.PutString("State", "out");
             break;
     }
     m_shuff.update(true);
