@@ -28,7 +28,8 @@ Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLine
     ResetTiming(shooterTiming_);
     ResetTiming(driveTiming_);
 
-    //SetPath(0, {{SHOOT, AFTER});
+    SetPath(0, {{SHOOT, AFTER}});
+    inChannel_ = true;
 }
 
 /**
