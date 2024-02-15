@@ -114,6 +114,13 @@ void Auto::SetDrive(uint index, std::string path){
 }
 
 /**
+ * Clears the pathing
+*/
+void Auto::Clear(){
+    paths_.clear();
+}
+
+/**
  * Autonomous Init
 */
 void Auto::AutoInit(){

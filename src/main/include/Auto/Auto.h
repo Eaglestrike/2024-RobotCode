@@ -20,6 +20,7 @@ class Auto{
         void SetSegment(uint index, std::string to, std::string back); //Drive -> Intake -> Drive -> Shoot
         void SetSegment(uint index, std::string path); //Drive -> Intake -> Shoot in place
         void SetDrive(uint index, std::string path);
+        void Clear();
 
         void AutoInit();
         void AutoPeriodic();
