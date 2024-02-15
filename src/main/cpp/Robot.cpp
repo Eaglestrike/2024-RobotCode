@@ -37,7 +37,7 @@ Robot::Robot() :
   //Auto
   m_autoLineup{false, m_odom},
   m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter},
-  m_autoChooser{false, m_auto}
+  m_autoChooser{true, m_auto}
 {
 
   // navx
@@ -93,6 +93,7 @@ Robot::Robot() :
 
 void Robot::RobotInit() {
   ShuffleboardInit();
+  m_autoChooser.ShuffleboardInit();
   m_auto.ShuffleboardInit();
   m_odom.ShuffleboardInit();
   m_autoLineup.ShuffleboardInit();
@@ -118,6 +119,7 @@ void Robot::RobotInit() {
  */
 void Robot::RobotPeriodic() {
   ShuffleboardPeriodic();
+  m_autoChooser.ShuffleboardPeriodic();
   m_auto.ShuffleboardPeriodic();
   m_odom.ShuffleboardPeriodic();
   m_autoLineup.ShuffleboardPeriodic();
@@ -334,24 +336,45 @@ void Robot::DisabledInit() {}
 void Robot::DisabledPeriodic() {
   // STARTING POS + AUTO CHOOSER
   {
+    // process starting position
     std::string selectedStart = m_startChooser.GetSelected();
     AutoConstants::StartPose startPos = SideHelper::GetStartingPose(selectedStart);
     double joystickAng = SideHelper::GetJoystickAng();
-    if (selectedStart != m_prevSelectedStart) {
+    if (selectedStart != m_prevSelectedStart || SideHelper::IsBlue() != m_prevIsBlue) {
       m_odom.SetStartingConfig(startPos.pos, startPos.ang, joystickAng);
     }
     m_prevSelectedStart = selectedStart;
+    m_prevIsBlue = SideHelper::IsBlue();
 
-    std::string end = m_autoEndChooser.GetSelected();
+    // put starting position in auto chooser
+    m_autoChooser.SetPosition(0, selectedStart, "");
 
-    std::vector<std::string> selects;
-    selects.push_back(selectedStart);
+    // put intermediate auto paths in auto chooser
     for(int i = 0; i < AutoConstants::POS_ARR_SIZE - 2; i++){
       std::string path = m_autoChoosers[i].GetSelected();
-      selects.push_back(path);
+      std::string secondary = "";
+
+      if (path == AutoConstants::L_FAR || path == AutoConstants::ML_FAR) {
+        secondary = AutoConstants::L_SCORE;
+      }
+      if (path == AutoConstants::R_FAR || path == AutoConstants::MR_FAR) {
+        secondary = AutoConstants::R_SCORE;
+      }
+      if (path == AutoConstants::M_FAR) {
+        secondary = AutoConstants::M_SCORE;
+      }
+      if (path == AutoConstants::S_NAME) {
+        path = "";
+      }
+      m_autoChooser.SetPosition(i + 1, path, secondary);
     }
-    selects.push_back(end);
-    m_autoChooser.ProcessChoosers(selects);
+    
+    // put end path in auto chooser
+    std::string end = m_autoEndChooser.GetSelected();
+    if (end == AutoConstants::S_NAME) {
+      end = "";
+    }
+    m_autoChooser.SetPosition(AutoConstants::POS_ARR_SIZE - 1, end, "");
   }
 }
 
@@ -423,26 +446,34 @@ void Robot::ShuffleboardInit() {
 
   // STARTING POS
   {
-    m_startChooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-    m_startChooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
-    m_startChooser.AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-    m_startChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
-    frc::SmartDashboard::PutData("Starting Position", &m_startChooser);
+    m_startChooser.SetDefaultOption(AutoConstants::M_START, AutoConstants::M_START);
+    m_startChooser.AddOption(AutoConstants::L_START, AutoConstants::L_START);
+    m_startChooser.AddOption(AutoConstants::M_START, AutoConstants::M_START);
+    m_startChooser.AddOption(AutoConstants::R_START, AutoConstants::R_START);
+    frc::SmartDashboard::PutData("Start", &m_startChooser);
 
     for(int i = 0; i < AutoConstants::POS_ARR_SIZE - 2; i++){
-      m_autoChoosers[i].SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-      m_autoChoosers[i].AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
-      m_autoChoosers[i].AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-      m_autoChoosers[i].AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
+      m_autoChoosers[i].SetDefaultOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
+      m_autoChoosers[i].AddOption(AutoConstants::L_NEAR, AutoConstants::L_NEAR);
+      m_autoChoosers[i].AddOption(AutoConstants::M_NEAR, AutoConstants::M_NEAR);
+      m_autoChoosers[i].AddOption(AutoConstants::R_NEAR, AutoConstants::R_NEAR);
+      m_autoChoosers[i].AddOption(AutoConstants::L_FAR, AutoConstants::L_FAR);
+      m_autoChoosers[i].AddOption(AutoConstants::ML_FAR, AutoConstants::ML_FAR);
+      m_autoChoosers[i].AddOption(AutoConstants::M_FAR, AutoConstants::M_FAR);
+      m_autoChoosers[i].AddOption(AutoConstants::MR_FAR, AutoConstants::MR_FAR);
+      m_autoChoosers[i].AddOption(AutoConstants::R_FAR, AutoConstants::R_FAR);
       m_autoChoosers[i].AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
       frc::SmartDashboard::PutData("Auto " + std::to_string(i+1), &(m_autoChoosers[i]));
     }
  
-    m_autoEndChooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
-    m_autoEndChooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
-    m_autoEndChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
+    m_autoEndChooser.SetDefaultOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
+    m_autoEndChooser.AddOption(AutoConstants::L_FAR, AutoConstants::L_FAR);
+    m_autoEndChooser.AddOption(AutoConstants::ML_FAR, AutoConstants::ML_FAR);
+    m_autoEndChooser.AddOption(AutoConstants::M_FAR, AutoConstants::M_FAR);
+    m_autoEndChooser.AddOption(AutoConstants::MR_FAR, AutoConstants::MR_FAR);
+    m_autoEndChooser.AddOption(AutoConstants::R_FAR, AutoConstants::R_FAR);
     m_autoEndChooser.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
-    frc::SmartDashboard::PutData("End Position", &m_autoEndChooser);
+    frc::SmartDashboard::PutData("End", &m_autoEndChooser);
   }
 
   // ZERO

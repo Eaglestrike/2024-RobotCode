@@ -103,13 +103,30 @@ namespace AutoConstants {
   const StartPose BLUE_R = {{0.597, 4.41}, 2.0375};
 
   // auto positions array size
-  const int POS_ARR_SIZE = 5;
+  const int POS_ARR_SIZE = 8;
 
   // chooser names
   const std::string L_NAME = "Left";
   const std::string M_NAME = "Mid";
   const std::string R_NAME = "Right";
   const std::string S_NAME = "Skip";
+
+  const std::string L_START = "LeftStart";
+  const std::string M_START = "MidStart";
+  const std::string R_START = "RightStart";
+
+  const std::string L_NEAR = "LeftNear";
+  const std::string M_NEAR = "MidNear";
+  const std::string R_NEAR = "RightNear";
+  const std::string L_FAR = "LeftFar";
+  const std::string ML_FAR = "MidLeftFar";
+  const std::string M_FAR = "MidFar";
+  const std::string MR_FAR = "MidRightFar";
+  const std::string R_FAR = "RightFar";
+
+  const std::string L_SCORE = "LeftScore";
+  const std::string M_SCORE = "MidScore";
+  const std::string R_SCORE = "RightScore";
 
   const double SAFETY_DIST = 0.5; //Distance to stop path if it starts off
 }

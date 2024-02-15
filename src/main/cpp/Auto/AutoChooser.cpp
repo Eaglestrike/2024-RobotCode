@@ -1,5 +1,8 @@
 #include "Auto/AutoChooser.h"
 
+#include <iostream>
+#include <frc/smartdashboard/SmartDashboard.h>
+
 #include "Constants/AutoConstants.h"
 #include "Util/SideHelper.h"
 
@@ -12,45 +15,71 @@
 */
 AutoChooser::AutoChooser(bool shuffleboard, Auto &auton) :
   m_shuffleboard{shuffleboard}, m_auto{auton} {
+  m_positions.resize(AutoConstants::POS_ARR_SIZE);
 }
 
 /**
- * Processes choosers
+ * Sets auto path at a position
  * 
- * @param positions Vector of positions, must be "Left", "Mid", "Right", or "Skip"
- * 
- * @note If paths has an element that is not "Left", "Mid", "Right", or "Skip"
- * then will return
+ * @param idx Index to set auto path to, 0 <= idx < AutoConstants::POS_ARR_SIZE
+ * @param primary Primary path, "" to skip
+ * @param secondary Secondary path, "" to skip
 */
-void AutoChooser::ProcessChoosers(std::vector<std::string> positions) {
-  if (!ValidatePositions(positions)) {
+void AutoChooser::SetPosition(int idx, std::string primary, std::string secondary) {
+  if (idx < 0 || idx >= m_positions.size()) {
     return;
-  } 
+  }
 
-  std::string prevPos = positions[0];
-  for (int i = 1; i <= 3; i++) {
-    std::string rPos = positions[i]; // ring pos
-    if (rPos == AutoConstants::S_NAME) {
-      m_auto.SetSegment(i, "", "");
+  m_positions[idx] = {primary, secondary};
+}
+
+/**
+ * Processes choosers by interpreting positions array and inserting them into auto obj
+ * 
+ * @param dryRun Does not actually insert paths and prints paths instead, use for debug
+*/
+void AutoChooser::ProcessChoosers(bool dryRun) {
+  if (dryRun) {
+    std::cout << std::endl;
+  }
+
+  m_auto.Clear();
+
+  std::string prevName = m_positions[0].first;
+  for (int i = 1; i < m_positions.size(); i++) {
+    std::string primary = m_positions[i].first;
+    std::string secondary = m_positions[i].second;
+
+    if (primary == "") {
       continue;
     }
 
-    std::string path1 = prevPos + "Score_to_" + rPos + "Intake.csv";
-    std::string path2 = rPos + "Intake_to_" + rPos + "Score.csv";
+    std::string path1 = prevName + "_to_" + primary + ".csv";
+    path1 = SideHelper::GetPath(path1);
+    if (dryRun) {
+      std::cout << path1 << std::endl; 
+    } else if (i < m_positions.size() - 1) {
+      // insert path 1
+      m_auto.SetSegment(i, path1);
+    } else {
+      m_auto.SetDrive(i, path1);
+    }
+    prevName = primary;
 
-    path1 = SideHelper::GetPath(path1); // get path from prevPos -> rPos
-    path2 = SideHelper::GetPath(path2); // get path from rPos -> sPos
-    m_auto.SetSegment(i, path1, path2);
-    prevPos = rPos;
-  }
+    if (secondary == "") {
+      continue;
+    }
 
-  std::string endPosition = positions[AutoConstants::POS_ARR_SIZE - 1];
-  if (endPosition == AutoConstants::S_NAME || endPosition == AutoConstants::M_NAME) {
-    m_auto.SetSegment(AutoConstants::POS_ARR_SIZE - 1, "");
-    return;
+    std::string path2 = prevName + "_to_" + secondary + ".csv";
+    path2 = SideHelper::GetPath(path2);
+    if (dryRun) {
+      std::cout << path2 << std::endl; 
+    } else {
+      // insert path 2
+      m_auto.SetSegment(i, path1, path2);
+    }
+    prevName = secondary;
   }
-  std::string endPath = SideHelper::GetPath(prevPos + "Score_to_" + endPosition + "End.csv"); // get path from prevPos -> endPos
-  m_auto.SetSegment(AutoConstants::POS_ARR_SIZE - 1, endPath);
 }
 
 /**
@@ -60,6 +89,8 @@ void AutoChooser::ShuffleboardInit() {
   if (!m_shuffleboard) {
     return;
   }
+
+  frc::SmartDashboard::PutBoolean("Print Paths", false);
 }
 
 /**
@@ -69,27 +100,10 @@ void AutoChooser::ShuffleboardPeriodic() {
   if (!m_shuffleboard) {
     return;
   }
-}
 
-/**
- * Validates an array of positions
- * 
- * Positions must be "Left", "Mid", "Right", "Skip". Size of positions array must be 5
- * 
- * @param positions Array of positions
- * 
- * @returns If array of positions is valid
-*/
-bool AutoChooser::ValidatePositions(std::vector<std::string> positions) {
-  if (positions.size() != AutoConstants::POS_ARR_SIZE) {
-    return false;
+  bool printPath = frc::SmartDashboard::GetBoolean("Print Paths", false);
+  if (printPath) {
+    ProcessChoosers(true);
+    frc::SmartDashboard::PutBoolean("Print Paths", false);
   }
-
-  for (const auto &str : positions) {
-    if (str != AutoConstants::L_NAME && str != AutoConstants::M_NAME && str != AutoConstants::R_NAME && str != AutoConstants::S_NAME) {
-      return false;
-    }
-  }
-
-  return true;
 }
