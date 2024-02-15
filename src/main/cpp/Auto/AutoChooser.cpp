@@ -43,7 +43,7 @@ void AutoChooser::ProcessChoosers(bool dryRun) {
     std::cout << std::endl;
   }
 
-  // CLEAR CALEB AUTO MAP
+  m_auto.Clear();
 
   std::string prevName = m_positions[0].first;
   for (int i = 1; i < m_positions.size(); i++) {
@@ -58,8 +58,11 @@ void AutoChooser::ProcessChoosers(bool dryRun) {
     path1 = SideHelper::GetPath(path1);
     if (dryRun) {
       std::cout << path1 << std::endl; 
-    } else {
+    } else if (i < m_positions.size() - 1) {
       // insert path 1
+      m_auto.SetSegment(i, path1);
+    } else {
+      m_auto.SetDrive(i, path1);
     }
     prevName = primary;
 
@@ -73,6 +76,7 @@ void AutoChooser::ProcessChoosers(bool dryRun) {
       std::cout << path2 << std::endl; 
     } else {
       // insert path 2
+      m_auto.SetSegment(i, path1, path2);
     }
     prevName = secondary;
   }
