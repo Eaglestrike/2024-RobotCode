@@ -18,7 +18,8 @@ class Auto{
         Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autoLineup, Intake &intake, Shooter &shooter);
         void SetPath(uint index, AutoConstants::AutoPath path);
         void SetSegment(uint index, std::string to, std::string back); //Drive -> Intake -> Drive -> Shoot
-        void SetSegment(uint index, std::string path); //Just Drives
+        void SetSegment(uint index, std::string path); //Drive -> Intake -> Shoot in place
+        void SetDrive(uint index, std::string path);
 
         void AutoInit();
         void AutoPeriodic();

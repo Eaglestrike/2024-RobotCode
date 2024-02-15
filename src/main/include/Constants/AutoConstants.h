@@ -110,4 +110,6 @@ namespace AutoConstants {
   const std::string M_NAME = "Mid";
   const std::string R_NAME = "Right";
   const std::string S_NAME = "Skip";
+
+  const double SAFETY_DIST = 0.5; //Distance to stop path if it starts off
 }

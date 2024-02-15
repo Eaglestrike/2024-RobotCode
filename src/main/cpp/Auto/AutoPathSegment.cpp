@@ -97,6 +97,8 @@ void AutoPathSegment::Start() {
 */
 void AutoPathSegment::Stop() {
   m_hasStarted = false;
+
+  m_swerve.SetRobotVelocity({0.0, 0.0}, 0.0, m_odom.GetAng());
 }
 
 /**
