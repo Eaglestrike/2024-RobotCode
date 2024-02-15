@@ -1,6 +1,7 @@
 #include "Util/SideHelper.h"
 
 #include <cmath>
+#include <iostream>
 #include <regex>
 
 #include <frc/DriverStation.h>
@@ -124,7 +125,7 @@ AutoConstants::StartPose SideHelper::GetStartingPose(int idx) {
 /**
  * Gets starting positions from string
  * 
- * @param pos Starting position, either "Left", "Middle", "Right," converts to correct starting position no matter which side
+ * @param pos Starting position, either "LeftStart", "MiddleStart", "RightStart," converts to correct starting position no matter which side
  * 
  * @returns Start pose
 */
