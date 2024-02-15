@@ -340,10 +340,11 @@ void Robot::DisabledPeriodic() {
     std::string selectedStart = m_startChooser.GetSelected();
     AutoConstants::StartPose startPos = SideHelper::GetStartingPose(selectedStart);
     double joystickAng = SideHelper::GetJoystickAng();
-    if (selectedStart != m_prevSelectedStart) {
+    if (selectedStart != m_prevSelectedStart || SideHelper::IsBlue() != m_prevIsBlue) {
       m_odom.SetStartingConfig(startPos.pos, startPos.ang, joystickAng);
     }
     m_prevSelectedStart = selectedStart;
+    m_prevIsBlue = SideHelper::IsBlue();
 
     // put starting position in auto chooser
     m_autoChooser.SetPosition(0, selectedStart, "");
