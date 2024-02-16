@@ -21,8 +21,8 @@ void Intake::CorePeriodic(){
     m_rollers.Periodic();
     m_wrist.Periodic();
     m_channel.Periodic();
-    DebounceBeamBreak1();
 
+    DebounceBeamBreak1();
 }
 
 
@@ -47,7 +47,7 @@ void Intake::SetManual(bool manual) {
 */
 void Intake::SetManualInput(double manualInput) {
     manualInput = std::clamp(manualInput, -1.0, 1.0);
-    manualInput *= m_wrist.GetMaxVolts() / 2;
+    manualInput *= m_wrist.GetMaxVolts() / 2.0;
     m_manualVolts = manualInput;
 }
 
@@ -87,7 +87,7 @@ void Intake::CoreTeleopPeriodic(){
 
     
     switch(m_actionState){
-         case FEED_TO_SHOOTER:
+        case FEED_TO_SHOOTER:
             if(!InChannel()){
                 m_channel.SetState(Channel::STOP);
                 m_actionState = NONE;
@@ -123,7 +123,8 @@ void Intake::CoreTeleopPeriodic(){
             if (InIntake()){
                 m_wrist.MoveTo(PASSTHROUGH_POS);
             }
-            if (m_rollers.GetState() == Rollers::STOP && m_wrist.ProfileDone()){
+            //Start spinning after finishing profile (coming from amp)
+            if (m_rollers.GetState() == Rollers::STOP && m_wrist.ProfileDone()){ 
                 m_rollers.SetState(Rollers::PASS);
             }
             if (InChannel()){    
@@ -140,13 +141,13 @@ void Intake::CoreTeleopPeriodic(){
                 m_channel.SetState(Channel::IN);
                 m_rollers.SetState(Rollers::OUTTAKE);
             }
-            if (m_timer >= OUTTAKE_WAIT_s){
-                m_timer = -1;
+            if (m_outTimer >= OUTTAKE_WAIT_s){
+                m_outTimer = -1;
                 SetState(STOW);
-            } else if (m_timer != -1){
-                m_timer += 0.02;
+            } else if (m_outTimer != -1){
+                m_outTimer += 0.02;
             } else if (!GetBeamBreak1()){
-                m_timer = 0;
+                m_outTimer = 0;
             }
             break;
         default:
@@ -155,16 +156,55 @@ void Intake::CoreTeleopPeriodic(){
 }
 
 void Intake::SetState(ActionState newAction){
-    if (newAction == m_actionState) return;
+    if (m_outTimer !=-1){ //amp outtake timer
+        return;
+    }
 
-    if (m_timer !=-1) return;
-    if (newAction == AMP_INTAKE && (m_wrist.GetState() == Wrist::COAST || InIntake()) && m_channel.GetState() != Channel::OUT) return;
-    if (newAction == PASSTHROUGH && InChannel()) return;
+    //Check to stop and other logic
+    bool isPassToAmp = m_channel.GetState() != Channel::OUT;
+    switch(newAction){
+        case AMP_INTAKE:
+        {
+            //First feed it to channel
+            if(!m_wentToPassthrough){
+                newAction = PASSTHROUGH;
+            }
+            else{
+                if(!HasGamePiece()){
+                    m_wentToPassthrough = false;
+                }
+            }
+            bool inAmpState = (m_wrist.GetState() == Wrist::COAST) || InIntake();
+            if(inAmpState && m_wentToPassthrough && isPassToAmp){ //If alraedy in amp state or pass to amp
+                return;
+            }
+            if(InChannel()){ //Pass to amp if in channel
+                newAction = PASS_TO_AMP;
+                m_wentToPassthrough = true;
+            }
+            break;
+        }
+        case PASSTHROUGH:
+        {
+            if(InChannel()){
+                m_wentToPassthrough = true;
+                return;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
+    if (newAction == m_actionState){ //Already in the same state
+        return;
+    }
 
     // std::cout << "made it out " << std::endl;
 
-    if (newAction == AMP_INTAKE && (InChannel() || m_channel.GetState() == Channel::OUT)) newAction = PASS_TO_AMP;
-    if (m_actionState == AMP_INTAKE) m_timer = -1;
+    if (m_actionState == AMP_INTAKE) { 
+        m_outTimer = -1; //Restart timer on amp
+    }
     m_actionState = newAction;
     
     double newWristPos;
@@ -344,7 +384,7 @@ void Intake::CoreShuffleboardPeriodic(){
     m_shuff.PutBoolean("BeamBreak 1", m_beam1broke);
     m_shuff.PutBoolean("BeamBreak 2", GetBeamBreak2());
     m_shuff.PutNumber("debounce timer", m_dbTimer);
-    m_shuff.PutNumber("REAL timer", m_timer);
+    m_shuff.PutNumber("REAL timer", m_outTimer);
     m_shuff.update(true);
 }
 

@@ -70,11 +70,14 @@ class Intake: public Mechanism{
         Channel m_channel;
         ActionState m_actionState = NONE;
 
+        //used for AmpIntake
+        bool m_wentToPassthrough;
+
         bool m_keepIntakeDown = false;
         
         bool m_beam1broke= false;
 
-        double m_timer = -1;
+        double m_outTimer = -1;
         double m_dbTimer = -1;
 
         double STOWED_POS = M_PI / 2,
@@ -85,7 +88,7 @@ class Intake: public Mechanism{
 
         double INTAKE_WAIT_s = 0.0;
         double OUTTAKE_WAIT_s = 0.5;
-        double BACK_PROPAGATE_WAIT_s = 0.2;
+        double BACK_PROPAGATE_WAIT_s = 0.2; //Wait time from passthrough to amp
         double DEBOUNCE_WAIT_s = 1.0;
 
 

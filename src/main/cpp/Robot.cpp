@@ -251,14 +251,16 @@ void Robot::TeleopPeriodic() {
           m_shooter.BringDown();
         }
       }
-    } else if(m_controller.getPressed(INTAKE)){
+    }
+    else if(m_controller.getPressed(INTAKE)){
       if (m_amp)
         m_intake.AmpIntake();
       else{
         m_intake.Passthrough();
         m_shooter.BringDown();
       }
-    } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
+    }
+    else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
       m_intake.Stow();
       m_shooter.Stroll();
     } else{
@@ -320,7 +322,7 @@ void Robot::TeleopPeriodic() {
 
 
   // auto lineup
-  if (m_controller.getPOVDownOnce(AMP_AUTO_LINEUP) ||
+  if (m_controller.getPOVDown(AMP_AUTO_LINEUP) ||
       (m_controller.getPressed(SHOOT) && !m_amp) //Angle lineup when shooting
     ) {
     double angVel = m_autoLineup.GetAngVel();
