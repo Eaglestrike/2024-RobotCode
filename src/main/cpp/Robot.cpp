@@ -145,7 +145,7 @@ void Robot::RobotPeriodic() {
 
   m_shooter.Trim(m_controller.getValueOnce(ControllerMapData::GET_SHOOTER_TRIM, {0,0})); //Trim shooter
   m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetYaw());
-  m_shooter.SetGamepiece(m_intake.HasGamePiece());
+  m_shooter.SetGamepiece(m_intake.InChannel());
 
   #if SWERVE_AUTOTUNING
   m_swerveXTuner.ShuffleboardUpdate();
