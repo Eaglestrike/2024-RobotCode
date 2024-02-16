@@ -10,8 +10,10 @@ Rollers::Rollers(bool enabled, bool shuffleboard)
     : Mechanism{"Rollers", enabled, shuffleboard},
     m_shuff{"Rollers", shuffleboard}{
     
-    m_rollerMotorBack.SetNeutralMode(ctre::phoenix::motorcontrol::NeutralMode::Coast);
+    m_rollerMotorBack.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
     m_rollerMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
+
+    m_rollerMotorBack.SetInverted(true);
 }
 
 void Rollers::SetState(RollerState r) {
