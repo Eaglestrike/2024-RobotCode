@@ -110,7 +110,8 @@ namespace ShooterConstants{
         {1.97,  {0.82,  17.0}},
         {2.06,  {0.8,   17.0}},
         {2.65,  {0.7,   17.0}},
-        {2.86,  {0.65,  18.0}},
+        {2.86,  {0.64,  18.0}},
+        {3.32,  {0.62,  18.5}},
         {3.39,  {0.6,   19.0}},
         {4.14,  {0.55,  19.0}},
         {5.461, {0.43, 19.0}}
@@ -144,6 +145,8 @@ namespace ShooterConstants{
 
     const vec::Vector2D ABSOLUTE_MISS = {10000000.0, 10000000.0}; //Forward kinematic miss
 
+
+    //Shooter amp : ang:1.0, vel:3.9
     //Constants for time calculation (t = kD * d + cT)
     const double kD = 0.0424441;
     const double cT = 0.0834987;
