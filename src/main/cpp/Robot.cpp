@@ -89,6 +89,9 @@ Robot::Robot() :
       m_isSecondTag = false;
     }
   }, 5_ms, 2_ms);
+  AddPeriodic([&](){
+    m_led.LEDPeriodic();
+  }, 1000_ms);
 }
 
 void Robot::RobotInit() {
@@ -146,6 +149,13 @@ void Robot::RobotPeriodic() {
   m_shooter.Trim(m_controller.getValueOnce(ControllerMapData::GET_SHOOTER_TRIM, {0,0})); //Trim shooter
   m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetYaw());
   m_shooter.SetGamepiece(m_intake.HasGamePiece());
+
+  // LED
+  if (m_intake.HasGamePiece()) {
+    m_led.SetStripColor(0, 255, 0);
+  } else {
+    m_led.SetStripColor(0, 0, 255);
+  }
 
   #if SWERVE_AUTOTUNING
   m_swerveXTuner.ShuffleboardUpdate();
@@ -328,6 +338,13 @@ void Robot::TeleopPeriodic() {
   } else {
     m_autoLineup.Stop();
     m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
+  }
+
+  // LED
+  if (m_amp) {
+    m_led.SetBlinkMode(true);
+  } else {
+    m_led.SetBlinkMode(false);
   }
 
   //Shooter
