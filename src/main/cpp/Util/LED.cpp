@@ -5,8 +5,8 @@ LED::LED()
     m_led.SetLength(LEDConstants::LED_STRIP_LENGTH);
     m_led.SetBitTiming(LEDConstants::HIGH_TIME_0, LEDConstants::LOW_TIME_0, LEDConstants::HIGH_TIME_1, LEDConstants::LOW_TIME_1);
     m_led.SetSyncTime(LEDConstants::SYNC_TIME);
-    SetStripColor(0, 0, 0);
-    SetStripEnabled(true);
+    m_led.SetData(m_ledBuffer);
+    m_led.Start();
 }
 
 void LED::SetStripColor(int r, int g, int b)

@@ -37,7 +37,9 @@ Robot::Robot() :
   //Auto
   m_autoLineup{false, m_odom},
   m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter},
-  m_autoChooser{false, m_auto}
+  m_autoChooser{false, m_auto},
+  //LED
+  m_led{}
 {
 
   // navx
