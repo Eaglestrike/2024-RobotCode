@@ -23,13 +23,13 @@ Robot::Robot() :
   //Controller
   m_controller{},
   //Logger
-  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang"}},
+  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang", "Intake State", "Intake wentToPassThru"}},
   m_prevIsLogging{false},
   //Mechanisms
   m_swerveController{true, false},
-  m_intake{true, true},
+  m_intake{true, false},
   m_climb{true, false},
-  m_shooter{"Shooter", true, false},
+  m_shooter{"Shooter", true, true},
   //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
@@ -296,6 +296,7 @@ void Robot::TeleopPeriodic() {
     m_wristManual = false;
   }
 
+  // eject
   if (m_controller.getPressed(MANUAL_EJECT_IN) || m_controller.getPressed(MANUAL_EJECT_OUT)){
     m_eject = true;
     if (m_controller.getPressed(MANUAL_EJECT_IN) && m_controller.getPressed(MANUAL_EJECT_OUT)){

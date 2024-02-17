@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include <frc/DigitalInput.h>
 
 #include "ShuffleboardSender/ShuffleboardSender.h"
@@ -64,6 +66,8 @@ class Intake: public Mechanism{
         bool GetBeamBreak1();
         bool GetBeamBreak2();
         bool DebounceBeamBreak1();
+
+        std::string GetStateName() const;
 
         Rollers m_rollers;
         Wrist m_wrist;
