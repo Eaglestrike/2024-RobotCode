@@ -147,6 +147,8 @@ void Auto::AutoInit(){
         pathNum_ = 100000; //Give up
     }
 
+    shootPos_ = startPos;
+
     segments_.Clear();
 
     ResetTiming(channelTiming_);
@@ -359,7 +361,12 @@ void Auto::NextBlock(){
 
     //Get the shooter position target
     if(!shooterTiming_.finished){
-        shootPos_ = segments_.GetPos(shooterTiming_.end + autoStart_);
+        if(!driveTiming_.finished){
+            shootPos_ = segments_.GetPos(shooterTiming_.end + autoStart_);
+        }
+        else{
+            shootPos_ = odometry_.GetPos();
+        }
     }
 
     if(index_ >= (int)path.size()){//Finished this path
