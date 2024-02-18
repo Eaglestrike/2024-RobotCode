@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include "Util/Utils.h"
+
 Intake::Intake(bool enabled, bool dbg):
     Mechanism("intake", enabled, dbg),
     m_rollers{enabled, dbg},
@@ -131,7 +133,18 @@ void Intake::CoreTeleopPeriodic(){
                     m_channel.SetState(Channel::STOP);
                 }
                 m_wrist.MoveTo(STOWED_POS);
+                // if (m_startTime < 0) {
+                //     m_startTime = Utils::GetCurTimeS();
+                // }
             }
+
+            // if (m_startTime >= 0 && Utils::GetCurTimeS() - m_startTime >= AMP_WAIT_s) {
+            //     m_rollers.SetState(Rollers::STOP);
+            //     if (m_channel.GetState() != Channel::RETAIN){
+            //         m_channel.SetState(Channel::STOP);
+            //     }
+            //     m_wrist.MoveTo(STOWED_POS);
+            // }
 
             // if (/*m_wrist.GetState() == Wrist::COAST && */m_beam1broke){
             //     m_rollers.SetStateBuffer(Rollers::RETAIN, INTAKE_WAIT_s);
@@ -179,42 +192,6 @@ void Intake::SetState(ActionState newAction){
         return;
     }
 
-    //Check to stop and other logic
-    // bool isPassToAmp = m_channel.GetState() != Channel::OUT;
-    // switch(newAction){
-    //     case AMP_INTAKE:
-    //     {
-    //         //First feed it to channel
-    //         if(!m_wentToPassthrough){
-    //             newAction = PASSTHROUGH;
-    //         }
-    //         else{
-    //             if(InIntake()){
-    //                 m_wentToPassthrough = false;
-    //             }
-    //         }
-    //         bool inAmpState = (m_wrist.GetState() == Wrist::COAST) || InIntake();
-    //         if(inAmpState || m_wentToPassthrough || isPassToAmp){ //If alraedy in amp state or pass to amp
-    //             return;
-    //         }
-    //         if(InChannel()){ //Pass to amp if in channel
-    //             newAction = PASS_TO_AMP;
-    //             m_wentToPassthrough = true;
-    //         }
-    //         break;
-    //     }
-    //     case PASSTHROUGH:
-    //     {
-    //         if(InChannel()){
-    //             m_wentToPassthrough = true;
-    //             return;
-    //         }
-    //         break;
-    //     }
-    //     default:
-    //         break;
-    // }
-
     if (newAction == m_actionState){ //Already in the same state
         return;
     }
@@ -247,6 +224,7 @@ void Intake::SetState(ActionState newAction){
         case AMP_INTAKE:
             m_wentToPassthrough = false;
             newWristPos = INTAKE_POS;
+            m_startTime = -1;
             // m_rollers.SetState(Rollers::INTAKE);
             m_rollers.SetState(Rollers::PASS);
             m_channel.SetState(Channel::STOP);

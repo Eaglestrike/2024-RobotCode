@@ -443,7 +443,7 @@ void Robot::ShuffleboardInit() {
     frc::SmartDashboard::PutData("Starting Position", &m_startChooser);
 
     for(int i = 0; i < AutoConstants::POS_ARR_SIZE - 2; i++){
-      m_autoChoosers[i].SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+      m_autoChoosers[i].SetDefaultOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
       m_autoChoosers[i].AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
       m_autoChoosers[i].AddOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
       m_autoChoosers[i].AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
@@ -451,7 +451,7 @@ void Robot::ShuffleboardInit() {
       frc::SmartDashboard::PutData("Auto " + std::to_string(i+1), &(m_autoChoosers[i]));
     }
  
-    m_autoEndChooser.SetDefaultOption(AutoConstants::M_NAME, AutoConstants::M_NAME);
+    m_autoEndChooser.SetDefaultOption(AutoConstants::S_NAME, AutoConstants::S_NAME);
     m_autoEndChooser.AddOption(AutoConstants::L_NAME, AutoConstants::L_NAME);
     m_autoEndChooser.AddOption(AutoConstants::R_NAME, AutoConstants::R_NAME);
     m_autoEndChooser.AddOption(AutoConstants::S_NAME, AutoConstants::S_NAME);

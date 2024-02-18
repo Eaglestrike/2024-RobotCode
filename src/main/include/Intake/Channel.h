@@ -45,7 +45,7 @@ private:
     motorV m_channelInfo = {8.0,
                             0.0,
                             3.0,
-                            -3.0,
+                            -4.0,
                             8.0};
 
     motorV m_kickerInfo =  {8.0,

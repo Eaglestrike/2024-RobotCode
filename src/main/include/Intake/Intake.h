@@ -75,7 +75,8 @@ class Intake: public Mechanism{
         ActionState m_actionState = NONE;
 
         //used for AmpIntake
-        bool m_wentToPassthrough;
+        bool m_wentToPassthrough = false;
+        bool m_startTime = -1;
 
         bool m_keepIntakeDown = false;
         
@@ -91,6 +92,7 @@ class Intake: public Mechanism{
         AMP_OUT_POS = 1.464; // 1.26 
 
         double INTAKE_WAIT_s = 0.0;
+        double AMP_WAIT_s = 0.0;
         double OUTTAKE_WAIT_s = 0.5;
         double BACK_PROPAGATE_WAIT_s = 0.2; //Wait time from passthrough to amp
         double DEBOUNCE_WAIT_s = 1.0;
