@@ -249,7 +249,6 @@ void Intake::Log(FRCLogger& logger) {
     // logger.LogNum("intake state", m_actionState);
     // logger.LogBool("beambreak2", GetBeamBreak2());
     logger.LogStr("Intake State", GetStateName());
-    logger.LogBool("Intake wentToPassThru", m_wentToPassthrough);
 }
 
 

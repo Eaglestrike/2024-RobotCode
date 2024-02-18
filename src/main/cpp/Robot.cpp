@@ -23,7 +23,7 @@ Robot::Robot() :
   //Controller
   m_controller{},
   //Logger
-  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang", "Intake State", "Intake wentToPassThru"}},
+  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang", "Intake State"}},
   m_prevIsLogging{false},
   //Mechanisms
   m_swerveController{true, false},
