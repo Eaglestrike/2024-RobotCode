@@ -40,7 +40,8 @@ namespace OdometryConstants {
 
   // drivebase system std dev x, y
   // TODO need to change
-  const vec::Vector2D SYS_STD_DEV = {0.003, 0.003};
+  const vec::Vector2D SYS_STD_DEV_AUTO = {0.003, 0.003};
+  const vec::Vector2D SYS_STD_DEV_TELE = {0.01, 0.01};
 
   // camera std dev coefficient (0 stddev if 0 m from camera, increases quadratically with distance)
   const double CAM_STD_DEV_COEF_AUTO = 0.01;
