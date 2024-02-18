@@ -1,6 +1,9 @@
 #include "Intake/Intake.h"
 
 #include <algorithm>
+#include <iostream>
+
+#include "Util/Utils.h"
 
 Intake::Intake(bool enabled, bool dbg):
     Mechanism("intake", enabled, dbg),
@@ -21,8 +24,8 @@ void Intake::CorePeriodic(){
     m_rollers.Periodic();
     m_wrist.Periodic();
     m_channel.Periodic();
-    DebounceBeamBreak1();
 
+    DebounceBeamBreak1();
 }
 
 
@@ -47,7 +50,7 @@ void Intake::SetManual(bool manual) {
 */
 void Intake::SetManualInput(double manualInput) {
     manualInput = std::clamp(manualInput, -1.0, 1.0);
-    manualInput *= m_wrist.GetMaxVolts() / 2;
+    manualInput *= m_wrist.GetMaxVolts() / 2.0;
     m_manualVolts = manualInput;
 }
 
@@ -87,7 +90,7 @@ void Intake::CoreTeleopPeriodic(){
 
     
     switch(m_actionState){
-         case FEED_TO_SHOOTER:
+        case FEED_TO_SHOOTER:
             if(!InChannel()){
                 m_channel.SetState(Channel::STOP);
                 m_actionState = NONE;
@@ -112,18 +115,35 @@ void Intake::CoreTeleopPeriodic(){
             }
             break;
         case AMP_INTAKE:
-            if (m_wrist.ProfileDone())
+            // first go to passthru
+            if (!m_wentToPassthrough && m_wrist.ProfileDone()) {
                 m_wrist.Coast();
-            if (/*m_wrist.GetState() == Wrist::COAST && */m_beam1broke){
-                m_rollers.SetStateBuffer(Rollers::RETAIN, INTAKE_WAIT_s);
-                SetState(STOW);
+                m_channel.SetState(Channel::IN);
+            }
+            
+            // if in channel, spit back out into intake
+            if (InChannel()) {
+                m_wentToPassthrough = true;
+                m_rollers.SetState(Rollers::OUTTAKE);
+                m_channel.SetState(Channel::OUT);
+                m_wrist.MoveTo(INTAKE_POS);
+            }
+
+            // if back in intake, then bring wrist up
+            if (m_wentToPassthrough && GetBeamBreak1()){
+                m_rollers.SetState(Rollers::STOP);
+                if (m_channel.GetState() != Channel::RETAIN){
+                    m_channel.SetState(Channel::STOP);
+                }
+                m_wrist.MoveTo(STOWED_POS);
             }
             break; 
         case PASSTHROUGH:
             if (InIntake()){
                 m_wrist.MoveTo(PASSTHROUGH_POS);
             }
-            if (m_rollers.GetState() == Rollers::STOP && m_wrist.ProfileDone()){
+            //Start spinning after finishing profile (coming from amp)
+            if (m_rollers.GetState() == Rollers::STOP && m_wrist.ProfileDone()){ 
                 m_rollers.SetState(Rollers::PASS);
             }
             if (InChannel()){    
@@ -140,13 +160,13 @@ void Intake::CoreTeleopPeriodic(){
                 m_channel.SetState(Channel::IN);
                 m_rollers.SetState(Rollers::OUTTAKE);
             }
-            if (m_timer >= OUTTAKE_WAIT_s){
-                m_timer = -1;
+            if (m_outTimer >= OUTTAKE_WAIT_s){
+                m_outTimer = -1;
                 SetState(STOW);
-            } else if (m_timer != -1){
-                m_timer += 0.02;
+            } else if (m_outTimer != -1){
+                m_outTimer += 0.02;
             } else if (!GetBeamBreak1()){
-                m_timer = 0;
+                m_outTimer = 0;
             }
             break;
         default:
@@ -155,16 +175,20 @@ void Intake::CoreTeleopPeriodic(){
 }
 
 void Intake::SetState(ActionState newAction){
-    if (newAction == m_actionState) return;
+    if (m_outTimer !=-1){ //amp outtake timer
+        return;
+    }
 
-    if (m_timer !=-1) return;
-    if (newAction == AMP_INTAKE && (m_wrist.GetState() == Wrist::COAST || InIntake()) && m_channel.GetState() != Channel::OUT) return;
+    if (newAction == m_actionState){ //Already in the same state
+        return;
+    }
+
     if (newAction == PASSTHROUGH && InChannel()) return;
 
-    // std::cout << "made it out " << std::endl;
 
-    if (newAction == AMP_INTAKE && (InChannel() || m_channel.GetState() == Channel::OUT)) newAction = PASS_TO_AMP;
-    if (m_actionState == AMP_INTAKE) m_timer = -1;
+    if (m_actionState == AMP_INTAKE) { 
+        m_outTimer = -1; //Restart timer on amp
+    }
     m_actionState = newAction;
     
     double newWristPos;
@@ -185,8 +209,11 @@ void Intake::SetState(ActionState newAction){
             newWristPos = HALF_STOW;
             break; 
         case AMP_INTAKE:
+            m_wentToPassthrough = false;
             newWristPos = INTAKE_POS;
-            m_rollers.SetState(Rollers::INTAKE);
+            m_startTime = -1;
+            // m_rollers.SetState(Rollers::INTAKE);
+            m_rollers.SetState(Rollers::PASS);
             m_channel.SetState(Channel::STOP);
             break; 
         case PASS_TO_AMP:
@@ -217,10 +244,11 @@ void Intake::SetState(ActionState newAction){
 }
 
 void Intake::Log(FRCLogger& logger) {
-    m_wrist.Log(logger);
-    logger.LogBool("beambreak1", m_beam1broke);
-    logger.LogNum("intake state", m_actionState);
-    logger.LogBool("beambreak2", GetBeamBreak2());
+    // m_wrist.Log(logger);
+    // logger.LogBool("beambreak1", m_beam1broke);
+    // logger.LogNum("intake state", m_actionState);
+    // logger.LogBool("beambreak2", GetBeamBreak2());
+    logger.LogStr("Intake State", GetStateName());
 }
 
 
@@ -296,35 +324,7 @@ void Intake::CoreShuffleboardInit(){
 }
 
 void Intake::CoreShuffleboardPeriodic(){
-    switch(m_actionState){
-        case STOW:
-            m_shuff.PutString("State", "Stow");
-            break;
-        case AMP_INTAKE:
-            m_shuff.PutString("State", "Amp Intake");
-            break;
-        case PASSTHROUGH:
-            m_shuff.PutString("State", "Passthrough");
-            break;
-        case AMP_OUTTAKE:
-            m_shuff.PutString("State", "Amp Outtake");
-            break;
-        case FEED_TO_SHOOTER:
-            m_shuff.PutString("State", "Feed to Shooter");
-            break;
-        case MANUAL_WRIST:
-            m_shuff.PutString("State", "Manual Wrist");
-            break;
-        case CLIMB:
-            m_shuff.PutString("State", "Climb");
-            break;
-        case PASS_TO_AMP:
-            m_shuff.PutString("State", "PTA");
-            break;
-        case NONE:
-            m_shuff.PutString("State", "None");
-            break;
-    }
+    m_shuff.PutString("State", GetStateName());
 
     switch(m_wrist.GetState()){
         case Wrist:: MOVING:
@@ -344,10 +344,34 @@ void Intake::CoreShuffleboardPeriodic(){
     m_shuff.PutBoolean("BeamBreak 1", m_beam1broke);
     m_shuff.PutBoolean("BeamBreak 2", GetBeamBreak2());
     m_shuff.PutNumber("debounce timer", m_dbTimer);
-    m_shuff.PutNumber("REAL timer", m_timer);
+    m_shuff.PutNumber("REAL timer", m_outTimer);
     m_shuff.update(true);
 }
 
+std::string Intake::GetStateName() const {
+    switch(m_actionState){
+        case STOW:
+            return "Stow";
+        case AMP_INTAKE:
+            return "Amp Intake";
+        case PASSTHROUGH:
+            return "Passthrough";
+        case AMP_OUTTAKE:
+            return "Amp Outtake";
+        case FEED_TO_SHOOTER:
+            return "Feed to Shooter";
+        case MANUAL_WRIST:
+            return "Manual Wrist";
+        case CLIMB:
+            return "Climb";
+        case PASS_TO_AMP:
+            return "PTA";
+        case NONE:
+            return "None";
+    }
+
+    return "Error";
+}
 
 
 //State machine getters & setters

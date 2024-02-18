@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include <frc/DigitalInput.h>
 
 #include "ShuffleboardSender/ShuffleboardSender.h"
@@ -65,27 +67,34 @@ class Intake: public Mechanism{
         bool GetBeamBreak2();
         bool DebounceBeamBreak1();
 
+        std::string GetStateName() const;
+
         Rollers m_rollers;
         Wrist m_wrist;
         Channel m_channel;
         ActionState m_actionState = NONE;
 
+        //used for AmpIntake
+        bool m_wentToPassthrough = false;
+        bool m_startTime = -1;
+
         bool m_keepIntakeDown = false;
         
         bool m_beam1broke= false;
 
-        double m_timer = -1;
+        double m_outTimer = -1;
         double m_dbTimer = -1;
 
         double STOWED_POS = M_PI / 2,
         HALF_STOWED_POS = 1.0,
-        INTAKE_POS = -0.7, 
+        INTAKE_POS = -0.69, 
         PASSTHROUGH_POS = -0.64,
-        AMP_OUT_POS = 1.364; // 1.26 
+        AMP_OUT_POS = 1.464; // 1.26 
 
         double INTAKE_WAIT_s = 0.0;
+        double AMP_WAIT_s = 0.0;
         double OUTTAKE_WAIT_s = 0.5;
-        double BACK_PROPAGATE_WAIT_s = 0.2;
+        double BACK_PROPAGATE_WAIT_s = 0.2; //Wait time from passthrough to amp
         double DEBOUNCE_WAIT_s = 1.0;
 
 
