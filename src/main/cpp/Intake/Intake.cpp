@@ -115,11 +115,13 @@ void Intake::CoreTeleopPeriodic(){
             }
             break;
         case AMP_INTAKE:
+            // first go to passthru
             if (!m_wentToPassthrough && m_wrist.ProfileDone()) {
                 m_wrist.Coast();
                 m_channel.SetState(Channel::IN);
             }
             
+            // if in channel, spit back out into intake
             if (InChannel()) {
                 m_wentToPassthrough = true;
                 m_rollers.SetState(Rollers::OUTTAKE);
@@ -127,29 +129,14 @@ void Intake::CoreTeleopPeriodic(){
                 m_wrist.MoveTo(INTAKE_POS);
             }
 
+            // if back in intake, then bring wrist up
             if (m_wentToPassthrough && GetBeamBreak1()){
                 m_rollers.SetState(Rollers::STOP);
                 if (m_channel.GetState() != Channel::RETAIN){
                     m_channel.SetState(Channel::STOP);
                 }
                 m_wrist.MoveTo(STOWED_POS);
-                // if (m_startTime < 0) {
-                //     m_startTime = Utils::GetCurTimeS();
-                // }
             }
-
-            // if (m_startTime >= 0 && Utils::GetCurTimeS() - m_startTime >= AMP_WAIT_s) {
-            //     m_rollers.SetState(Rollers::STOP);
-            //     if (m_channel.GetState() != Channel::RETAIN){
-            //         m_channel.SetState(Channel::STOP);
-            //     }
-            //     m_wrist.MoveTo(STOWED_POS);
-            // }
-
-            // if (/*m_wrist.GetState() == Wrist::COAST && */m_beam1broke){
-            //     m_rollers.SetStateBuffer(Rollers::RETAIN, INTAKE_WAIT_s);
-            //     SetState(STOW);
-            // }
             break; 
         case PASSTHROUGH:
             if (InIntake()){
