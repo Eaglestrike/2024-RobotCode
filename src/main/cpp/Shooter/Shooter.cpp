@@ -137,8 +137,14 @@ void Shooter::BringDown(){
  * @param toSpeaker field-oriented vector to the speaker 
 */
 void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
+    if(!hasPiece_){
+        Stroll();
+        return;
+    }
+    
     targetPos_ = robotPos;
-    targetVel_ = {0.0, 0.0};
+    //targetVel_ = {0.0, 0.0};
+    targetVel_ = robotVel;
 
     vec::Vector2D toSpeaker;
     if(blueSpeaker){
@@ -148,13 +154,36 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
         toSpeaker = ShooterConstants::RED_SPEAKER - targetPos_ + vec::Vector2D{0.0, -trim_.x()};
     }
 
-    double dist = toSpeaker.magn();
-    targetYaw_ = toSpeaker.angle();
+    // https://www.desmos.com/calculator/5hd2snnrwz
 
-    if(!hasPiece_){
+    double px = toSpeaker.x();
+    double py = toSpeaker.y();
+
+    double vx = -robotVel.x();
+    double vy = -robotVel.y();    
+
+    double posSquare = px*px + py*py;
+    double dotPosVel = px*vx + py*vy;
+    double velSquare = vx*vx + vy*vy;
+
+    const double kD = ShooterConstants::kD;
+    const double cT = ShooterConstants::cT;
+
+    double a = kD*kD * velSquare - 1.0;
+    double b = 2.0*kD*(dotPosVel + cT*velSquare);
+    double c = posSquare + 2.0*cT + cT*cT*velSquare;
+
+    double determinant = b*b - 4*a*c;
+    if((determinant < 0.0) || (a == 0.0)){
+        std::cout << "Shot not possible" << std::endl;
         Stroll();
         return;
     }
+
+    double dist = (-b-std::sqrt(determinant))/(2.0*a);
+    double t = kD*dist + cT;
+    // double dist = toSpeaker.magn();
+    targetYaw_ = static_cast<vec::Vector2D>((toSpeaker - (robotVel*t))).angle();
 
     auto shot = shootData_.lower_bound(dist);
     if(shot == shootData_.begin() || shot == shootData_.end()){ //No shot in data (too far or too close)
@@ -220,6 +249,9 @@ void Shooter::SetUp(double vel, double spin, double pivot){
     hasShot_ = true;
 }
 
+/**
+ * Shifts target by some distance (along y axis)
+*/
 void Shooter::Trim(vec::Vector2D trim){
     trim_ += trim;
 }

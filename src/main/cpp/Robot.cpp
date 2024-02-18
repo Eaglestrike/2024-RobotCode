@@ -29,7 +29,7 @@ Robot::Robot() :
   m_swerveController{true, false},
   m_intake{true, false},
   m_climb{true, false},
-  m_shooter{"Shooter", true, false},
+  m_shooter{"Shooter", true, true},
   //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
@@ -250,7 +250,7 @@ void Robot::TeleopPeriodic() {
           }
         }
         else{
-          m_intake.Passthrough();
+          m_intake.FeedIntoShooter();
           m_shooter.BringDown();
         }
       }

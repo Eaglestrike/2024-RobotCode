@@ -79,7 +79,6 @@ class Shooter : public Mechanism{
         bool hasShot_;
         ShooterConstants::ShootConfig shot_;
         double spin_;
-        
 
         //Odometry Targets
         vec::Vector2D targetPos_;
@@ -91,7 +90,7 @@ class Shooter : public Mechanism{
         double posTol_ = ShooterConstants::SHOOT_POS_TOL; //Driving position tolerance
         double velTol_ = ShooterConstants::SHOOT_VEL_TOL; //Driving velocity tolerance
         double yawTol_ = ShooterConstants::SHOOT_YAW_TOL; //Driving yaw tolerance
-
+        
         //Debug odom vals
         vec::Vector2D robotPos_;
         vec::Vector2D robotVel_;
