@@ -122,7 +122,7 @@ namespace ShooterConstants{
 
     const double STROLL_SPEED = 0.3; //Voltage of strolling
 
-    const double PIVOT_INTAKE = PIVOT_MIN; //Angle for pivot to intake piece into shooter
+    const double PIVOT_INTAKE = PIVOT_MIN + 0.4; //Angle for pivot to intake piece into shooter
     const double SHOOT_TIME = 1.0; //Time for piece to exit shooter
  
     //Tolerances

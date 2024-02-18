@@ -1,5 +1,6 @@
 #include "Auto/Auto.h"
 
+#include <iostream>
 #include <string>
 
 #include "Util/Utils.h"
@@ -15,12 +16,14 @@ using enum AutoConstants::AutoAction;
  * 
  * @note does not call periodic calls of mechanisms
 */
-Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autolineup, Intake &intake, Shooter &shooter):
+Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autolineup, Intake &intake, Shooter &shooter, FRCLogger &logger):
     segments_{shuffleboard, swerve, odom},
     odometry_{odom},
     autoLineup_{autolineup},
     intake_{intake},
     shooter_{shooter},
+    swerve_{swerve},
+    logger_{logger},
     inChannel_{false},
     shuff_{"Auto", shuffleboard}
 {
@@ -65,7 +68,7 @@ void Auto::SetSegment(uint index, std::string to, std::string back){
             {DRIVE, AFTER, to},
             {INTAKE, AT_START}, //Can keep intake down if needed (then use stow)
             {DRIVE, AFTER, back},
-            {SHOOT, BEFORE_END},
+            {SHOOT, AFTER},
         }
     );
 }
@@ -89,7 +92,7 @@ void Auto::SetSegment(uint index, std::string path){
         {
             {DRIVE, AFTER, path},
             {INTAKE, AT_START},
-            {SHOOT, BEFORE_END}
+            {SHOOT, AFTER}
         }
     );
 }
@@ -115,10 +118,12 @@ void Auto::SetDrive(uint index, std::string path){
 }
 
 /**
- * Clears the pathing
+ * Clears the pathing but keeps initial shooting
 */
 void Auto::Clear(){
     paths_.clear();
+    SetPath(0, {{SHOOT, AFTER}});
+    inChannel_ = true;
 }
 
 /**
@@ -145,6 +150,7 @@ void Auto::AutoInit(){
     }
     if((startPos - odometry_.GetPos()).magn() > AutoConstants::SAFETY_DIST){ //If starting pos too far away
         pathNum_ = 100000; //Give up
+
     }
 
     shootPos_ = startPos;
@@ -158,6 +164,8 @@ void Auto::AutoInit(){
 
     autoStart_ = Utils::GetCurTimeS();
     inChannel_ = false;
+
+    startedLineup_ = false;
     
     NextBlock();
     //std::cout << "End Init" <<std::endl;
@@ -173,7 +181,18 @@ void Auto::AutoPeriodic(){
     if(intake_.InIntake()){
         inChannel_ = true;
     }
+    else if(inChannel_){
+        if(!channelTiming_.hasStarted){ //Start channel timer
+            channelTiming_.end = t + CHANNEL_TIME;
+            channelTiming_.hasStarted = true;
+        }
+        if(t > channelTiming_.end){ //Did not have piece for a bit
+            channelTiming_.hasStarted = false;
+            inChannel_ = false;
+        }
+    }
     if(inChannel_ && intake_.InChannel()){
+        channelTiming_.hasStarted = false;
         inChannel_ = false;
     }
     
@@ -182,14 +201,30 @@ void Auto::AutoPeriodic(){
         NextBlock();
     }
     
-    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) && (inChannel_ || intake_.HasGamePiece());
-    
-    if(useAngLineup && false){
-        autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
-        autoLineup_.Start();
-        segments_.Periodic(autoLineup_.GetAngVel());
+    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) /*&& (inChannel_ || intake_.HasGamePiece())*/;
+    if(shuff_.isEnabled()){
+        shuff_.PutBoolean("ang lineup", useAngLineup, {2,2,0,1});
+    }
+
+    if(useAngLineup){
+        if(!startedLineup_){
+            autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
+            autoLineup_.Start();
+            startedLineup_ = true;
+        } else{
+            shuff_.PutNumber("ang lineup vel", autoLineup_.GetAngVel());
+            swerve_.SetAutoMode(false);
+            swerve_.SetRobotVelocity({0,0}, autoLineup_.GetAngVel(), odometry_.GetAng());
+            swerve_.SetAutoMode(true);
+        }
+        // autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
+        // autoLineup_.Start();
+        //segments_.Periodic(autoLineup_.GetAngVel());
+       
     }
     else{
+        autoLineup_.Stop();
+        // std::cout << "segments periodic" << std::endl;
         segments_.Periodic();
     }
     
@@ -200,6 +235,10 @@ void Auto::AutoPeriodic(){
     IntakePeriodic(t);
     //std::cout<<"intake"<<std::endl;
     autoLineup_.Periodic();
+
+    logger_.LogNum("Shooter ang lineup targ", autoLineup_.GetTargAng());
+    logger_.LogNum("Shooter ang lineup exp", autoLineup_.GetExpAng());
+    logger_.LogNum("Shooter ang lineup state", autoLineup_.GetState());
 }
 
 /**
@@ -214,6 +253,8 @@ void Auto::DrivePeriodic(double t){
         if((segments_.GetPos(t) - odometry_.GetPos()).magn() > AutoConstants::SAFETY_DIST){
             pathNum_ = 100000; //Give up
             segments_.Stop();
+            swerve_.SetRobotVelocity({0.0,0.0}, 0.0, odometry_.GetAng());
+            std::cout<<"Safety disabled"<<std::endl;
             return;
         }
     }
@@ -249,13 +290,8 @@ void Auto::ShooterPeriodic(double t){
         
         //Finish shooting when can't see piece for a bit
         if((!inChannel_) && (!intake_.HasGamePiece())){ 
-            if(!channelTiming_.hasStarted){ //Start channel timer
-                channelTiming_.end = t + CHANNEL_TIME;
-                channelTiming_.hasStarted = true;
-            }
-            else if(t > channelTiming_.end){ 
-                shooterTiming_.finished = true;
-            }
+            shooterTiming_.finished = true;
+            startedLineup_ = false;
         }
 
         if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target

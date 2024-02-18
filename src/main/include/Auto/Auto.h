@@ -12,10 +12,11 @@
 #include "AutoPathSegment.h"
 
 #include "Constants/AutoConstants.h"
+#include "Util/Logger.h"
 
 class Auto{
     public:
-        Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autoLineup, Intake &intake, Shooter &shooter);
+        Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autoLineup, Intake &intake, Shooter &shooter, FRCLogger &logger);
         void SetPath(uint index, AutoConstants::AutoPath path);
         void SetSegment(uint index, std::string to, std::string back); //Drive -> Intake -> Drive -> Shoot
         void SetSegment(uint index, std::string path); //Drive -> Intake -> Shoot in place
@@ -39,6 +40,8 @@ class Auto{
         AutoAngLineup &autoLineup_;
         Intake &intake_;
         Shooter &shooter_;
+        SwerveControl &swerve_;
+        FRCLogger &logger_;
 
         std::vector<AutoConstants::AutoPath> paths_; //Path instructions
 
@@ -64,6 +67,7 @@ class Auto{
 
         bool inChannel_; //Boolean to store data about the blinds spot
         SubsystemTiming driveTiming_;
+        bool startedLineup_;
         vec::Vector2D shootPos_;
         SubsystemTiming channelTiming_; //Used to time channel loading time 
         SubsystemTiming shooterTiming_;

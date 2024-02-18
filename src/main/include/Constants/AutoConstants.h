@@ -83,7 +83,7 @@ namespace AutoConstants {
       {"Nothing", NOTHING}
   };
 
-  const double CHANNEL_TIME = 0.5;
+  const double CHANNEL_TIME = 2.0;
   const double SHOOT_TIME = 1.5;
   const double INTAKE_TIME = 1.0;
   const double STOW_TIME = 1.0;
@@ -128,5 +128,5 @@ namespace AutoConstants {
   const std::string M_SCORE = "MidScore";
   const std::string R_SCORE = "RightScore";
 
-  const double SAFETY_DIST = 0.5; //Distance to stop path if it starts off
+  const double SAFETY_DIST = 1.5; //Distance to stop path if it starts off
 }
