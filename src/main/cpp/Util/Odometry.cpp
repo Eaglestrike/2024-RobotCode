@@ -15,7 +15,7 @@
 Odometry::Odometry(const bool &shuffleboard) :
   m_shuffleboard{shuffleboard}, m_curAng{0}, m_startAng{0}, m_angVel{0},
   m_curYaw{0}, m_joystickAng{0}, 
-  m_prevDriveTime{Utils::GetCurTimeS()}, m_estimator{OdometryConstants::SYS_STD_DEV},
+  m_prevDriveTime{Utils::GetCurTimeS()}, m_estimator{OdometryConstants::SYS_STD_DEV_AUTO},
   m_uniqueId{-1000}, m_prevCamTime{-1000}, m_camStdDevCoef{OdometryConstants::CAM_STD_DEV_COEF_AUTO} {}
 
 /**
@@ -41,8 +41,10 @@ void Odometry::SetStartingConfig(const vec::Vector2D &pos, const double &ang, co
 void Odometry::SetAuto(const bool &autoMode) {
   if (autoMode) {
     m_camStdDevCoef = OdometryConstants::CAM_STD_DEV_COEF_AUTO;
+    m_estimator.SetQ(OdometryConstants::SYS_STD_DEV_AUTO);
   } else {
     m_camStdDevCoef = OdometryConstants::CAM_STD_DEV_COEF_TELE;
+    m_estimator.SetQ(OdometryConstants::SYS_STD_DEV_TELE);
   }
 }
 
@@ -327,7 +329,7 @@ void Odometry::ShuffleboardInit() {
     return;
   }
 
-  frc::SmartDashboard::PutNumber("Pos stddev", OdometryConstants::SYS_STD_DEV.x());
+  frc::SmartDashboard::PutNumber("Pos stddev", OdometryConstants::SYS_STD_DEV_AUTO.x());
   frc::SmartDashboard::PutNumber("Cam stddev", m_camStdDevCoef);
 }
 
@@ -339,7 +341,7 @@ void Odometry::ShuffleboardPeriodic() {
     return;
   }
 
-  double stdDev = frc::SmartDashboard::GetNumber("Pos stddev", OdometryConstants::SYS_STD_DEV.x());
+  double stdDev = frc::SmartDashboard::GetNumber("Pos stddev", OdometryConstants::SYS_STD_DEV_AUTO.x());
   m_camStdDevCoef = frc::SmartDashboard::GetNumber("Cam stddev", m_camStdDevCoef);
   m_estimator.SetQ({stdDev, stdDev});
 

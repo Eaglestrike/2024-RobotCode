@@ -23,13 +23,13 @@ Robot::Robot() :
   //Controller
   m_controller{},
   //Logger
-  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang"}},
+  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang", "Intake State"}},
   m_prevIsLogging{false},
   //Mechanisms
   m_swerveController{true, false},
   m_intake{true, false},
   m_climb{true, false},
-  m_shooter{"Shooter", true, false},
+  m_shooter{"Shooter", true, true},
   //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
@@ -147,7 +147,7 @@ void Robot::RobotPeriodic() {
 
   m_shooter.Trim(m_controller.getValueOnce(ControllerMapData::GET_SHOOTER_TRIM, {0,0})); //Trim shooter
   m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetYaw());
-  m_shooter.SetGamepiece(m_intake.HasGamePiece());
+  m_shooter.SetGamepiece(m_intake.InChannel());
 
   #if SWERVE_AUTOTUNING
   m_swerveXTuner.ShuffleboardUpdate();
@@ -253,14 +253,16 @@ void Robot::TeleopPeriodic() {
           m_shooter.BringDown();
         }
       }
-    } else if(m_controller.getPressed(INTAKE)){
+    }
+    else if(m_controller.getPressed(INTAKE)){
       if (m_amp)
         m_intake.AmpIntake();
       else{
         m_intake.Passthrough();
         m_shooter.BringDown();
       }
-    } else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
+    }
+    else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece()){
       m_intake.Stow();
       m_shooter.Stroll();
     } else{
@@ -296,6 +298,7 @@ void Robot::TeleopPeriodic() {
     m_wristManual = false;
   }
 
+  // eject
   if (m_controller.getPressed(MANUAL_EJECT_IN) || m_controller.getPressed(MANUAL_EJECT_OUT)){
     m_eject = true;
     if (m_controller.getPressed(MANUAL_EJECT_IN) && m_controller.getPressed(MANUAL_EJECT_OUT)){
@@ -322,7 +325,7 @@ void Robot::TeleopPeriodic() {
 
 
   // auto lineup
-  if (m_controller.getPOVDownOnce(AMP_AUTO_LINEUP) ||
+  if (m_controller.getPOVDown(AMP_AUTO_LINEUP) ||
       (m_controller.getPressed(SHOOT) && !m_amp) //Angle lineup when shooting
     ) {
     double angVel = m_autoLineup.GetAngVel();
