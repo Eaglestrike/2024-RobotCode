@@ -7,8 +7,6 @@ Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     lflywheel_{ShooterConstants::LEFT_FLYWHEEL, enabled, shuffleboard},
     rflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, shuffleboard},
     pivot_{"Pivot", enabled, shuffleboard},
-    
-    // m_kickerMotor{0, rev::CANSparkLowLevel::MotorType::kBrushless},
     shuff_{name, shuffleboard}
 
     #if PIVOT_AUTO_TUNE
@@ -16,9 +14,6 @@ Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     pivotTuner_{"pivot tuner", FFAutotuner::ARM, ShooterConstants::PIVOT_MIN, ShooterConstants::PIVOT_MAX}
     #endif
 {
-    // m_kickerMotor.RestoreFactoryDefaults();
-    // m_kickerMotor.SetIdleMode(rev::CANSparkBase::IdleMode::kCoast);
-    // m_kickerMotor.SetInverted(false);
 }
 
 /**
@@ -71,8 +66,6 @@ void Shooter::CoreTeleopPeriodic(){
         pivot_.SetVoltage(pivotTuner_.getVoltage());
     }
     #endif
-
-    // m_kickerMotor.SetVoltage(units::volt_t{kickerVolts_});
 
     lflywheel_.TeleopPeriodic();
     rflywheel_.TeleopPeriodic();
@@ -141,14 +134,36 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     targetVel_ = {0.0, 0.0};
     //targetVel_ = robotVel;
 
-    vec::Vector2D toSpeaker;
-    if(blueSpeaker){
-        toSpeaker = ShooterConstants::BLUE_SPEAKER - targetPos_ + vec::Vector2D{0.0, trim_.x()};
-    }
-    else{
-        toSpeaker = ShooterConstants::RED_SPEAKER - targetPos_ + vec::Vector2D{0.0, -trim_.x()};
-    }
+    //Speaker targetting
+    vec::Vector2D speaker = blueSpeaker? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
+    vec::Vector2D trim{0.0, trim_.x() * (blueSpeaker? 1.0: -1.0)};
 
+    vec::Vector2D toSpeaker = speaker - targetPos_ + trim;
+
+    double dist = toSpeaker.magn();
+    targetYaw_ = toSpeaker.angle();
+
+    const std::vector<vec::Vector2D>& speakerBox = blueSpeaker? ShooterConstants::BLUE_SPEAKER_BOX : ShooterConstants::RED_SPEAKER_BOX;
+    posYawTol_ = 0.0;
+    negYawTol_ = 0.0;
+    //Find the min/max angles to shoot into the box
+    for(const vec::Vector2D boxPoint : speakerBox){
+        vec::Vector2D toVertex = boxPoint - targetPos_ + trim;
+        double vertexAng = toVertex.angle();
+
+        double yawDiff = Utils::NormalizeAng(vertexAng - targetYaw_);
+        if(yawDiff > posYawTol_){
+            posYawTol_ = yawDiff;
+        }
+        else if(yawDiff < negYawTol_){
+            negYawTol_ = yawDiff;
+        }
+    }
+    //Multiply by tolerance percent
+    posYawTol_ = std::clamp(posYawTol_, 0.01, M_PI/2.0); //Tol cannot be greater than 90 degrees
+    negYawTol_ = std::clamp(negYawTol_, -M_PI/2.0, -0.01);
+
+    // Shooting while moving
     // https://www.desmos.com/calculator/5hd2snnrwz
 
     /**
@@ -181,10 +196,6 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
 
     targetYaw_ = static_cast<vec::Vector2D>((toSpeaker - (robotVel*t))).angle();
     **/
-
-    
-    double dist = toSpeaker.magn();
-    targetYaw_ = toSpeaker.angle();
 
     if(!hasPiece_){
         Stroll();
@@ -283,20 +294,12 @@ bool Shooter::CanShoot(){
         return false;
     }
     //Can only shoot within target
-    double posError = (robotPos_ - targetPos_).magn();
-    double velError = (robotVel_ - targetVel_).magn();
-    double yawError = std::fmod(robotYaw_ - targetYaw_, 2.0*M_PI);
-    if(yawError > M_PI){
-        yawError -= 2.0*M_PI;
-    }
-    if(yawError < -M_PI){
-        yawError += 2.0*M_PI;
-    }
-    double yawTol = yawTol_;
-    if(dist < 2.0){ //Increase yaw tol at closer distances
-        yawTol = 0.2;
-    }
-    bool canShoot = (posError < posTol_) && (velError < velTol_) && (std::abs(yawError) < yawTol);
+    double posError = (targetPos_ - robotPos_).magn();
+    double velError = (targetVel_ - robotVel_).magn();
+    double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
+
+    bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
+    bool canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
     if(shuff_.isEnabled()){
         shuff_.PutNumber("Pos Error", posError, {1,1,8,2});
         shuff_.PutNumber("Vel Error", velError, {1,1,9,2});
@@ -310,6 +313,12 @@ bool Shooter::CanShoot(){
     }
     //Return if everything's prepared
     return canShoot && lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget();
+}
+
+bool Shooter::ShouldAutoLineup(){
+    double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
+
+    return (yawError < posYawTol_*lineupYawPercent_) && (yawError > negYawTol_*lineupYawPercent_);
 }
 
 /**
@@ -449,10 +458,12 @@ void Shooter::CoreShuffleboardInit(){
     //Tolerance (row 4)
     shuff_.add("pos tol", &posTol_, {1,1,0,4}, true);
     shuff_.add("vel tol", &velTol_, {1,1,1,4}, true);
-    shuff_.add("yaw tol", &yawTol_, {1,1,2,4}, true);
+    shuff_.add("yaw percent", &shootYawPercent_, {1,1,2,4}, true);
+    shuff_.add("lineup percent", &lineupYawPercent_, {1,1,3,4}, true);
 
-    // shuff_.add("kicker volts", &kickerVolts_, {1,1,5,4}, true);
     
+    shuff_.add("yaw pos", &posYawTol_, {1,1,3,4}, false);
+    shuff_.add("yaw neg", &negYawTol_, {1,1,4,4}, false);    
 }
 
 void Shooter::CoreShuffleboardPeriodic(){

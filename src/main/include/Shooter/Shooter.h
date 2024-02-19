@@ -45,6 +45,7 @@ class Shooter : public Mechanism{
         void Trim(vec::Vector2D trim); //Up/down left/right trim for target
 
         bool CanShoot();
+        bool ShouldAutoLineup();
 
         double GetTargetRobotYaw();
 
@@ -84,19 +85,24 @@ class Shooter : public Mechanism{
         vec::Vector2D targetPos_;
         vec::Vector2D targetVel_;
         double targetYaw_;
+        double posYawTol_, negYawTol_; //distances to min and max yaw from target
 
         vec::Vector2D trim_;
 
-        double posTol_ = ShooterConstants::SHOOT_POS_TOL; //Driving position tolerance
-        double velTol_ = ShooterConstants::SHOOT_VEL_TOL; //Driving velocity tolerance
-        double yawTol_ = ShooterConstants::SHOOT_YAW_TOL; //Driving yaw tolerance
-        
-        //Debug odom vals
+        //Odometry data
         vec::Vector2D robotPos_;
         vec::Vector2D robotVel_;
         double robotYaw_;
 
-        //Kinematic calculations
+        //Tolerances
+        double posTol_ = ShooterConstants::SHOOT_POS_TOL; //Driving position tolerance
+        double velTol_ = ShooterConstants::SHOOT_VEL_TOL; //Driving velocity tolerance
+        //double yawTol_ = ShooterConstants::SHOOT_YAW_TOL; //Driving yaw tolerance
+        double shootYawPercent_ = ShooterConstants::SHOOT_YAW_PERCENT; //Percent of shootable area
+        double lineupYawPercent_ = ShooterConstants::LINEUP_YAW_PERCENT; //Percent of shootable area
+        
+
+        //Kinematic calculations (unused)
         struct FKRes{
             bool score; //If the shot will score
             bool aimed; //if the robot is actually aiming at the target

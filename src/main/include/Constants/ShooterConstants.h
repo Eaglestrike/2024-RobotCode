@@ -129,10 +129,13 @@ namespace ShooterConstants{
     //Tolerances
     const double SHOOT_POS_TOL = 0.3;
     const double SHOOT_VEL_TOL = 0.3;
-    const double SHOOT_YAW_TOL = 0.05;
+    //const double SHOOT_YAW_TOL = 0.05;
+    const double SHOOT_YAW_PERCENT = 0.9;
+    const double LINEUP_YAW_PERCENT = 0.8;
 
     //Kinematics calc (Field Data + robot stats)
 
+    //Speaker center positions (x, y)
     const vec::Vector2D RED_SPEAKER = {17.0, 5.58};
     const vec::Vector2D BLUE_SPEAKER = {0.0, 5.58};
 
@@ -141,7 +144,23 @@ namespace ShooterConstants{
     const double SPEAKER_MAX = 2.11;
     const double SPEAKER_CENTER = (SPEAKER_MIN + SPEAKER_MAX)/2.0;
     const double SPEAKER_HEIGHT = SPEAKER_MAX - SPEAKER_MIN;
-    const double SPEAKER_WIDTH = 1.05;
+    const double SPEAKER_WIDTH = 1.05; // y
+    const double SPEAKER_DEPTH = 0.424; // x
+
+    //Birds Eye Box
+    const std::vector<vec::Vector2D> RED_SPEAKER_BOX = {
+        RED_SPEAKER + vec::Vector2D{-SPEAKER_DEPTH, SPEAKER_WIDTH/2.0},
+        RED_SPEAKER + vec::Vector2D{-SPEAKER_DEPTH, -SPEAKER_WIDTH/2.0},
+        RED_SPEAKER + vec::Vector2D{0.0, SPEAKER_WIDTH/2.0},
+        RED_SPEAKER + vec::Vector2D{0.0, -SPEAKER_WIDTH/2.0},
+    };
+
+    const std::vector<vec::Vector2D> BLUE_SPEAKER_BOX = {
+        BLUE_SPEAKER + vec::Vector2D{SPEAKER_DEPTH, SPEAKER_WIDTH/2.0},
+        BLUE_SPEAKER + vec::Vector2D{SPEAKER_DEPTH, -SPEAKER_WIDTH/2.0},
+        BLUE_SPEAKER + vec::Vector2D{0.0, SPEAKER_WIDTH/2.0},
+        BLUE_SPEAKER + vec::Vector2D{0.0, -SPEAKER_WIDTH/2.0},
+    };
 
     const double SHOOTER_HEIGHT = 0.0;
 
