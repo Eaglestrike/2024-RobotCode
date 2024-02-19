@@ -130,11 +130,11 @@ namespace ShooterConstants{
     const double SHOOT_POS_TOL = 0.3;
     const double SHOOT_VEL_TOL = 0.3;
     //const double SHOOT_YAW_TOL = 0.05;
-    const double SHOOT_YAW_PERCENT = 0.9;
-    const double LINEUP_YAW_PERCENT = 0.8;
+    const double SHOOT_YAW_PERCENT = 0.6;
+    const double LINEUP_YAW_PERCENT = 0.5;
     const double PIVOT_ANG_PERCENT = 0.8;
 
-    //Kinematics calc (Field Data + robot stats)
+    //Kinematics calc (Field Data)
 
     //Speaker center positions (x, y)
     const vec::Vector2D RED_SPEAKER = {17.0, 5.58};

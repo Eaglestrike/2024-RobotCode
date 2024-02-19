@@ -332,7 +332,7 @@ void Robot::TeleopPeriodic() {
 
   // auto lineup
   if (m_controller.getPOVDown(AMP_AUTO_LINEUP) ||
-      (m_controller.getPressed(SHOOT) && !m_amp && m_shooter.ShouldAutoLineup()) //Angle lineup when shooting
+      (m_controller.getPressed(SHOOT) && !m_amp && m_shooter.UseAutoLineup()) //Angle lineup when shooting
     ) {
     double angVel = m_autoLineup.GetAngVel();
     m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);

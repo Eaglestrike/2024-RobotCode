@@ -160,6 +160,9 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     vec::Vector2D toSpeaker = speaker - targetPos_ + trim;
 
     double dist = toSpeaker.magn();
+    if(shuff_.isEnabled()){
+        shuff_.PutNumber("Shot dist", dist, {1,1,3,3});
+    }
     targetYaw_ = toSpeaker.angle();
 
     const std::vector<vec::Vector2D>& speakerBox = blueSpeaker? ShooterConstants::BLUE_SPEAKER_BOX : ShooterConstants::RED_SPEAKER_BOX;
@@ -300,16 +303,6 @@ void Shooter::Trim(vec::Vector2D trim){
  * Returns if you can shoot
 */
 bool Shooter::CanShoot(){
-    vec::Vector2D toSpeaker;
-    if(SideHelper::IsBlue()){
-        toSpeaker = ShooterConstants::BLUE_SPEAKER - robotPos_;
-    }
-    else{
-        toSpeaker = ShooterConstants::RED_SPEAKER - robotPos_;
-    }
-
-    double dist = toSpeaker.magn();
-
     if(state_ != SHOOT){
         if(shuff_.isEnabled()){
             shuff_.PutBoolean("Can Shoot", false);
@@ -338,10 +331,10 @@ bool Shooter::CanShoot(){
     return canShoot && lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget();
 }
 
-bool Shooter::ShouldAutoLineup(){
+bool Shooter::UseAutoLineup(){
     double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
 
-    return (yawError < posYawTol_*lineupYawPercent_) && (yawError > negYawTol_*lineupYawPercent_);
+    return (yawError > posYawTol_*lineupYawPercent_) || (yawError < negYawTol_*lineupYawPercent_);
 }
 
 /**
@@ -482,7 +475,7 @@ void Shooter::CoreShuffleboardInit(){
     shuff_.add("vel tol", &velTol_, {1,1,1,4}, true);
     shuff_.add("yaw percent", &shootYawPercent_, {1,1,2,4}, true);
     shuff_.add("lineup percent", &lineupYawPercent_, {1,1,3,4}, true);
-    shuff_.add("pivot percent", &pivotAngPercent_, {1,1,3,4}, true);
+    shuff_.add("pivot percent", &pivotAngPercent_, {1,1,4,4}, true);
 
     
     shuff_.add("yaw pos", &posYawTol_, {1,1,3,4}, false);
@@ -501,6 +494,8 @@ void Shooter::CoreShuffleboardPeriodic(){
     // shuff_.PutString("Shot Error", fk.error.toString());
 
     shuff_.update(true);
+
+    CanShoot();
 
     #if PIVOT_AUTO_TUNE
     pivotTuner_.ShuffleboardUpdate();

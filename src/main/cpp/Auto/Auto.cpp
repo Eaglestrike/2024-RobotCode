@@ -206,7 +206,7 @@ void Auto::AutoPeriodic(){
         NextBlock();
     }
     
-    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) && shooter_.ShouldAutoLineup()/*&& (inChannel_ || intake_.HasGamePiece())*/;
+    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) && shooter_.UseAutoLineup()/*&& (inChannel_ || intake_.HasGamePiece())*/;
     if(shuff_.isEnabled()){
         shuff_.PutBoolean("ang lineup", useAngLineup, {2,2,0,1});
     }
