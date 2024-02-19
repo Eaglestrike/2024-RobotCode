@@ -132,6 +132,7 @@ namespace ShooterConstants{
     //const double SHOOT_YAW_TOL = 0.05;
     const double SHOOT_YAW_PERCENT = 0.9;
     const double LINEUP_YAW_PERCENT = 0.8;
+    const double PIVOT_ANG_PERCENT = 0.8;
 
     //Kinematics calc (Field Data + robot stats)
 

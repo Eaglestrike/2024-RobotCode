@@ -99,7 +99,8 @@ class Shooter : public Mechanism{
         double velTol_ = ShooterConstants::SHOOT_VEL_TOL; //Driving velocity tolerance
         //double yawTol_ = ShooterConstants::SHOOT_YAW_TOL; //Driving yaw tolerance
         double shootYawPercent_ = ShooterConstants::SHOOT_YAW_PERCENT; //Percent of shootable area
-        double lineupYawPercent_ = ShooterConstants::LINEUP_YAW_PERCENT; //Percent of shootable area
+        double lineupYawPercent_ = ShooterConstants::LINEUP_YAW_PERCENT; //Percent of lineup needing area
+        double pivotAngPercent_ = ShooterConstants::PIVOT_ANG_PERCENT;
         
 
         //Kinematic calculations (unused)

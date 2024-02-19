@@ -222,6 +222,10 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     double pivotAng = percent*lowerShot.ang + upperPercent*upperShot.ang;
     double shotVel = percent*lowerShot.vel + upperPercent*upperShot.vel;
 
+    //Pivot set tolerance (max - min)/2.0
+    double pivotTol = (std::atan(dist/ShooterConstants::SPEAKER_MIN) - std::atan((dist-ShooterConstants::SPEAKER_DEPTH)/ShooterConstants::SPEAKER_MIN))/2.0;
+    pivot_.SetTolerance(pivotTol * pivotAngPercent_);
+
     //Add spin
     double angToSpeaker = targetYaw_;
     if(angToSpeaker > M_PI/2.0){
@@ -460,6 +464,7 @@ void Shooter::CoreShuffleboardInit(){
     shuff_.add("vel tol", &velTol_, {1,1,1,4}, true);
     shuff_.add("yaw percent", &shootYawPercent_, {1,1,2,4}, true);
     shuff_.add("lineup percent", &lineupYawPercent_, {1,1,3,4}, true);
+    shuff_.add("pivot percent", &pivotAngPercent_, {1,1,3,4}, true);
 
     
     shuff_.add("yaw pos", &posYawTol_, {1,1,3,4}, false);

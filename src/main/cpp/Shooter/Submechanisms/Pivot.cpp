@@ -230,6 +230,16 @@ bool Pivot::AtTarget(){
 }
 
 /**
+ * Sets positon tolerance
+ * 
+ * internally changes vel tol
+*/
+void Pivot::SetTolerance(double posTol){
+    posTol_ = posTol;
+    velTol_ = posTol * (ShooterConstants::PIVOT_VEL_TOL / ShooterConstants::PIVOT_POS_TOL); //Scale vel tol by how pos tol scales
+}
+
+/**
  * Get Pose
 */
 Poses::Pose1D Pivot::GetPose(){
