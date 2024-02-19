@@ -34,9 +34,9 @@ bool IOThread::GetBeamBreak2() {
 */
 void IOThread::Loop() {
   while (true) {
-    bool bb1 = m_bb1.Get();
+    bool bb1 = !m_bb1.Get();
     m_beamBreak1.store(bb1);
-    bool bb2 = m_bb2.Get();
+    bool bb2 = !m_bb2.Get();
     m_beamBreak2.store(bb2);
   }
 }
