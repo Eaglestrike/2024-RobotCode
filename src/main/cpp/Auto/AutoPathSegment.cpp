@@ -33,6 +33,8 @@ AutoPathSegment::AutoPathSegment(bool shuffleboard, SwerveControl &swerve, Odome
   m_posCorrectX.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
   m_posCorrectY.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
   m_angCorrect.SetTolerance(AutoConstants::ANG_TOL, std::numeric_limits<double>::infinity());
+
+  m_hasSpline = false;
 }
 
 /**
@@ -40,15 +42,16 @@ AutoPathSegment::AutoPathSegment(bool shuffleboard, SwerveControl &swerve, Odome
  * 
  * @param path Filename of auto path 
 */
-void AutoPathSegment::LoadAutoPath(const std::string path) {
+bool AutoPathSegment::LoadAutoPath(const std::string path) {
   if(m_loadedSplines.find(path) != m_loadedSplines.end()){
-    return;
+    return true;
   }
   AutoPathReader reader{path};
   if (!reader.FileExists()) {
-    return;
+    return false;
   }
   m_loadedSplines.insert({path, {.pos = reader.GetSplinePos(), .ang = reader.GetSplineAng()}});
+  return true;
 }
 
 /**
@@ -57,12 +60,15 @@ void AutoPathSegment::LoadAutoPath(const std::string path) {
  * @param path Filename of auto path 
 */
 void AutoPathSegment::SetAutoPath(const std::string path) {
-  if(m_loadedSplines.find(path) == m_loadedSplines.end()){
-    LoadAutoPath(path);
+  m_hasSpline = LoadAutoPath(path);
+  if(m_hasSpline){
+    m_blueSpline = m_loadedSplines[path];
+    m_spline.pos = SideHelper::GetSplinePos(m_blueSpline.pos);
+    m_spline.ang = SideHelper::GetSplineAng(m_blueSpline.ang);
   }
-  m_blueSpline = m_loadedSplines[path];
-  m_spline.pos = SideHelper::GetSplinePos(m_blueSpline.pos);
-  m_spline.ang = SideHelper::GetSplineAng(m_blueSpline.ang);
+  else{
+    Clear();
+  }
 }
 
 /**
@@ -70,7 +76,7 @@ void AutoPathSegment::SetAutoPath(const std::string path) {
 */
 void AutoPathSegment::Start() {
   m_startTime = Utils::GetCurTimeS();
-  if(m_spline.pos.getHighestTime() <= 0.0){
+  if(!m_hasSpline){
     m_hasStarted = false;
     return;
   }
@@ -108,6 +114,7 @@ void AutoPathSegment::Clear(){
   m_startTime = 0.0;
   m_spline.pos = {1000};
   m_spline.ang = {1000};
+  m_hasSpline = false;
 }
 
 /**
@@ -157,6 +164,7 @@ void AutoPathSegment::SetAngTol(double tol) {
 */
 void AutoPathSegment::Periodic(){
   if(!m_hasStarted){
+    std::cout<<"Has not started segment"<<std::endl;
     return;
   }
   // get relative time
@@ -209,6 +217,7 @@ void AutoPathSegment::Periodic(){
 */
 void AutoPathSegment::Periodic(double angVel) {
   if(!m_hasStarted){
+    std::cout<<"Has not started segment"<<std::endl;
     return;
   }
   // get relative time
