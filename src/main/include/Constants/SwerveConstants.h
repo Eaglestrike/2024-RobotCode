@@ -60,7 +60,7 @@ namespace SwerveConstants
   const double FR_OFFSET = 16.2; // -73.97
   const double BR_OFFSET = 6.328; // 96.503, not oscilatimg
   const double FL_OFFSET = 100.57;    // 9.3
-  const double BL_OFFSET = 139.043;   // 4.53
+  const double BL_OFFSET = 104.45;   // 4.53
 
   // individual module wheel PID
   const double TURN_P = 6.8;
