@@ -299,6 +299,11 @@ void Robot::TeleopPeriodic() {
     m_wristManual = false;
   }
 
+  double shooterManualPos = m_controller.getValueOnce(ControllerMapData::SHOOT_MANUAL, -10000.0);
+  if(shooterManualPos != -10000.0){
+    m_shooter.ManualTarget(shooterManualPos);
+  }
+
   // eject
   if (m_controller.getPressed(MANUAL_EJECT_IN) || m_controller.getPressed(MANUAL_EJECT_OUT)){
     m_eject = true;

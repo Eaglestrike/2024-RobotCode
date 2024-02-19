@@ -86,6 +86,10 @@ void Shooter::Stop(){
  * Sets to low speed/voltage to constantly spin
 */
 void Shooter::Stroll(){
+    if(state_ == MANUAL_TARGET){ //Don't exit manual when called
+        return;
+    }
+
     if(!hasPiece_){
         BringDown();
         return;
@@ -125,11 +129,26 @@ void Shooter::BringDown(){
 }
 
 /**
+ * Sets the pivot to a position
+ * 
+ * also reverses flywheels
+*/
+void Shooter::ManualTarget(double target){
+    pivot_.SetAngle(target);
+    
+    lflywheel_.SetVoltage(-strollSpeed_);
+    rflywheel_.SetVoltage(-strollSpeed_);
+    
+    state_ = MANUAL_TARGET;
+}
+
+/**
  * Prepares the shot to the speaker
  * 
  * @param toSpeaker field-oriented vector to the speaker 
 */
-void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){    
+void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
+    state_ = SHOOT;
     targetPos_ = robotPos;
     targetVel_ = {0.0, 0.0};
     //targetVel_ = robotVel;
@@ -458,7 +477,6 @@ void Shooter::CoreShuffleboardInit(){
     shuff_.add("Shot Vel", &shot_.vel, {1,1,1,3});
     shuff_.add("Shot Ang", &shot_.ang, {1,1,2,3});
     
-
     //Tolerance (row 4)
     shuff_.add("pos tol", &posTol_, {1,1,0,4}, true);
     shuff_.add("vel tol", &velTol_, {1,1,1,4}, true);

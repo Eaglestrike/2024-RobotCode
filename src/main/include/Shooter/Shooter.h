@@ -27,9 +27,10 @@ class Shooter : public Mechanism{
     public:
         enum State{
             STOP,
-            LOADPIECE,
+            LOADPIECE, //Unused state (because stroll does same thing)
             SHOOT,
-            STROLL //Set to low speed
+            STROLL, //Set to low speed
+            MANUAL_TARGET //Input angles
         };
   
         Shooter(std::string name, bool enabled, bool shuffleboard);
@@ -37,6 +38,7 @@ class Shooter : public Mechanism{
         void Stop();
         void Stroll();
         void BringDown(); //Intake into shooter
+        void ManualTarget(double target);
 
         void SetUp(double vel, double spin, double ang);
         void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker);
