@@ -178,6 +178,11 @@ void Auto::AutoPeriodic(){
     //std::cout << "Periodic Start" <<std::endl;
     double t = Utils::GetCurTimeS() - autoStart_;
 
+    if(pathNum_ > (int)paths_.size() + 1){
+        swerve_.SetRobotVelocity({0.0,0.0}, 0.0, odometry_.GetAng());
+        return;
+    }
+
     if(intake_.InIntake()){
         inChannel_ = true;
     }
@@ -208,11 +213,14 @@ void Auto::AutoPeriodic(){
 
     if(useAngLineup){
         if(!startedLineup_){
+            shooter_.Prepare(odometry_.GetPos(), {0.0, 0.0}, SideHelper::IsBlue());
             autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
             autoLineup_.Start();
             startedLineup_ = true;
+            std::cout<<shooter_.GetTargetRobotYaw()<<std::endl;
+            std::cout<<odometry_.GetPos().toString()<<std::endl;
         } else{
-            shuff_.PutNumber("ang lineup vel", autoLineup_.GetAngVel());
+            //shuff_.PutNumber("ang lineup vel", autoLineup_.GetAngVel());
             swerve_.SetAutoMode(false);
             swerve_.SetRobotVelocity({0,0}, autoLineup_.GetAngVel(), odometry_.GetAng());
             swerve_.SetAutoMode(true);
@@ -295,7 +303,7 @@ void Auto::ShooterPeriodic(double t){
         }
 
         if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target
-            shooter_.Prepare(pos, odometry_.GetVel(), SideHelper::IsBlue());
+            shooter_.Prepare(pos, {0, 0}, SideHelper::IsBlue());
         }
         else{
             shooter_.Prepare(shootPos_, {0,0}, SideHelper::IsBlue()); //Prepare for the target shot

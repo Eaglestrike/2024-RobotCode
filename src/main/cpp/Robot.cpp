@@ -36,7 +36,7 @@ Robot::Robot() :
   m_odom{false},
   //Auto
   m_autoLineup{false, m_odom},
-  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
+  m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
   m_autoChooser{true, m_auto}
 {
 

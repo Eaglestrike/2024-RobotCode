@@ -136,15 +136,10 @@ void Shooter::BringDown(){
  * 
  * @param toSpeaker field-oriented vector to the speaker 
 */
-void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
-    if(!hasPiece_){
-        Stroll();
-        return;
-    }
-    
+void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){    
     targetPos_ = robotPos;
-    //targetVel_ = {0.0, 0.0};
-    targetVel_ = robotVel;
+    targetVel_ = {0.0, 0.0};
+    //targetVel_ = robotVel;
 
     vec::Vector2D toSpeaker;
     if(blueSpeaker){
@@ -156,6 +151,7 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
 
     // https://www.desmos.com/calculator/5hd2snnrwz
 
+    /**
     double px = toSpeaker.x();
     double py = toSpeaker.y();
 
@@ -182,8 +178,18 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
 
     double dist = (-b-std::sqrt(determinant))/(2.0*a);
     double t = kD*dist + cT;
-    // double dist = toSpeaker.magn();
+
     targetYaw_ = static_cast<vec::Vector2D>((toSpeaker - (robotVel*t))).angle();
+    **/
+
+    
+    double dist = toSpeaker.magn();
+    targetYaw_ = toSpeaker.angle();
+
+    if(!hasPiece_){
+        Stroll();
+        return;
+    }
 
     auto shot = shootData_.lower_bound(dist);
     if(shot == shootData_.begin() || shot == shootData_.end()){ //No shot in data (too far or too close)
