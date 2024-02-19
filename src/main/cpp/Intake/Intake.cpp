@@ -15,6 +15,8 @@ Intake::Intake(bool enabled, bool dbg):
 }
 
 void Intake::CoreInit(){
+    m_iothread.Init();
+
     m_rollers.Init();
     m_wrist.Init();
     m_channel.Init();
@@ -269,12 +271,12 @@ bool Intake::InIntake(){
 
 
 bool Intake::GetBeamBreak1() {
-    return !m_beamBreak1.Get();
+    return m_iothread.GetBeamBreak1();
 }
 
 bool Intake::GetBeamBreak2() {
     // return false;
-    return !m_beamBreak2.Get();
+    return m_iothread.GetBeamBreak2();
 }
 
 
