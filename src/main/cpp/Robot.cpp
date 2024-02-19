@@ -299,6 +299,11 @@ void Robot::TeleopPeriodic() {
     m_wristManual = false;
   }
 
+  double shooterManualPos = m_controller.getValueOnce(ControllerMapData::SHOOT_MANUAL, -10000.0);
+  if(shooterManualPos != -10000.0){
+    m_shooter.ManualTarget(shooterManualPos);
+  }
+
   // eject
   if (m_controller.getPressed(MANUAL_EJECT_IN) || m_controller.getPressed(MANUAL_EJECT_OUT)){
     m_eject = true;
@@ -327,7 +332,7 @@ void Robot::TeleopPeriodic() {
 
   // auto lineup
   if (m_controller.getPOVDown(AMP_AUTO_LINEUP) ||
-      (m_controller.getPressed(SHOOT) && !m_amp) //Angle lineup when shooting
+      (m_controller.getPressed(SHOOT) && !m_amp && m_shooter.UseAutoLineup()) //Angle lineup when shooting
     ) {
     double angVel = m_autoLineup.GetAngVel();
     m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
