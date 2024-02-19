@@ -76,7 +76,7 @@ namespace ShooterConstants{
     const double PIVOT_OFFSET = 5.587;
  
     const PID PIVOT_PID = {
-        .kp = 3.0,
+        .kp = 6.0,
         .ki = 0.8,
         .kd = 0.2
     };
