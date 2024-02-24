@@ -1,16 +1,19 @@
 #include "Util/LED.h"
+#include <iostream>
 
-LED::LED()
+LED::LED() {}
+
+void LED::Init()
 {
+    // std::cout << "init led\n";
     m_led.SetLength(LEDConstants::LED_STRIP_LENGTH);
-    m_led.SetBitTiming(LEDConstants::HIGH_TIME_0, LEDConstants::LOW_TIME_0, LEDConstants::HIGH_TIME_1, LEDConstants::LOW_TIME_1);
-    m_led.SetSyncTime(LEDConstants::SYNC_TIME);
-    m_led.SetData(m_ledBuffer);
+    m_led.SetData(m_emptyLedBuffer);
     m_led.Start();
 }
 
 void LED::SetStripColor(int r, int g, int b)
 {
+    // std::cout << "setting strip color\n";
     for (int i = 0; i < LEDConstants::LED_STRIP_LENGTH; i++)
     {
         m_ledBuffer[i].SetRGB(r, g, b);
@@ -22,12 +25,12 @@ void LED::SetStripEnabled(bool enabled)
 {
     if (enabled && !m_ledEnabled)
     {
-        m_led.Start();
+        m_led.SetData(m_emptyLedBuffer);
         m_ledEnabled = true;
     }
     else
     {
-        m_led.Stop();
+        m_led.SetData(m_ledBuffer);
         m_ledEnabled = false;
     }
 }
