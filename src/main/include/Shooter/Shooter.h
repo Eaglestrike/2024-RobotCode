@@ -46,7 +46,7 @@ class Shooter : public Mechanism{
 
         void Trim(vec::Vector2D trim); //Up/down left/right trim for target
 
-        bool CanShoot();
+        bool CanShoot(int posVal = 0);
         bool UseAutoLineup();
 
         double GetTargetRobotYaw();

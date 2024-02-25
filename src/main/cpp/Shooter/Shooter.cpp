@@ -302,7 +302,7 @@ void Shooter::Trim(vec::Vector2D trim){
 /**
  * Returns if you can shoot
 */
-bool Shooter::CanShoot(){
+bool Shooter::CanShoot(int posVal){
     if(state_ != SHOOT){
         if(shuff_.isEnabled()){
             shuff_.PutBoolean("Can Shoot", false);
@@ -313,6 +313,15 @@ bool Shooter::CanShoot(){
     double posError = (targetPos_ - robotPos_).magn();
     double velError = (targetVel_ - robotVel_).magn();
     double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
+
+    if (posVal != 0) {
+        posError = 0;
+        velError = 0;
+        if (posVal == 3) {
+            yawError = 0;
+        }
+    }
+
 
     bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
     bool canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
@@ -495,7 +504,7 @@ void Shooter::CoreShuffleboardPeriodic(){
 
     shuff_.update(true);
 
-    CanShoot();
+    CanShoot(false);
 
     #if PIVOT_AUTO_TUNE
     pivotTuner_.ShuffleboardUpdate();
