@@ -24,6 +24,7 @@
 #include "Drive/SwerveControl.h"
 #include "Climb/Climb.h"
 #include "Intake/Intake.h"
+#include "Util/LED.h"
 #include "Util/Logger.h"
 #include "Util/Odometry.h"
 #include "Util/SocketClient.h"
@@ -73,6 +74,9 @@ class Robot : public frc::TimedRobot {
 
     // Shooter
     Shooter m_shooter;
+
+    // LED
+    LED m_led;
 
     // Jetson
     #if SWERVE_AUTOTUNING
