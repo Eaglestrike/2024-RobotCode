@@ -92,6 +92,7 @@ class Robot : public frc::TimedRobot {
     Odometry m_odom;
     frc::Field2d m_field;
     std::string m_prevSelectedStart = "";
+    bool m_prevIsBlue = true;
 
     // auto lineup
     AutoAngLineup m_autoLineup;

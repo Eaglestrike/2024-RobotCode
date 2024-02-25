@@ -99,4 +99,6 @@ class Wrist: public Mechanism{
         double REL_CONV_FACTOR = 1.0 * (8.0 / 66.0) * (18.0 / 66.0);
         //for dbg
         double m_voltReq = 0.0;
+
+        bool m_wasCoasting = false;
 };

@@ -14,7 +14,7 @@ ShuffleboardSender::ShuffleboardSender(std::string name, bool enabled):
 
 void ShuffleboardSender::addButton(std::string name, std::function<void()> callback){
     if(!tab_){
-        std::cout<<name_<<" not initialized"<<std::endl;
+        std::cout<<name_<<" shuff not initialized"<<std::endl;
         return;
     }
     for(ShuffleboardItemInterface* item : items_){
@@ -27,7 +27,7 @@ void ShuffleboardSender::addButton(std::string name, std::function<void()> callb
 
 void ShuffleboardSender::addButton(std::string name, std::function<void()> callback, ShuffleboardItemInterface::ShuffleboardPose pose){
     if(!tab_){
-        std::cout<<name_<<" not initialized"<<std::endl;
+        std::cout<<name_<<" shuff not initialized"<<std::endl;
         return;
     }
     for(ShuffleboardItemInterface* item : items_){
@@ -40,7 +40,7 @@ void ShuffleboardSender::addButton(std::string name, std::function<void()> callb
 
 void ShuffleboardSender::addToggleButton(std::string name, std::function<void()> callbackTrue, std::function<void()> callbackFalse, bool startVal){
     if(!tab_){
-        std::cout<<name_<<" not initialized"<<std::endl;
+        std::cout<<name_<<" shuff not initialized"<<std::endl;
         return;
     }
     for(ShuffleboardItemInterface* item : items_){
@@ -53,7 +53,7 @@ void ShuffleboardSender::addToggleButton(std::string name, std::function<void()>
 
 void ShuffleboardSender::addToggleButton(std::string name, std::function<void()> callbackTrue, std::function<void()> callbackFalse, bool startVal, ShuffleboardItemInterface::ShuffleboardPose pose){
     if(!tab_){
-        std::cout<<name_<<" not initialized"<<std::endl;
+        std::cout<<name_<<" shuff not initialized"<<std::endl;
         return;
     }
     for(ShuffleboardItemInterface* item : items_){
@@ -101,7 +101,7 @@ void ShuffleboardSender::PutNumber(std::string name, double val){
         return;
     }
     if(!tab_){
-        std::cout<<name_<<" not initialized"<<std::endl;
+        std::cout<<name_<<" shuff not initialized"<<std::endl;
         return;
     }
     keyMap_[name] = ShuffleboardHelper::createItem({.name = name, .tab = tab_}, val);
@@ -113,7 +113,7 @@ void ShuffleboardSender::PutNumber(std::string name, double val, ShuffleboardIte
         return;
     }
     if(!tab_){
-        std::cout<<name_<<" not initialized"<<std::endl;
+        std::cout<<name_<<" shuff not initialized"<<std::endl;
         return;
     }
     keyMap_[name] = ShuffleboardHelper::createItem({.name = name, .tab = tab_, .pose = pose}, val);
@@ -125,7 +125,7 @@ void ShuffleboardSender::PutBoolean(std::string name, bool val){
         return;
     }
     if(!tab_){
-        std::cout<<name_<<" not initialized"<<std::endl;
+        std::cout<<name_<<" shuff not initialized"<<std::endl;
         return;
     }
     keyMap_[name] = ShuffleboardHelper::createItem({.name = name, .tab = tab_}, val);
@@ -137,7 +137,7 @@ void ShuffleboardSender::PutBoolean(std::string name, bool val, ShuffleboardItem
         return;
     }
     if(!tab_){
-        std::cout<<name_<<" not initialized"<<std::endl;
+        std::cout<<name_<<" shuff not initialized"<<std::endl;
         return;
     }
     keyMap_[name] = ShuffleboardHelper::createItem({.name = name, .tab = tab_, .pose = pose}, val);
@@ -149,7 +149,7 @@ void ShuffleboardSender::PutInteger(std::string name, int val){
         return;
     }
     if(!tab_){
-        std::cout<<name_<<" not initialized"<<std::endl;
+        std::cout<<name_<<" shuff not initialized"<<std::endl;
         return;
     }
     keyMap_[name] = ShuffleboardHelper::createItem({.name = name, .tab = tab_}, val);
@@ -161,7 +161,7 @@ void ShuffleboardSender::PutInteger(std::string name, int val, ShuffleboardItemI
         return;
     }
     if(!tab_){
-        std::cout<<name_<<" not initialized"<<std::endl;
+        std::cout<<name_<<" shuff not initialized"<<std::endl;
         return;
     }
     keyMap_[name] = ShuffleboardHelper::createItem({.name = name, .tab = tab_, .pose = pose}, val);
@@ -173,7 +173,7 @@ void ShuffleboardSender::PutString(std::string name, std::string val){
         return;
     }
     if(!tab_){
-        std::cout<<name_<<" not initialized"<<std::endl;
+        std::cout<<name_<<" shuff not initialized"<<std::endl;
         return;
     }
     keyMap_[name] = ShuffleboardHelper::createItem({.name = name, .tab = tab_}, val);
@@ -185,7 +185,7 @@ void ShuffleboardSender::PutString(std::string name, std::string val, Shuffleboa
         return;
     }
     if(!tab_){
-        std::cout<<name_<<" not initialized"<<std::endl;
+        std::cout<<name_<<" shuff not initialized"<<std::endl;
         return;
     }
     keyMap_[name] = ShuffleboardHelper::createItem({.name = name, .tab = tab_, .pose = pose}, val);

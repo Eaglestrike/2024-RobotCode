@@ -1,5 +1,6 @@
 #include "Auto/Auto.h"
 
+#include <iostream>
 #include <string>
 
 #include "Util/Utils.h"
@@ -15,12 +16,14 @@ using enum AutoConstants::AutoAction;
  * 
  * @note does not call periodic calls of mechanisms
 */
-Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autolineup, Intake &intake, Shooter &shooter):
+Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLineup &autolineup, Intake &intake, Shooter &shooter, FRCLogger &logger):
     segments_{shuffleboard, swerve, odom},
     odometry_{odom},
     autoLineup_{autolineup},
     intake_{intake},
     shooter_{shooter},
+    swerve_{swerve},
+    logger_{logger},
     inChannel_{false},
     shuff_{"Auto", shuffleboard}
 {
@@ -28,13 +31,19 @@ Auto::Auto(bool shuffleboard, SwerveControl &swerve, Odometry &odom, AutoAngLine
     ResetTiming(shooterTiming_);
     ResetTiming(driveTiming_);
 
-    //SetPath(0, {{SHOOT, AFTER});
+    SetPath(0, {{SHOOT, AFTER}});
+    inChannel_ = true;
+
+    paths_.resize(10);
 }
 
 /**
  * Sets the path to run at some index
 */
 void Auto::SetPath(uint index, AutoPath path){
+    if(index > 1000){
+        return;
+    }
     for(uint i = paths_.size(); i <= index; i++){
         paths_.push_back({});
     }
@@ -64,7 +73,7 @@ void Auto::SetSegment(uint index, std::string to, std::string back){
             {DRIVE, AFTER, to},
             {INTAKE, AT_START}, //Can keep intake down if needed (then use stow)
             {DRIVE, AFTER, back},
-            {SHOOT, BEFORE_END},
+            {SHOOT, AFTER},
         }
     );
 }
@@ -85,8 +94,41 @@ void Auto::SetSegment(uint index, std::string path){
     }
     SetPath(
         index,
+        {
+            {DRIVE, AFTER, path},
+            {INTAKE, AT_START},
+            {SHOOT, AFTER}
+        }
+    );
+}
+
+/**
+ * Sets an auto segment to just drive
+ * 
+ * @param path filename of drive path (ex: to.csv)
+*/
+void Auto::SetDrive(uint index, std::string path){
+    if(index == 0){
+        std::cout<<"bad index 0 Auto::SetSegment"<<std::endl;
+        return;
+    }
+    if(path == ""){ //Check if it's an empty path
+        SetPath(index, {});
+        return;
+    }
+    SetPath(
+        index,
         {{DRIVE, AFTER, path}}
     );
+}
+
+/**
+ * Clears the pathing but keeps initial shooting
+*/
+void Auto::Clear(){
+    paths_.clear();
+    SetPath(0, {{SHOOT, AFTER}});
+    inChannel_ = true;
 }
 
 /**
@@ -111,9 +153,11 @@ void Auto::AutoInit(){
             }
         }
     }
-    if((startPos - odometry_.GetPos()).magn() > 0.5){ //If starting pos too far away
+    if((startPos - odometry_.GetPos()).magn() > AutoConstants::SAFETY_DIST){ //If starting pos too far away
         pathNum_ = 100000; //Give up
     }
+
+    shootPos_ = startPos;
 
     segments_.Clear();
 
@@ -124,6 +168,8 @@ void Auto::AutoInit(){
 
     autoStart_ = Utils::GetCurTimeS();
     inChannel_ = false;
+
+    startedLineup_ = false;
     
     NextBlock();
     //std::cout << "End Init" <<std::endl;
@@ -136,36 +182,69 @@ void Auto::AutoPeriodic(){
     //std::cout << "Periodic Start" <<std::endl;
     double t = Utils::GetCurTimeS() - autoStart_;
 
+    if(pathNum_ > 1000){
+        swerve_.SetRobotVelocity({0.0,0.0}, 0.0, odometry_.GetAng());
+        return;
+    }
+
+    //Code to deal with blind spot
     if(intake_.InIntake()){
         inChannel_ = true;
     }
+    else if(inChannel_){
+        if(!channelTiming_.hasStarted){ //Start channel timer
+            channelTiming_.end = t + CHANNEL_TIME;
+            channelTiming_.hasStarted = true;
+        }
+        if(t > channelTiming_.end){ //Did not have piece for a bit
+            channelTiming_.hasStarted = false;
+            inChannel_ = false;
+        }
+    }
     if(inChannel_ && intake_.InChannel()){
+        channelTiming_.hasStarted = false;
         inChannel_ = false;
     }
     
     if(driveTiming_.finished && shooterTiming_.finished && intakeTiming_.finished){
-        //std::cout << "Next Block Periodic" <<std::endl;
         NextBlock();
     }
     
-    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) && (inChannel_ || intake_.HasGamePiece());
-    
-    if(useAngLineup && false){
-        autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
-        autoLineup_.Start();
-        segments_.Periodic(autoLineup_.GetAngVel());
+    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) && shooter_.UseAutoLineup()/*&& (inChannel_ || intake_.HasGamePiece())*/;
+    if(shuff_.isEnabled()){
+        shuff_.PutBoolean("ang lineup", useAngLineup, {2,2,0,1});
+    }
+
+    if(useAngLineup){
+        if(!startedLineup_){
+            shooter_.Prepare(odometry_.GetPos(), {0.0, 0.0}, SideHelper::IsBlue());
+            autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
+            autoLineup_.Start();
+            startedLineup_ = true;
+        } else{
+            //shuff_.PutNumber("ang lineup vel", autoLineup_.GetAngVel());
+            swerve_.SetAutoMode(false);
+            swerve_.SetRobotVelocity({0,0}, autoLineup_.GetAngVel(), odometry_.GetAng());
+            swerve_.SetAutoMode(true);
+        }
+        // autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
+        // autoLineup_.Start();
+        //segments_.Periodic(autoLineup_.GetAngVel());
+       
     }
     else{
+        autoLineup_.Stop();
         segments_.Periodic();
     }
     
     DrivePeriodic(t);
-    //std::cout<<"drive"<<std::endl;
     ShooterPeriodic(t);
-    //std::cout<<"shoot"<<std::endl;
     IntakePeriodic(t);
-    //std::cout<<"intake"<<std::endl;
     autoLineup_.Periodic();
+
+    logger_.LogNum("Shooter ang lineup targ", autoLineup_.GetTargAng());
+    logger_.LogNum("Shooter ang lineup exp", autoLineup_.GetExpAng());
+    logger_.LogNum("Shooter ang lineup state", autoLineup_.GetState());
 }
 
 /**
@@ -175,6 +254,15 @@ void Auto::DrivePeriodic(double t){
     if(!driveTiming_.hasStarted && t > driveTiming_.start){
         segments_.Start();
         driveTiming_.hasStarted = true;
+
+        //Path safety check
+        if((segments_.GetPos(t) - odometry_.GetPos()).magn() > AutoConstants::SAFETY_DIST){
+            pathNum_ = 100000; //Give up
+            segments_.Stop();
+            swerve_.SetRobotVelocity({0.0, 0.0}, 0.0, odometry_.GetAng());
+            std::cout<<"Safety disabled"<<std::endl;
+            return;
+        }
     }
 
     if(segments_.AtTarget()){
@@ -208,17 +296,12 @@ void Auto::ShooterPeriodic(double t){
         
         //Finish shooting when can't see piece for a bit
         if((!inChannel_) && (!intake_.HasGamePiece())){ 
-            if(!channelTiming_.hasStarted){ //Start channel timer
-                channelTiming_.end = t + CHANNEL_TIME;
-                channelTiming_.hasStarted = true;
-            }
-            else if(t > channelTiming_.end){ 
-                shooterTiming_.finished = true;
-            }
+            shooterTiming_.finished = true;
+            startedLineup_ = false;
         }
 
         if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target
-            shooter_.Prepare(pos, odometry_.GetVel(), SideHelper::IsBlue());
+            shooter_.Prepare(pos, {0, 0}, SideHelper::IsBlue());
         }
         else{
             shooter_.Prepare(shootPos_, {0,0}, SideHelper::IsBlue()); //Prepare for the target shot
@@ -320,7 +403,12 @@ void Auto::NextBlock(){
 
     //Get the shooter position target
     if(!shooterTiming_.finished){
-        shootPos_ = segments_.GetPos(shooterTiming_.end + autoStart_); 
+        if(!driveTiming_.finished){
+            shootPos_ = segments_.GetPos(shooterTiming_.end + autoStart_);
+        }
+        else{
+            shootPos_ = odometry_.GetPos();
+        }
     }
 
     if(index_ >= (int)path.size()){//Finished this path
@@ -482,8 +570,8 @@ void Auto::ShuffleboardInit(){
     shuff_.PutNumber("time", 0.0, {1,1,4,0});
 
     //Drive Timing (row 1)
-    shuff_.add("Drive Start", &driveTiming_.start, {1,1,0,1});
-    shuff_.add("Drive End", &driveTiming_.end, {1,1,1,1});
+    // shuff_.add("Drive Start", &driveTiming_.start, {1,1,0,1});
+    // shuff_.add("Drive End", &driveTiming_.end, {1,1,1,1});
     shuff_.add("Drive Has Started", &driveTiming_.hasStarted, {1,1,2,1});
     shuff_.add("Drive Has Finished", &driveTiming_.finished, {1,1,3,1});
 
@@ -492,8 +580,8 @@ void Auto::ShuffleboardInit(){
     shuff_.PutNumber("Drive Progress", 0.0, {1,1,5,1});
 
     //Shooter Timing (row 2)
-    shuff_.add("Shooter Start", &shooterTiming_.start, {1,1,0,2});
-    shuff_.add("Shooter End", &shooterTiming_.end, {1,1,1,2});
+    // shuff_.add("Shooter Start", &shooterTiming_.start, {1,1,0,2});
+    // shuff_.add("Shooter End", &shooterTiming_.end, {1,1,1,2});
     shuff_.add("Shooter Has Started", &shooterTiming_.hasStarted, {1,1,2,2});
     shuff_.add("Shooter Has Finished", &shooterTiming_.finished, {1,1,3,2});
     
@@ -501,11 +589,14 @@ void Auto::ShuffleboardInit(){
     shuff_.add("Shooter Time", &SHOOT_TIME, {1,1,5,2}, true);
     shuff_.add("Shoot pos tol", &SHOOT_POS_TOL, {1,1,6,2}, true);
 
-    shuff_.add("Shooter Padding", &CHANNEL_TIME, {1,1,4,2}, true);
+    shuff_.add("Shooter Padding", &CHANNEL_TIME, {1,1,7,2}, true);
+
+    shuff_.PutNumber("Shoot x", shootPos_.x(), {1,1,6,3});
+    shuff_.PutNumber("Shoot y", shootPos_.y(), {1,1,7,3});
 
     //Intake Timing (row 3)
-    shuff_.add("Intake Start", &intakeTiming_.start, {1,1,0,3});
-    shuff_.add("Intake End", &intakeTiming_.end, {1,1,1,3});
+    // shuff_.add("Intake Start", &intakeTiming_.start, {1,1,0,3});
+    // shuff_.add("Intake End", &intakeTiming_.end, {1,1,1,3});
     shuff_.add("Intake Has Started", &intakeTiming_.hasStarted, {1,1,2,3});
     shuff_.add("Intake Has Finished", &intakeTiming_.finished, {1,1,3,3});
     
@@ -532,6 +623,9 @@ void Auto::ShuffleboardPeriodic(){
 
     shuff_.PutNumber("time", Utils::GetCurTimeS() - autoStart_);
     shuff_.PutNumber("Drive Progress", segments_.GetProgress());
+
+    shuff_.PutNumber("Shoot x", shootPos_.x());
+    shuff_.PutNumber("Shoot y", shootPos_.y());
 
     shuff_.update(true);
 }

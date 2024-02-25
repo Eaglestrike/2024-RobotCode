@@ -40,6 +40,7 @@ class Pivot : public Mechanism{
 
         bool AtTarget();
 
+        void SetTolerance(double posTol);
         Poses::Pose1D GetPose();
 
     private:

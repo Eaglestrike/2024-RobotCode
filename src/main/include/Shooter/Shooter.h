@@ -27,9 +27,10 @@ class Shooter : public Mechanism{
     public:
         enum State{
             STOP,
-            LOADPIECE,
+            LOADPIECE, //Unused state (because stroll does same thing)
             SHOOT,
-            STROLL //Set to low speed
+            STROLL, //Set to low speed
+            MANUAL_TARGET //Input angles
         };
   
         Shooter(std::string name, bool enabled, bool shuffleboard);
@@ -37,6 +38,7 @@ class Shooter : public Mechanism{
         void Stop();
         void Stroll();
         void BringDown(); //Intake into shooter
+        void ManualTarget(double target);
 
         void SetUp(double vel, double spin, double ang);
         void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker);
@@ -45,6 +47,7 @@ class Shooter : public Mechanism{
         void Trim(vec::Vector2D trim); //Up/down left/right trim for target
 
         bool CanShoot();
+        bool UseAutoLineup();
 
         double GetTargetRobotYaw();
 
@@ -79,25 +82,30 @@ class Shooter : public Mechanism{
         bool hasShot_;
         ShooterConstants::ShootConfig shot_;
         double spin_;
-        
 
         //Odometry Targets
         vec::Vector2D targetPos_;
         vec::Vector2D targetVel_;
         double targetYaw_;
+        double posYawTol_, negYawTol_; //distances to min and max yaw from target
 
         vec::Vector2D trim_;
 
-        double posTol_ = ShooterConstants::SHOOT_POS_TOL; //Driving position tolerance
-        double velTol_ = ShooterConstants::SHOOT_VEL_TOL; //Driving velocity tolerance
-        double yawTol_ = ShooterConstants::SHOOT_YAW_TOL; //Driving yaw tolerance
-
-        //Debug odom vals
+        //Odometry data
         vec::Vector2D robotPos_;
         vec::Vector2D robotVel_;
         double robotYaw_;
 
-        //Kinematic calculations
+        //Tolerances
+        double posTol_ = ShooterConstants::SHOOT_POS_TOL; //Driving position tolerance
+        double velTol_ = ShooterConstants::SHOOT_VEL_TOL; //Driving velocity tolerance
+        //double yawTol_ = ShooterConstants::SHOOT_YAW_TOL; //Driving yaw tolerance
+        double shootYawPercent_ = ShooterConstants::SHOOT_YAW_PERCENT; //Percent of shootable area
+        double lineupYawPercent_ = ShooterConstants::LINEUP_YAW_PERCENT; //Percent of lineup needing area
+        double pivotAngPercent_ = ShooterConstants::PIVOT_ANG_PERCENT;
+        
+
+        //Kinematic calculations (unused)
         struct FKRes{
             bool score; //If the shot will score
             bool aimed; //if the robot is actually aiming at the target

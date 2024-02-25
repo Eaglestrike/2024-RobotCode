@@ -5,7 +5,6 @@ LED::LED() {}
 
 void LED::Init()
 {
-    // std::cout << "init led\n";
     m_led.SetLength(LEDConstants::LED_STRIP_LENGTH);
     m_led.SetData(m_emptyLedBuffer);
     m_led.Start();
@@ -13,12 +12,20 @@ void LED::Init()
 
 void LED::SetStripColor(int r, int g, int b)
 {
-    // std::cout << "setting strip color\n";
+    if (curr_r == r && curr_g == g && curr_b == b)
+    {
+        return;
+    }
+    curr_r = r;
+    curr_g = g;
+    curr_b = b;
+    m_led.Start();
     for (int i = 0; i < LEDConstants::LED_STRIP_LENGTH; i++)
     {
         m_ledBuffer[i].SetRGB(r, g, b);
     }
     m_led.SetData(m_ledBuffer);
+    m_led.Stop();
 }
 
 void LED::SetStripEnabled(bool enabled)
@@ -53,7 +60,13 @@ void LED::LEDPeriodic()
     }
 }
 
-LED::~LED()
+void LED::Start()
 {
+    m_led.Start();
+}
+
+void LED::Stop()
+{
+    m_led.SetData(m_emptyLedBuffer);
     m_led.Stop();
 }

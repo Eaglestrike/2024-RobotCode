@@ -29,6 +29,8 @@ void AutoAngLineup::Start() {
     return;
   }
 
+  // std::cout << "starting new target at " << m_targetAng << std::endl;
+
   double curAng = m_odom.GetAngNorm();
   double dist = CalcDist(curAng);
   CalcTimes(dist, 0);
@@ -185,6 +187,8 @@ void AutoAngLineup::SetTarget(double targAng) {
   }
 
   m_targetAng = Utils::NormalizeAng(targAng);
+  
+  // std::cout << "setting new target at " << std::endl;
 }
 
 /**
@@ -418,4 +422,22 @@ std::string AutoAngLineup::GetStateString() const {
       return "At Target";
   }
   return "Error";
+}
+
+/**
+ * Gets target agngle
+ * 
+ * @return target angle
+*/ 
+double AutoAngLineup::GetTargAng() const {
+  return m_targetAng;
+}
+
+/**
+ * Gets exp ang
+ * 
+ * @return expected ang
+*/
+double AutoAngLineup::GetExpAng() const {
+  return m_curExpectedAng;
 }

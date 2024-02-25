@@ -112,10 +112,10 @@ namespace ControllerMapData{
         // {{BUTTONBOARD, B_9}, 9},
     };
 
-     const std::vector<ValueMapElement<int>> GET_LEVEL = {
-        {BB_L1, 1},
-        {BB_L2, 2},
-        {BB_L3, 3}
+     const std::vector<ValueMapElement<double>> SHOOT_MANUAL = {
+        {BB_L1, 0.31},
+        {BB_L2, 0.65},
+        {BB_L3, 1.00}
     };
 
     const double TRIM_SIZE = 0.075; // shooter units
