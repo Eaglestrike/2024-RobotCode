@@ -105,9 +105,9 @@ namespace ShooterConstants{
         {0.0,   {1.1,  17.0}}, //0 distance shot (used just for interpolation)
         {1.32,  {1.05,  17.0}},
         {1.55,  {1.02,   17.0}},
-        {1.7,   {0.90,  17.0}},
-        {1.857, {0.84,  17.0}},
-        {1.97,  {0.82,  17.0}},
+        {1.7,   {0.90,  17.0}}, // bad
+        {1.857, {0.86,  17.0}}, // too low
+        {1.97,  {0.83,  17.0}}, // too low
         {2.06,  {0.8,   17.0}},
         {2.65,  {0.7,   17.0}},
         {2.86,  {0.64,  18.0}},
@@ -121,7 +121,7 @@ namespace ShooterConstants{
 
     const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
-    const double STROLL_SPEED = 0.3; //Voltage of strolling
+    const double STROLL_SPEED = 0.5; //Voltage of strolling
 
     const double PIVOT_INTAKE = PIVOT_MIN + 0.4; //Angle for pivot to intake piece into shooter
     const double SHOOT_TIME = 1.0; //Time for piece to exit shooter
