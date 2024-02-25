@@ -51,7 +51,7 @@ class Rollers : public Mechanism{
     double PASS_VOLTS = -4.0;
     double BACK_ROLLER_IN_VOLTS = -4.0;
     //amp out
-    double OUT_VOLTS = 2.8; // 3.3
+    double OUT_VOLTS = 3.0; //2.8, 3.3
 
     //for dbg
     double m_voltReq = 0.0;
