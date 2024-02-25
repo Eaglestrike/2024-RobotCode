@@ -36,8 +36,8 @@ Robot::Robot() :
   m_odom{false},
   //Auto
   m_autoLineup{false, m_odom},
-  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
-  m_autoChooser{true, m_auto}
+  m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
+  m_autoChooser{false, m_auto}
 {
 
   // navx
@@ -253,10 +253,15 @@ void Robot::TeleopPeriodic() {
           } else {
             vec::Vector2D manualLineupPos = SideHelper::GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[m_posVal - 1]);
             m_shooter.Prepare(manualLineupPos, {0, 0}, SideHelper::IsBlue());
-            m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
-            m_autoLineup.Start();
+            if (m_posVal != 3) {
+              m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
+            } else {
+              m_autoLineup.Recalc(m_odom.GetAngNorm());
+            }
+            // m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
+            // m_autoLineup.Start();
           }
-          if(m_shooter.CanShoot()){
+          if(m_shooter.CanShoot(m_posVal)){
             m_intake.FeedIntoShooter();
           }
         }
@@ -582,6 +587,7 @@ void Robot::ShuffleboardPeriodic() {
   {
     frc::SmartDashboard::PutBoolean("Climb Manual", m_climbManual);
     frc::SmartDashboard::PutBoolean("Wrist Manual", m_wristManual);
+    frc::SmartDashboard::PutNumber("Manual Pos", m_posVal);
   }
 
   // DEBUG

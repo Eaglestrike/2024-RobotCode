@@ -105,7 +105,7 @@ namespace ControllerMapData{
      const std::vector<ValueMapElement<int>> SCORING_POS = {
         {{BUTTONBOARD, B_1}, 1},
         {{BUTTONBOARD, B_2}, 2},
-        // {{BUTTONBOARD, B_3}, 3},
+        {{BUTTONBOARD, B_3}, 3},
         // {{BUTTONBOARD, B_4}, 4},
         // {{BUTTONBOARD, B_5}, 5},
         // {{BUTTONBOARD, B_6}, 6},
