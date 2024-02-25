@@ -111,6 +111,7 @@ void Robot::RobotInit() {
   m_client.Init();
   m_swerveController.Init();
   m_shooter.Init();
+  m_led.Init();
 }
 
 /**
