@@ -201,9 +201,13 @@ void Robot::TeleopPeriodic() {
   double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
 
   // angle lock
-  int posVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
-  if (posVal) {
-    m_autoLineup.SetTarget(SideHelper::GetManualLineupAng(posVal - 1));
+  int ctrlVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
+  if (ctrlVal != 0) {
+    m_posVal = ctrlVal;
+  }
+
+  if (m_controller.getPressed(SHOOT_AUTO)) {
+    m_posVal = 0;
   }
 
   // slow mode
@@ -243,8 +247,15 @@ void Robot::TeleopPeriodic() {
         m_intake.AmpOuttake(); //Shoot into amp
       } else {
         if(m_intake.HasGamePiece()){
-          m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
-          m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
+          if (m_posVal == 0) {
+            m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
+            m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
+          } else {
+            vec::Vector2D manualLineupPos = SideHelper::GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[m_posVal - 1]);
+            m_shooter.Prepare(manualLineupPos, {0, 0}, SideHelper::IsBlue());
+            m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
+            m_autoLineup.Start();
+          }
           if(m_shooter.CanShoot()){
             m_intake.FeedIntoShooter();
           }

@@ -32,6 +32,7 @@ namespace Actions{
         ZERO_2,
         ZERO_CLIMB,
         ZERO_INTAKE,
+        SHOOT_AUTO,
         ACTION_COUNT //Just the number of actions, as it is at the end of a enum
     };
 
@@ -88,7 +89,8 @@ namespace ControllerMapData{
         {BB_Y_TRIM_DOWN ,       UNBRAKE},
         {BB_Y_TRIM_UP ,         BRAKE},
         {BB_LEFT ,              ZERO_CLIMB},
-        {BB_RIGHT ,             ZERO_INTAKE}
+        {BB_RIGHT ,             ZERO_INTAKE},
+        {BB_UP,                 SHOOT_AUTO}
     };
 
     //Allows for maps of buttons to values, such as the index of the buttonboard
@@ -103,9 +105,9 @@ namespace ControllerMapData{
      const std::vector<ValueMapElement<int>> SCORING_POS = {
         {{BUTTONBOARD, B_1}, 1},
         {{BUTTONBOARD, B_2}, 2},
-        {{BUTTONBOARD, B_3}, 3},
-        {{BUTTONBOARD, B_4}, 4},
-        {{BUTTONBOARD, B_5}, 5},
+        // {{BUTTONBOARD, B_3}, 3},
+        // {{BUTTONBOARD, B_4}, 4},
+        // {{BUTTONBOARD, B_5}, 5},
         // {{BUTTONBOARD, B_6}, 6},
         // {{BUTTONBOARD, B_7}, 7},
         // {{BUTTONBOARD, B_8}, 8},
