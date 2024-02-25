@@ -111,6 +111,7 @@ class Robot : public frc::TimedRobot {
     bool m_wristManual = false;
     bool m_climbManual = false;
     bool m_eject = false;
+    int m_posVal = 0;
 
     // zerored states
     bool m_intakeZeroed = false;
