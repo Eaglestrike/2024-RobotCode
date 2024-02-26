@@ -206,6 +206,11 @@ void Robot::AutonomousInit()
   m_climb.Zero();
   m_climbZeroed = true;
   m_intakeZeroed = true;
+  m_navx->Reset();
+  m_navx->ZeroYaw();
+  m_odom.Reset();
+  m_swerveController.ResetAngleCorrection(m_odom.GetAng());
+  m_swerveController.ResetFF();
 
   m_autoChooser.ProcessChoosers(false);
   m_auto.AutoInit();
