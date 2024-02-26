@@ -136,6 +136,7 @@ void Robot::RobotPeriodic()
   // ZERO DRIVEBASE
   if (m_controller.getPressedOnce(ZERO_YAW))
   {
+    m_driveZeroed = true;
     m_navx->Reset();
     m_navx->ZeroYaw();
     m_odom.Reset();
@@ -211,6 +212,7 @@ void Robot::AutonomousInit()
   m_odom.Reset();
   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
   m_swerveController.ResetFF();
+  m_driveZeroed = true;
 
   m_autoChooser.ProcessChoosers(false);
   m_auto.AutoInit();
@@ -619,6 +621,7 @@ void Robot::ShuffleboardInit()
   {
     frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
     frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+    frc::SmartDashboard::PutBoolean("Drive Zeroed", m_driveZeroed);
   }
 
   // MANUAL
@@ -689,6 +692,7 @@ void Robot::ShuffleboardPeriodic()
   {
     frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
     frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+    frc::SmartDashboard::PutBoolean("Drive Zeroed", m_driveZeroed);
   }
 
   // TRIM
