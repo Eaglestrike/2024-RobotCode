@@ -108,13 +108,13 @@ void Pivot::CoreTeleopPeriodic(){
                     state_ = AT_TARGET; //At target due to tolerances
                 }
                 else{
-                    // profile_.regenerate(currPose_);
+                    profile_.regenerate(currPose_);
                 }
             }
             if (state_ == AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
-                    // profile_.regenerate(currPose_);
-                    // state_ = AIMING;
+                    profile_.regenerate(currPose_);
+                    state_ = AIMING;
                 }
             }
 
@@ -227,6 +227,16 @@ Poses::Pose1D Pivot::GetRelPose(){
 bool Pivot::AtTarget(){
     //std::cout<<"Pivot: "<<StateToString(state_)<<std::endl;
     return (state_ == AT_TARGET);
+}
+
+/**
+ * Sets positon tolerance
+ * 
+ * internally changes vel tol
+*/
+void Pivot::SetTolerance(double posTol){
+    posTol_ = posTol;
+    velTol_ = posTol * (ShooterConstants::PIVOT_VEL_TOL / ShooterConstants::PIVOT_POS_TOL); //Scale vel tol by how pos tol scales
 }
 
 /**

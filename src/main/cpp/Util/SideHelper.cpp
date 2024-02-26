@@ -1,10 +1,12 @@
 #include "Util/SideHelper.h"
 
 #include <cmath>
+#include <iostream>
 #include <regex>
 
 #include <frc/DriverStation.h>
 
+#include "Constants/AutoConstants.h"
 #include "Constants/AutoLineupConstants.h"
 #include "Constants/FieldConstants.h"
 #include "Util/Utils.h"
@@ -123,16 +125,16 @@ AutoConstants::StartPose SideHelper::GetStartingPose(int idx) {
 /**
  * Gets starting positions from string
  * 
- * @param pos Starting position, either "Left", "Middle", "Right," converts to correct starting position no matter which side
+ * @param pos Starting position, either "LeftStart", "MiddleStart", "RightStart," converts to correct starting position no matter which side
  * 
  * @returns Start pose
 */
 AutoConstants::StartPose SideHelper::GetStartingPose(std::string pos) {
   int idx = 1;
 
-  if (pos == "Left") {
+  if (pos == AutoConstants::L_START) {
     idx = 0;
-  } else if (pos == "Right") {
+  } else if (pos == AutoConstants::R_START) {
     idx = 2;
   }
 

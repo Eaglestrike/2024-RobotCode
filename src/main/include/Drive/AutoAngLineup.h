@@ -27,6 +27,8 @@ public:
 
     AutoAngLineup(bool shuffleboard, Odometry &odom);
 
+    double GetTargAng() const;
+    double GetExpAng() const;
     double GetAngVel() const;
     ExecuteState GetState() const;
 

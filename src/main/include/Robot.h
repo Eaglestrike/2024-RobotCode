@@ -24,6 +24,7 @@
 #include "Drive/SwerveControl.h"
 #include "Climb/Climb.h"
 #include "Intake/Intake.h"
+#include "Util/LED.h"
 #include "Util/Logger.h"
 #include "Util/Odometry.h"
 #include "Util/SocketClient.h"
@@ -88,6 +89,7 @@ class Robot : public frc::TimedRobot {
     Odometry m_odom;
     frc::Field2d m_field;
     std::string m_prevSelectedStart = "";
+    bool m_prevIsBlue = true;
 
     // auto lineup
     AutoAngLineup m_autoLineup;
@@ -106,8 +108,13 @@ class Robot : public frc::TimedRobot {
     bool m_wristManual = false;
     bool m_climbManual = false;
     bool m_eject = false;
+    int m_posVal = 0;
 
     // zerored states
     bool m_intakeZeroed = false;
     bool m_climbZeroed = false;
+
+    // LED
+    LED m_led;
+
 };

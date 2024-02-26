@@ -6,6 +6,7 @@
 
 #include "ShuffleboardSender/ShuffleboardSender.h"
 #include "Util/Logger.h"
+#include "Util/IOThread.h"
 #include "Constants/IntakeConstants.h"
 
 #include "Intake/Wrist.h"
@@ -89,7 +90,7 @@ class Intake: public Mechanism{
         HALF_STOWED_POS = 1.0,
         INTAKE_POS = -0.69, 
         PASSTHROUGH_POS = -0.64,
-        AMP_OUT_POS = 1.464; // 1.26 
+        AMP_OUT_POS = 1.55; // 1.26 
 
         double INTAKE_WAIT_s = 0.0;
         double AMP_WAIT_s = 0.0;
@@ -100,8 +101,9 @@ class Intake: public Mechanism{
 
         double m_manualVolts = 0;
 
-        frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
-        frc::DigitalInput m_beamBreak2{IntakeConstants::BEAM_BREAK2_ID};
+        // frc::DigitalInput m_beamBreak1{IntakeConstants::BEAM_BREAK1_ID};
+        // frc::DigitalInput m_beamBreak2{IntakeConstants::BEAM_BREAK2_ID};
+        IOThread m_iothread;
 
         ShuffleboardSender m_shuff;
 };
