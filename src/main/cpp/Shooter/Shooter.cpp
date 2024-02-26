@@ -42,11 +42,6 @@ void Shooter::CoreTeleopPeriodic(){
     switch(state_){
         case STOP:
             break;
-        case LOADPIECE:
-            if(hasPiece_ && hasShot_){
-                SetUp(shot_.vel, spin_, shot_.ang); //Reload
-            }
-            break;
         case SHOOT:
             if((!hasPiece_) && (Utils::GetCurTimeS() - shootTimer_ > shootTimer_)){
                 hasShot_ = false;
@@ -55,6 +50,10 @@ void Shooter::CoreTeleopPeriodic(){
             break;
         case STROLL:
             Stroll();
+            break;
+        case MANUAL_TARGET:
+            break;
+        case EJECT:
             break;
         default:
             break;
@@ -74,6 +73,8 @@ void Shooter::CoreTeleopPeriodic(){
 
 /**
  * Turns off (no voltage)
+ * 
+ * (only used for testing)
 */
 void Shooter::Stop(){
     lflywheel_.Stop();
@@ -130,15 +131,29 @@ void Shooter::BringDown(){
 /**
  * Sets the pivot to a position
  * 
- * also reverses flywheels
+ * also reverses flywheels if not ejecting
 */
 void Shooter::ManualTarget(double target){
     pivot_.SetAngle(target);
     
-    lflywheel_.SetVoltage(-strollSpeed_);
-    rflywheel_.SetVoltage(-strollSpeed_);
-    
-    state_ = MANUAL_TARGET;
+    if(state_ != EJECT){
+        lflywheel_.SetVoltage(-strollSpeed_);
+        rflywheel_.SetVoltage(-strollSpeed_);
+        
+        state_ = MANUAL_TARGET;
+    }
+}
+
+/**
+ * Ejects the game piece at low speed
+ * 
+ * only controls the flywheels
+*/
+void Shooter::Eject(){
+    lflywheel_.SetVoltage(strollSpeed_);
+    rflywheel_.SetVoltage(strollSpeed_);
+
+    state_ = EJECT;
 }
 
 /**
@@ -422,7 +437,6 @@ Shooter::IKRes Shooter::CalculateInverseKinematics(vec::Vector2D target){
 std::string Shooter::StateToString(State state){
     switch(state){
         case STOP: return "Stop";
-        case LOADPIECE: return "Load Piece";
         case SHOOT: return "Shoot";
         case STROLL: return "Stroll";
         default: return "Unknown";

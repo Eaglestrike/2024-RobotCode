@@ -384,6 +384,7 @@ void Robot::TeleopPeriodic()
   if (m_controller.getPressed(MANUAL_EJECT_IN) || m_controller.getPressed(MANUAL_EJECT_OUT))
   {
     m_eject = true;
+    m_shooter.Eject();
     if (m_controller.getPressed(MANUAL_EJECT_IN) && m_controller.getPressed(MANUAL_EJECT_OUT))
     {
       m_intake.EjectSplit();
@@ -401,6 +402,7 @@ void Robot::TeleopPeriodic()
   {
     m_eject = false;
     m_intake.EjectStop();
+    m_shooter.Stroll();
   }
 
   // climb
