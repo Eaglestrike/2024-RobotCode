@@ -29,7 +29,7 @@ Robot::Robot() :
   m_swerveController{true, false},
   m_intake{true, false},
   m_climb{true, false},
-  m_shooter{"Shooter", true, true},
+  m_shooter{"Shooter", true, false},
   //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
@@ -91,9 +91,9 @@ Robot::Robot() :
       m_isSecondTag = false;
     } },
               5_ms, 2_ms);
-  AddPeriodic([&]()
-              { m_led.LEDPeriodic(); },
-              50_ms);
+  // AddPeriodic([&]()
+  //             { m_led.LEDPeriodic(); },
+  //             50_ms);
 }
 
 void Robot::RobotInit()
@@ -200,6 +200,12 @@ void Robot::AutonomousInit()
   m_odom.SetAuto(true);
   m_swerveController.SetAngCorrection(false);
   m_swerveController.SetAutoMode(true);
+
+  // zero
+  m_intake.Zero();
+  m_climb.Zero();
+  m_climbZeroed = true;
+  m_intakeZeroed = true;
 
   m_autoChooser.ProcessChoosers(false);
   m_auto.AutoInit();
@@ -679,6 +685,12 @@ void Robot::ShuffleboardPeriodic()
   {
     frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
     frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+  }
+
+  // TRIM
+  {
+    frc::SmartDashboard::PutNumber("Trim X", m_shooter.GetTrim().x());
+    frc::SmartDashboard::PutNumber("Trim Y", m_shooter.GetTrim().y());
   }
 
   // MANUAL

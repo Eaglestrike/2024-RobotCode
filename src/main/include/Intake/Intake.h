@@ -90,7 +90,7 @@ class Intake: public Mechanism{
         HALF_STOWED_POS = 1.0,
         INTAKE_POS = -0.69, 
         PASSTHROUGH_POS = -0.64,
-        AMP_OUT_POS = 1.464; // 1.26 
+        AMP_OUT_POS = 1.55; // 1.26 
 
         double INTAKE_WAIT_s = 0.0;
         double AMP_WAIT_s = 0.0;

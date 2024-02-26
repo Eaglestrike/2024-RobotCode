@@ -75,9 +75,6 @@ class Robot : public frc::TimedRobot {
     // Shooter
     Shooter m_shooter;
 
-    // LED
-    LED m_led;
-
     // Jetson
     #if SWERVE_AUTOTUNING
     FFAutotuner m_swerveXTuner{"Swerve X", FFAutotuner::SIMPLE}; //0.1833, 1.455, 0.1410
@@ -116,4 +113,8 @@ class Robot : public frc::TimedRobot {
     // zerored states
     bool m_intakeZeroed = false;
     bool m_climbZeroed = false;
+
+    // LED
+    LED m_led;
+
 };

@@ -8,6 +8,7 @@
 #include "Constants/FieldConstants.h"
 #include "Constants/OdometryConstants.h"
 #include "Util/Utils.h"
+#include "Util/SideHelper.h"
 
 /**
  * Constructor
@@ -284,6 +285,12 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   // filter out bad IDs
   if (tagId < 1 || tagId > 16) {
     // std::cout << "bad ID" << std::endl;
+    return;
+  }
+
+  // filter out IDs on the other side of the field
+  if ((SideHelper::IsBlue() && FieldConstants::BLUE_TAGS.find(tagId) == FieldConstants::BLUE_TAGS.end()) || (!SideHelper::IsBlue() && FieldConstants::RED_TAGS.find(tagId) == FieldConstants::RED_TAGS.end())) {
+    // std::cout << "other side of field" << std::endl;
     return;
   }
 

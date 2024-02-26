@@ -1,5 +1,7 @@
 #pragma once
 
+#include <set>
+
 #include "Util/simplevectors.hpp"
 
 
@@ -29,8 +31,11 @@ namespace FieldConstants {
   // units are in INCHES
   const double FIELD_WIDTH = 651.23;
   const double FIELD_HEIGHT = 323.00;
-  const double FIELD_MARGIN = 20.0;
+  const double FIELD_MARGIN = 50.0;
 
   // speaker location
   const vec::Vector2D BLUE_SPEAKER = {-0.1, 5.79};
+
+  const std::set<int> BLUE_TAGS = {6, 7, 8, 9, 10, 14, 15, 16};
+  const std::set<int> RED_TAGS = {1, 2, 3, 4, 5, 11, 12, 13};
 }

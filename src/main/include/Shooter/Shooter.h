@@ -48,6 +48,7 @@ class Shooter : public Mechanism{
 
         bool CanShoot(int posVal = 0);
         bool UseAutoLineup();
+        vec::Vector2D GetTrim();
 
         double GetTargetRobotYaw();
 
