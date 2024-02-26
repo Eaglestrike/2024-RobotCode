@@ -367,6 +367,7 @@ void Robot::TeleopPeriodic()
     m_wristManual = false;
   }
 
+  //Shooter Manual
   double shooterManualPos = m_controller.getValueOnce(ControllerMapData::SHOOT_MANUAL, -10000.0);
   if (shooterManualPos != -10000.0)
   {

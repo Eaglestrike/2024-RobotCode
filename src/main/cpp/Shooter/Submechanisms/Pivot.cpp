@@ -21,13 +21,12 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
 
     motor_{ShooterConstants::PIVOT_ID},
     motorChild_{ShooterConstants::PIVOT_CHILD_ID},
-    //follower_{ShooterConstants::PIVOT_ID, true},
-    gearing_{ShooterConstants::PIVOT_GEARING},
     volts_{0.0},
     maxVolts_{ShooterConstants::PIVOT_MAX_VOLTS},
 
     encoder_{ShooterConstants::PIVOT_ENCODER_ID, ShooterConstants::SHOOTER_CANBUS},
     offset_{ShooterConstants::PIVOT_OFFSET},
+    gearing_{ShooterConstants::PIVOT_GEARING},
 
     bounds_{
         .min = ShooterConstants::PIVOT_MIN,
@@ -60,6 +59,8 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
 
 void Pivot::CoreInit(){
     ZeroRelative();
+    double midWay = (bounds_.min + bounds_.max)/2.0;
+    profile_.setTarget({midWay, 0.0, 0.0}, {midWay, 0.0, 0.0});
 }
 
 /**
@@ -87,9 +88,6 @@ void Pivot::CoreTeleopPeriodic(){
             volts_ = 0.0;
             break;
         case AIMING:
-            // if(profile_.isFinished()){ //Enable if profile is good but tolerances are bad
-            //     state_ = AT_TARGET;
-            // }
             [[fallthrough]];
         case AT_TARGET:
         {
@@ -103,7 +101,7 @@ void Pivot::CoreTeleopPeriodic(){
             volts_ = ff + pid;
 
             bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
-            if(state_ == AIMING && profile_.isFinished()){ //if case deal with fallthrough
+            if(state_ == AIMING && profile_.isFinished()){ //if case to deal with fallthrough
                 if(atTarget){
                     state_ = AT_TARGET; //At target due to tolerances
                 }
@@ -192,6 +190,7 @@ void Pivot::SetVoltage(double volts){
 */
 void Pivot::Zero(){
     offset_ = 2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + bounds_.min;
+    ZeroRelative();
 }
 
 /**
@@ -282,12 +281,12 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("acc", &currPose_.acc, {1,1,6,1}, false);
     shuff_.add("volts", &volts_, {1,1,4,2}, false);
     shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
-    shuff_.addButton("zero rel", [&](){ZeroRelative(); std::cout<<"Zeroed Rel"<<std::endl;}, {1,1,7,2});
+    //shuff_.addButton("zero rel", [&](){ZeroRelative(); std::cout<<"Zeroed Rel"<<std::endl;}, {1,1,7,2});
 
-    shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
-    shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
-    shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
-    shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
+    // shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
+    // shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
+    // shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
+    // shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
 
     //Bounds (middle-bottom)
     shuff_.add("min", &bounds_.min, {1,1,4,4}, true);

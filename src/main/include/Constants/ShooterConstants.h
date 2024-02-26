@@ -134,7 +134,7 @@ namespace ShooterConstants{
     const double LINEUP_YAW_PERCENT = 0.5;
     const double PIVOT_ANG_PERCENT = 0.8;
 
-    //Kinematics calc (Field Data)
+    //Field Data
 
     //Speaker center positions (x, y)
     const vec::Vector2D RED_SPEAKER = {17.0, 5.58};

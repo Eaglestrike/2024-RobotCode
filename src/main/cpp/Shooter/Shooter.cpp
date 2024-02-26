@@ -4,8 +4,8 @@
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
     state_{STOP},
-    lflywheel_{ShooterConstants::LEFT_FLYWHEEL, enabled, shuffleboard},
-    rflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, shuffleboard},
+    lflywheel_{ShooterConstants::LEFT_FLYWHEEL, enabled, false},
+    rflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, false},
     pivot_{"Pivot", enabled, shuffleboard},
     shuff_{name, shuffleboard}
 
@@ -95,13 +95,12 @@ void Shooter::Stroll(){
         return;
     }
 
-    vec::Vector2D toSpeaker;
-    if(SideHelper::IsBlue()){
-        toSpeaker = ShooterConstants::BLUE_SPEAKER - robotPos_;
-    }
-    else{
-        toSpeaker = ShooterConstants::RED_SPEAKER - robotPos_;
-    }
+    bool blueSpeaker = SideHelper::IsBlue();
+    vec::Vector2D speaker = blueSpeaker? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
+    vec::Vector2D trim{trim_.y(), trim_.x()};
+    trim *= (blueSpeaker? 1.0: -1.0);
+
+    vec::Vector2D toSpeaker = speaker - targetPos_ + trim;
 
     double dist = toSpeaker.magn();
 
@@ -114,7 +113,7 @@ void Shooter::Stroll(){
         lflywheel_.SetVoltage(strollSpeed_);
         rflywheel_.SetVoltage(strollSpeed_);
     }
-    //pivot_.Stop();
+
     state_ = STROLL;
 }
 
@@ -321,7 +320,6 @@ bool Shooter::CanShoot(int posVal){
             yawError = 0;
         }
     }
-
 
     bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
     bool canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
