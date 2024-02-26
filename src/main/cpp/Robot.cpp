@@ -91,9 +91,9 @@ Robot::Robot() :
       m_isSecondTag = false;
     } },
               5_ms, 2_ms);
-  AddPeriodic([&]()
-              { m_led.LEDPeriodic(); },
-              50_ms);
+  // AddPeriodic([&]()
+  //             { m_led.LEDPeriodic(); },
+  //             50_ms);
 }
 
 void Robot::RobotInit()
@@ -684,6 +684,12 @@ void Robot::ShuffleboardPeriodic()
   {
     frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
     frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+  }
+
+  // TRIM
+  {
+    frc::SmartDashboard::PutNumber("Trim X", m_shooter.GetTrim().x());
+    frc::SmartDashboard::PutNumber("Trim Y", m_shooter.GetTrim().y());
   }
 
   // MANUAL

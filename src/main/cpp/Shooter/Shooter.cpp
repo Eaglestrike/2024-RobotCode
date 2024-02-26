@@ -155,7 +155,8 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
 
     //Speaker targetting
     vec::Vector2D speaker = blueSpeaker? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
-    vec::Vector2D trim{0.0, trim_.x() * (blueSpeaker? 1.0: -1.0)};
+    vec::Vector2D trim{trim_.y(), trim_.x()};
+    trim *= (blueSpeaker? 1.0: -1.0);
 
     vec::Vector2D toSpeaker = speaker - targetPos_ + trim;
 
@@ -351,6 +352,13 @@ bool Shooter::UseAutoLineup(){
 */
 double Shooter::GetTargetRobotYaw(){
     return targetYaw_;
+}
+
+/**
+ * get trim
+*/
+vec::Vector2D Shooter::GetTrim() {
+    return trim_;
 }
 
 /**
