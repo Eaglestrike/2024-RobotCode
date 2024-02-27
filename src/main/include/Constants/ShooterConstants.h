@@ -19,6 +19,12 @@ namespace ShooterConstants{
         double kg = 0.0;
     };
 
+    struct Incher{
+        double volts;
+        int onCycles;
+        int numCycles;
+    };
+
     const std::string SHOOTER_CANBUS = "";
 
     //Flywheel Constants
@@ -87,6 +93,13 @@ namespace ShooterConstants{
         .ka = 0.0352,
         .kg = 0.36
     };
+
+    const Incher PIVOT_INCH = {
+        .volts = 3.0,
+        .onCycles = 11,
+        .numCycles = 20
+    };
+    const double PIVOT_INCH_TOL = 0.03;
 
     const double PIVOT_MAX_V = 2.0;
     const double PIVOT_MAX_A = 3.0;
