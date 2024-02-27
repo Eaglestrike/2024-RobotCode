@@ -117,7 +117,7 @@ namespace ShooterConstants{
     //distance-> ang, vel
         {0.0,   {1.07,  17.0}}, //0 distance shot (used just for interpolation)
         {1.32,  {1.05,  17.0}},
-        {1.55,  {1.02,   17.0}},
+        {1.55,  {1.02,  17.0}},
         {1.7,   {0.90,  17.0}}, // bad
         {1.857, {0.86,  17.0}}, // too low
         {1.97,  {0.83,  17.0}}, // too low
@@ -129,7 +129,7 @@ namespace ShooterConstants{
         {4.14,  {0.54,  19.0}},
         {4.40,  {0.52,  19.0}},
         {4.47,  {0.51,  19.0}},
-        {5.461, {0.43,  19.0}}
+        {5.461, {0.45,  19.0}}
     };
 
     const double K_SPIN = 0.0; //Constant of how much the robot spins the note
