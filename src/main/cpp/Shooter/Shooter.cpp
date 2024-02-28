@@ -4,8 +4,8 @@
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
     state_{STOP},
-    lflywheel_{ShooterConstants::LEFT_FLYWHEEL, enabled, false},
-    rflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, false},
+    bflywheel_{ShooterConstants::BOTTOM_FLYWHEEL, enabled, shuffleboard},
+    tflywheel_{ShooterConstants::TOP_FLYWHEEL, enabled, shuffleboard},
     pivot_{"Pivot", enabled, shuffleboard},
     shuff_{name, shuffleboard}
 
@@ -21,8 +21,8 @@ Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
 */
 
 void Shooter::CoreInit(){
-    lflywheel_.Init();
-    rflywheel_.Init();
+    bflywheel_.Init();
+    tflywheel_.Init();
     pivot_.Init();
 }
 
@@ -33,8 +33,8 @@ void Shooter::CorePeriodic(){
     pivotTuner_.ShuffleboardUpdate();
     #endif
 
-    lflywheel_.Periodic();
-    rflywheel_.Periodic();
+    bflywheel_.Periodic();
+    tflywheel_.Periodic();
     pivot_.Periodic();
 }
 
@@ -43,10 +43,12 @@ void Shooter::CoreTeleopPeriodic(){
         case STOP:
             break;
         case SHOOT:
-            if((!hasPiece_) && (Utils::GetCurTimeS() - shootTimer_ > shootTimer_)){
+            if((!hasPiece_) && (Utils::GetCurTimeS() - timerStart_ > shootTime_)){
                 hasShot_ = false;
                 Stroll(); //Stroll after shooting (not seeing piece for some time)
             }
+            break;
+        case AMP:
             break;
         case STROLL:
             Stroll();
@@ -66,8 +68,8 @@ void Shooter::CoreTeleopPeriodic(){
     }
     #endif
 
-    lflywheel_.TeleopPeriodic();
-    rflywheel_.TeleopPeriodic();
+    bflywheel_.TeleopPeriodic();
+    tflywheel_.TeleopPeriodic();
     pivot_.TeleopPeriodic();
 }
 
@@ -77,8 +79,8 @@ void Shooter::CoreTeleopPeriodic(){
  * (only used for testing)
 */
 void Shooter::Stop(){
-    lflywheel_.Stop();
-    rflywheel_.Stop();
+    bflywheel_.Stop();
+    tflywheel_.Stop();
     pivot_.Stop();
     state_ = STOP;
 }
@@ -91,8 +93,7 @@ void Shooter::Stroll(){
         return;
     }
 
-    if(!hasPiece_){
-        BringDown();
+    if((state_ == AMP) && hasPiece_){ //Don't exit amp
         return;
     }
 
@@ -106,26 +107,23 @@ void Shooter::Stroll(){
     double dist = toSpeaker.magn();
 
     pivot_.SetAngle(0.7);
-    if(dist < 6.0){
-        lflywheel_.SetTarget(15.0);
-        rflywheel_.SetTarget(15.0);
+    if(dist < 6.0 && hasPiece_){
+        bflywheel_.SetTarget(15.0);
+        tflywheel_.SetTarget(15.0);
     }
     else{
-        lflywheel_.SetVoltage(strollSpeed_);
-        rflywheel_.SetVoltage(strollSpeed_);
+        bflywheel_.SetVoltage(strollSpeed_);
+        tflywheel_.SetVoltage(strollSpeed_);
     }
-
     state_ = STROLL;
 }
 
-/**
- * Sets pivot down to intake into shooter
-*/
-void Shooter::BringDown(){
-    pivot_.SetAngle(pivotIntake_);
-    
-    lflywheel_.SetVoltage(strollSpeed_);
-    rflywheel_.SetVoltage(strollSpeed_);  
+void Shooter::Amp(){
+    if(!hasPiece_){
+        return;
+    }
+    SetUp(ShooterConstants::FLYWHEEL_SPEED_AMP, ShooterConstants::FLYWHEEL_SPIN_AMP, ShooterConstants::PIVOT_AMP);
+    state_ = AMP;
 }
 
 /**
@@ -162,6 +160,10 @@ void Shooter::Eject(){
  * @param toSpeaker field-oriented vector to the speaker 
 */
 void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
+    if(!hasPiece_){
+        return;
+    }
+
     state_ = SHOOT;
     targetPos_ = robotPos;
     targetVel_ = {0.0, 0.0};
@@ -234,11 +236,6 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     targetYaw_ = static_cast<vec::Vector2D>((toSpeaker - (robotVel*t))).angle();
     **/
 
-    if(!hasPiece_){
-        Stroll();
-        return;
-    }
-
     auto shot = shootData_.lower_bound(dist);
     if(shot == shootData_.begin() || shot == shootData_.end()){ //No shot in data (too far or too close)
         //Check functionality (maybe idle at some distance)
@@ -274,9 +271,6 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     double spin = -angToSpeaker * kSpin_; //Spin opposite to way pointing
 
     SetUp(shotVel, spin, pivotAng);
-    if(!hasPiece_){
-        BringDown();
-    }
 }
 
 /**
@@ -285,7 +279,7 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
 void Shooter::SetGamepiece(bool hasPiece){
     hasPiece_ = hasPiece;
     if(hasPiece){
-        shootTimer_ = Utils::GetCurTimeS(); //Zero timer whenever have piece (timer starts when switches off)
+        timerStart_ = Utils::GetCurTimeS(); //Zero timer whenever have piece (timer starts when switches off)
     }
 }
 
@@ -299,8 +293,8 @@ void Shooter::SetUp(double vel, double spin, double pivot){
     shot_.ang = pivot;
     spin_ = spin;
 
-    lflywheel_.SetTarget(vel - spin);
-    rflywheel_.SetTarget(vel + spin);
+    bflywheel_.SetTarget(vel - spin);
+    tflywheel_.SetTarget(vel + spin);
     pivot_.SetAngle(pivot);
 
     state_ = SHOOT;
@@ -318,40 +312,39 @@ void Shooter::Trim(vec::Vector2D trim){
  * Returns if you can shoot
 */
 bool Shooter::CanShoot(int posVal){
-    if(state_ != SHOOT){
+    bool canShoot = false;
+    if(state_ == SHOOT){ //Can only shoot within target
+        double posError = (targetPos_ - robotPos_).magn();
+        double velError = (targetVel_ - robotVel_).magn();
+        double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
+
+        if ((posVal != 0)) {
+            posError = 0;
+            velError = 0;
+            if ((posVal == 3)) {
+                yawError = 0;
+            }
+        }
+
+        bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
+        canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
+
         if(shuff_.isEnabled()){
-            shuff_.PutBoolean("Can Shoot", false);
-        }
-        return false;
-    }
-    //Can only shoot within target
-    double posError = (targetPos_ - robotPos_).magn();
-    double velError = (targetVel_ - robotVel_).magn();
-    double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
-
-    if (posVal != 0) {
-        posError = 0;
-        velError = 0;
-        if (posVal == 3) {
-            yawError = 0;
+            shuff_.PutNumber("Pos Error", posError, {1,1,8,2});
+            shuff_.PutNumber("Vel Error", velError, {1,1,9,2});
+            shuff_.PutNumber("Yaw Error", yawError, {1,1,10,2});
+            
+            shuff_.PutBoolean("lfly at targ", bflywheel_.AtTarget(), {1,1,8,3});
+            shuff_.PutBoolean("rfly at targ", tflywheel_.AtTarget(), {1,1,9,3});
+            shuff_.PutBoolean("pivot at targ", pivot_.AtTarget(), {1,1,10,3});
         }
     }
-
-    bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
-    bool canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
-    if(shuff_.isEnabled()){
-        shuff_.PutNumber("Pos Error", posError, {1,1,8,2});
-        shuff_.PutNumber("Vel Error", velError, {1,1,9,2});
-        shuff_.PutNumber("Yaw Error", yawError, {1,1,10,2});
-        
-        shuff_.PutBoolean("lfly at targ", lflywheel_.AtTarget(), {1,1,8,3});
-        shuff_.PutBoolean("rfly at targ", rflywheel_.AtTarget(), {1,1,9,3});
-        shuff_.PutBoolean("pivot at targ", pivot_.AtTarget(), {1,1,10,3});
-
-        shuff_.PutBoolean("Can Shoot", canShoot);
+    else if (state_ == AMP) {
+        canShoot = true;
     }
+
     //Return if everything's prepared
-    return canShoot && lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget();
+    return canShoot && bflywheel_.AtTarget() && tflywheel_.AtTarget() && pivot_.AtTarget();
 }
 
 bool Shooter::UseAutoLineup(){
@@ -438,6 +431,7 @@ std::string Shooter::StateToString(State state){
     switch(state){
         case STOP: return "Stop";
         case SHOOT: return "Shoot";
+        case AMP: return "Amp";
         case STROLL: return "Stroll";
         default: return "Unknown";
     }
@@ -492,7 +486,7 @@ void Shooter::CoreShuffleboardInit(){
     //         shootData_.insert_or_assign({distance, {vel, pivot}});
     //         std::cout<<"Added distance:"<<distance<<" vel:"<<vel<<" pivot:"<<pivot<<std::endl;
     //     }, {1,1,4,2});
-    shuff_.add("Shoot timer", &shootTimer_, {1,1,5,2}, true);
+    shuff_.add("Shoot time", &shootTime_, {1,1,5,2}, true);
 
     //Shot data (row 3)
     shuff_.add("kSpin", &kSpin_, {1,1,0,3}, true);
@@ -523,8 +517,8 @@ void Shooter::CoreShuffleboardPeriodic(){
     // shuff_.PutString("Shot Error", fk.error.toString());
 
     shuff_.update(true);
-
-    CanShoot(false);
+    
+    shuff_.PutBoolean("Can Shoot", CanShoot(0));
 
     #if PIVOT_AUTO_TUNE
     pivotTuner_.ShuffleboardUpdate();

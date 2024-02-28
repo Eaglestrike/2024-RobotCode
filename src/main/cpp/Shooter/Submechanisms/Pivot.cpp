@@ -59,8 +59,9 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
 
 void Pivot::CoreInit(){
     ZeroRelative();
-    double midWay = (bounds_.min + bounds_.max)/2.0;
-    profile_.setTarget({midWay, 0.0, 0.0}, {midWay, 0.0, 0.0});
+
+    currPose_ = GetAbsPose();
+    profile_.setTarget(currPose_, currPose_);
 }
 
 /**

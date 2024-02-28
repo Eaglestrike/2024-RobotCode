@@ -29,7 +29,7 @@ Robot::Robot() :
   m_swerveController{true, false},
   m_intake{true, false},
   m_climb{true, false},
-  m_shooter{"Shooter", true, false},
+  m_shooter{"Shooter", true, true},
   //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
@@ -136,6 +136,7 @@ void Robot::RobotPeriodic()
   // ZERO DRIVEBASE
   if (m_controller.getPressedOnce(ZERO_YAW))
   {
+    m_driveZeroed = true;
     m_navx->Reset();
     m_navx->ZeroYaw();
     m_odom.Reset();
@@ -206,6 +207,12 @@ void Robot::AutonomousInit()
   m_climb.Zero();
   m_climbZeroed = true;
   m_intakeZeroed = true;
+  m_navx->Reset();
+  m_navx->ZeroYaw();
+  m_odom.Reset();
+  m_swerveController.ResetAngleCorrection(m_odom.GetAng());
+  m_swerveController.ResetFF();
+  m_driveZeroed = true;
 
   m_autoChooser.ProcessChoosers(false);
   m_auto.AutoInit();
@@ -286,53 +293,45 @@ void Robot::TeleopPeriodic()
 
     //Shooting
     if (m_controller.getPressed(SHOOT)){
-      if (m_amp) {
-        m_intake.AmpOuttake(); //Shoot into amp
-      } else {
-        if(m_intake.HasGamePiece()){
-          if (m_posVal == 0) {
-            m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
+      if(m_intake.HasGamePiece()){
+        if (!m_amp) {
+          if (m_posVal != 3) {
             m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
           } else {
-            vec::Vector2D manualLineupPos = SideHelper::GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[m_posVal - 1]);
-            m_shooter.Prepare(manualLineupPos, {0, 0}, SideHelper::IsBlue());
-            if (m_posVal != 3) {
-              m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
-            } else {
-              m_autoLineup.Recalc(m_odom.GetAngNorm());
-            }
-            // m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
-            // m_autoLineup.Start();
-          }
-          if(m_shooter.CanShoot(m_posVal)){
-            m_intake.FeedIntoShooter();
+            m_autoLineup.Recalc(m_odom.GetAngNorm());
           }
         }
-        else
-        {
+        if(m_shooter.CanShoot(m_posVal)){
           m_intake.FeedIntoShooter();
-          m_shooter.BringDown();
         }
+      }
+      else
+      {
+        m_intake.FeedIntoShooter();
       }
     }
     else if (m_controller.getPressed(INTAKE))
     {
-      if (m_amp)
-        m_intake.AmpIntake();
-      else
-      {
-        m_intake.Passthrough();
-        m_shooter.BringDown();
-      }
+      m_intake.Passthrough();
+      m_shooter.Stroll();
     }
     else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece())
     {
       m_intake.Stow();
-      m_shooter.Stroll();
     }
-    else
-    {
-      m_shooter.Stroll();
+  }
+
+  //Shooter config
+  if(m_amp){
+    m_shooter.Amp();
+  }
+  else{
+    if(m_posVal == 0){
+      m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
+    }
+    else{
+      vec::Vector2D manualLineupPos = SideHelper::GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[m_posVal - 1]); //Manual positions
+      m_shooter.Prepare(manualLineupPos, {0, 0}, SideHelper::IsBlue());
     }
   }
 
@@ -617,6 +616,7 @@ void Robot::ShuffleboardInit()
   {
     frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
     frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+    frc::SmartDashboard::PutBoolean("Drive Zeroed", m_driveZeroed);
   }
 
   // MANUAL
@@ -687,6 +687,7 @@ void Robot::ShuffleboardPeriodic()
   {
     frc::SmartDashboard::PutBoolean("Intake Zeroed", m_intakeZeroed);
     frc::SmartDashboard::PutBoolean("Climb Zeroed", m_climbZeroed);
+    frc::SmartDashboard::PutBoolean("Drive Zeroed", m_driveZeroed);
   }
 
   // TRIM

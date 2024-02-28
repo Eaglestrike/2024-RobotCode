@@ -17,7 +17,8 @@ Odometry::Odometry(const bool &shuffleboard) :
   m_shuffleboard{shuffleboard}, m_curAng{0}, m_startAng{0}, m_angVel{0},
   m_curYaw{0}, m_joystickAng{0}, 
   m_prevDriveTime{Utils::GetCurTimeS()}, m_estimator{OdometryConstants::SYS_STD_DEV_AUTO},
-  m_uniqueId{-1000}, m_prevCamTime{-1000}, m_camStdDevCoef{OdometryConstants::CAM_STD_DEV_COEF_AUTO} {}
+  m_uniqueId{-1000}, m_prevCamTime{-1000}, m_camStdDevCoef{OdometryConstants::CAM_STD_DEV_COEF_AUTO},
+  m_trustCamsMore{false} {}
 
 /**
  * Sets starting configuration, then resets position.
@@ -43,9 +44,11 @@ void Odometry::SetAuto(const bool &autoMode) {
   if (autoMode) {
     m_camStdDevCoef = OdometryConstants::CAM_STD_DEV_COEF_AUTO;
     m_estimator.SetQ(OdometryConstants::SYS_STD_DEV_AUTO);
+    m_trustCamsMore = false;
   } else {
     m_camStdDevCoef = OdometryConstants::CAM_STD_DEV_COEF_TELE;
     m_estimator.SetQ(OdometryConstants::SYS_STD_DEV_TELE);
+    m_trustCamsMore = true;
   }
 }
 
@@ -324,6 +327,10 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
 
   // update cams in pose estimator
   double stdDev = m_camStdDevCoef * magn(vecRot) * magn(vecRot);
+  if (magn(odomPos - robotPosCams) > OdometryConstants::TRUST_CAMS_MORE_THRESH && m_trustCamsMore) {
+    stdDev = 0;
+  }
+
   m_estimator.UpdateCams(camTime, robotPosCams, {stdDev, stdDev});
   m_camPos = robotPosCams;
 

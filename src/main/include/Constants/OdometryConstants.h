@@ -47,6 +47,9 @@ namespace OdometryConstants {
   const double CAM_STD_DEV_COEF_AUTO = 0.01;
   const double CAM_STD_DEV_COEF_TELE = 0.003;
 
+  //
+  const double TRUST_CAMS_MORE_THRESH = 1;
+
   // angular speed above which we use swerve angle, in degrees / sec
   const double USE_SWERVE_ANG_VEL = Utils::DegToRad(5);
 
