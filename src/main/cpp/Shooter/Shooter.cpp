@@ -170,8 +170,8 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
 
     state_ = SHOOT;
     targetPos_ = robotPos;
-    targetVel_ = {0.0, 0.0};
-    //targetVel_ = robotVel;
+    //targetVel_ = {0.0, 0.0};
+    targetVel_ = robotVel;
 
     //Speaker targetting
     vec::Vector2D speaker = blueSpeaker? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
@@ -180,36 +180,9 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
 
     vec::Vector2D toSpeaker = speaker - targetPos_ + trim;
 
-    double dist = toSpeaker.magn();
-    if(shuff_.isEnabled()){
-        shuff_.PutNumber("Shot dist", dist, {1,1,3,3});
-    }
-    targetYaw_ = toSpeaker.angle();
-
-    const std::vector<vec::Vector2D>& speakerBox = blueSpeaker? ShooterConstants::BLUE_SPEAKER_BOX : ShooterConstants::RED_SPEAKER_BOX;
-    posYawTol_ = 0.0;
-    negYawTol_ = 0.0;
-    //Find the min/max angles to shoot into the box
-    for(const vec::Vector2D boxPoint : speakerBox){
-        vec::Vector2D toVertex = boxPoint - targetPos_ + trim;
-        double vertexAng = toVertex.angle();
-
-        double yawDiff = Utils::NormalizeAng(vertexAng - targetYaw_);
-        if(yawDiff > posYawTol_){
-            posYawTol_ = yawDiff;
-        }
-        else if(yawDiff < negYawTol_){
-            negYawTol_ = yawDiff;
-        }
-    }
-    //Multiply by tolerance percent
-    posYawTol_ = std::clamp(posYawTol_, 0.01, M_PI/2.0); //Tol cannot be greater than 90 degrees
-    negYawTol_ = std::clamp(negYawTol_, -M_PI/2.0, -0.01);
-
-    // Shooting while moving
+    // Shooting while moving (modify speaker location)
     // https://www.desmos.com/calculator/5hd2snnrwz
 
-    /**
     double px = toSpeaker.x();
     double py = toSpeaker.y();
 
@@ -237,8 +210,33 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     double dist = (-b-std::sqrt(determinant))/(2.0*a);
     double t = kD*dist + cT;
 
-    targetYaw_ = static_cast<vec::Vector2D>((toSpeaker - (robotVel*t))).angle();
-    **/
+    toSpeaker -= (robotVel*t);
+
+    //double dist = toSpeaker.magn();
+    if(shuff_.isEnabled()){
+        shuff_.PutNumber("Shot dist", dist, {1,1,3,3});
+    }
+    targetYaw_ = toSpeaker.angle();
+
+    const std::vector<vec::Vector2D>& speakerBox = blueSpeaker? ShooterConstants::BLUE_SPEAKER_BOX : ShooterConstants::RED_SPEAKER_BOX;
+    posYawTol_ = 0.0;
+    negYawTol_ = 0.0;
+    //Find the min/max angles to shoot into the box
+    for(const vec::Vector2D boxPoint : speakerBox){
+        vec::Vector2D toVertex = boxPoint - targetPos_ + trim;
+        double vertexAng = toVertex.angle();
+
+        double yawDiff = Utils::NormalizeAng(vertexAng - targetYaw_);
+        if(yawDiff > posYawTol_){
+            posYawTol_ = yawDiff;
+        }
+        else if(yawDiff < negYawTol_){
+            negYawTol_ = yawDiff;
+        }
+    }
+    //Multiply by tolerance percent
+    posYawTol_ = std::clamp(posYawTol_, 0.01, M_PI/2.0); //Tol cannot be greater than 90 degrees
+    negYawTol_ = std::clamp(negYawTol_, -M_PI/2.0, -0.01);
 
     auto shot = shootData_.lower_bound(dist);
     if(shot == shootData_.begin() || shot == shootData_.end()){ //No shot in data (too far or too close)
