@@ -35,6 +35,9 @@ void Flywheel::CorePeriodic(){
 void Flywheel::CoreTeleopPeriodic(){
     double t = Utils::GetCurTimeS();
     double dt = t - prevT_;
+    if(dt > 0.04){
+        dt = 0.0;
+    }
     switch(state_){
         case State::STOP:
             volts_ = 0.0;

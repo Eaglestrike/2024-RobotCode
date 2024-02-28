@@ -46,7 +46,7 @@ class Shooter : public Mechanism{
 
         void Trim(vec::Vector2D trim); //Up/down left/right trim for target
 
-        bool CanShoot(int posVal = 0);
+        bool CanShoot(int posVal = 0, bool amp = false);
         bool UseAutoLineup();
         vec::Vector2D GetTrim();
 
@@ -65,8 +65,8 @@ class Shooter : public Mechanism{
         State state_;
         bool hasPiece_;
 
-        Flywheel lflywheel_;
-        Flywheel rflywheel_;
+        Flywheel bflywheel_;
+        Flywheel tflywheel_;
         Pivot pivot_;
         
         // rev::CANSparkMax m_kickerMotor;
