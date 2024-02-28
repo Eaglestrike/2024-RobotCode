@@ -294,9 +294,7 @@ void Robot::TeleopPeriodic()
     //Shooting
     if (m_controller.getPressed(SHOOT)){
       if(m_intake.HasGamePiece()){
-        if (m_amp) {
-          m_shooter.SetUp(ShooterConstants::FLYWHEEL_SPEED_AMP, ShooterConstants::FLYWHEEL_SPIN_AMP, ShooterConstants::PIVOT_AMP);
-        } else {
+        if (!m_amp) {
           if (m_posVal == 0) {
             m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
             m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
@@ -312,20 +310,20 @@ void Robot::TeleopPeriodic()
             // m_autoLineup.Start();
           }
         }
-        if(m_shooter.CanShoot(m_posVal, m_amp)){
+        if(m_shooter.CanShoot(m_posVal)){
           m_intake.FeedIntoShooter();
         }
       }
       else
       {
         m_intake.FeedIntoShooter();
-        m_shooter.BringDown();
+        m_shooter.Stroll();
       }
     }
     else if (m_controller.getPressed(INTAKE))
     {
       m_intake.Passthrough();
-      m_shooter.BringDown();
+      m_shooter.Stroll();
     }
     else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece())
     {
@@ -336,6 +334,10 @@ void Robot::TeleopPeriodic()
     {
       m_shooter.Stroll();
     }
+  }
+
+  if(m_amp){
+    m_shooter.Amp();
   }
 
   // Manual

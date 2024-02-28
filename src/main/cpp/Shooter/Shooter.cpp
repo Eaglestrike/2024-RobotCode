@@ -42,16 +42,13 @@ void Shooter::CoreTeleopPeriodic(){
     switch(state_){
         case STOP:
             break;
-        case LOADPIECE:
-            if(hasPiece_ && hasShot_){
-                SetUp(shot_.vel, spin_, shot_.ang); //Reload
-            }
-            break;
         case SHOOT:
             if((!hasPiece_) && (Utils::GetCurTimeS() - shootTimer_ > shootTimer_)){
                 hasShot_ = false;
                 Stroll(); //Stroll after shooting (not seeing piece for some time)
             }
+            break;
+        case AMP:
             break;
         case STROLL:
             Stroll();
@@ -90,8 +87,7 @@ void Shooter::Stroll(){
         return;
     }
 
-    if(!hasPiece_){
-        BringDown();
+    if((state_ == AMP) && hasPiece_){
         return;
     }
 
@@ -106,7 +102,7 @@ void Shooter::Stroll(){
     double dist = toSpeaker.magn();
 
     pivot_.SetAngle(0.7);
-    if(dist < 6.0){
+    if(dist < 6.0 && hasPiece_){
         bflywheel_.SetTarget(15.0);
         tflywheel_.SetTarget(15.0);
     }
@@ -114,18 +110,12 @@ void Shooter::Stroll(){
         bflywheel_.SetVoltage(strollSpeed_);
         tflywheel_.SetVoltage(strollSpeed_);
     }
-    //pivot_.Stop();
     state_ = STROLL;
 }
 
-/**
- * Sets pivot down to intake into shooter
-*/
-void Shooter::BringDown(){
-    pivot_.SetAngle(pivotIntake_);
-    
-    bflywheel_.SetVoltage(strollSpeed_);
-    tflywheel_.SetVoltage(strollSpeed_);  
+void Shooter::Amp(){
+    SetUp(ShooterConstants::FLYWHEEL_SPEED_AMP, ShooterConstants::FLYWHEEL_SPIN_AMP, ShooterConstants::PIVOT_AMP);
+    state_ = AMP;
 }
 
 /**
@@ -260,9 +250,6 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     double spin = -angToSpeaker * kSpin_; //Spin opposite to way pointing
 
     SetUp(shotVel, spin, pivotAng);
-    if(!hasPiece_){
-        BringDown();
-    }
 }
 
 /**
@@ -429,7 +416,6 @@ Shooter::IKRes Shooter::CalculateInverseKinematics(vec::Vector2D target){
 std::string Shooter::StateToString(State state){
     switch(state){
         case STOP: return "Stop";
-        case LOADPIECE: return "Load Piece";
         case SHOOT: return "Shoot";
         case STROLL: return "Stroll";
         default: return "Unknown";

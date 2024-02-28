@@ -27,8 +27,8 @@ class Shooter : public Mechanism{
     public:
         enum State{
             STOP,
-            LOADPIECE, //Unused state (because stroll does same thing)
             SHOOT,
+            AMP,
             STROLL, //Set to low speed
             MANUAL_TARGET //Input angles
         };
@@ -37,7 +37,7 @@ class Shooter : public Mechanism{
 
         void Stop();
         void Stroll();
-        void BringDown(); //Intake into shooter
+        void Amp();
         void ManualTarget(double target);
 
         void SetUp(double vel, double spin, double ang);
@@ -74,7 +74,6 @@ class Shooter : public Mechanism{
 
         //Shooter config
         double strollSpeed_ = ShooterConstants::STROLL_SPEED;
-        double pivotIntake_ = ShooterConstants::PIVOT_INTAKE;
         double shootTimer_ = ShooterConstants::SHOOT_TIME;
 
         std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;
