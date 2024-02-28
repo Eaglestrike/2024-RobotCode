@@ -14,6 +14,7 @@ Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     pivotTuner_{"pivot tuner", FFAutotuner::ARM, ShooterConstants::PIVOT_MIN, ShooterConstants::PIVOT_MAX}
     #endif
 {
+    trim_ = {-0.3, -0.075};
 }
 
 /**
@@ -121,6 +122,7 @@ void Shooter::Amp(){
     if(!hasPiece_){
         return;
     }
+    pivot_.SetTolerance(0.02);
     SetUp(ShooterConstants::FLYWHEEL_SPEED_AMP, ShooterConstants::FLYWHEEL_SPIN_AMP, ShooterConstants::PIVOT_AMP);
     state_ = AMP;
 }
@@ -252,8 +254,8 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     double lowerDist = shot->first;
     ShooterConstants::ShootConfig lowerShot = shot->second;
 
-    double percent = (dist - lowerDist) / (upperDist - lowerDist);
-    double upperPercent = 1.0 - percent;
+    double upperPercent = (dist - lowerDist) / (upperDist - lowerDist);
+    double percent = 1.0 - upperPercent;
 
     double pivotAng = percent*lowerShot.ang + upperPercent*upperShot.ang;
     double shotVel = percent*lowerShot.vel + upperPercent*upperShot.vel;
@@ -517,10 +519,17 @@ void Shooter::CoreShuffleboardPeriodic(){
     // shuff_.PutBoolean("FK make it", fk.score);
     // shuff_.PutBoolean("Aimed", fk.aimed);
     // shuff_.PutString("Shot Error", fk.error.toString());
-
-    shuff_.update(true);
     
     shuff_.PutBoolean("Can Shoot", CanShoot(0));
+
+    bool blueSpeaker = SideHelper::IsBlue();
+    vec::Vector2D speaker = blueSpeaker? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
+    vec::Vector2D trim{trim_.y(), trim_.x()};
+    trim *= (blueSpeaker? 1.0: -1.0);
+    vec::Vector2D toSpeaker = speaker - targetPos_ + trim;
+    shuff_.PutNumber("Distance", toSpeaker.magn());
+    
+    shuff_.update(true);
 
     #if PIVOT_AUTO_TUNE
     pivotTuner_.ShuffleboardUpdate();
