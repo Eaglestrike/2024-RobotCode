@@ -64,6 +64,7 @@ class Shooter : public Mechanism{
 
         State state_;
         bool hasPiece_;
+        double timerStart_;
 
         Flywheel bflywheel_;
         Flywheel tflywheel_;
@@ -74,7 +75,7 @@ class Shooter : public Mechanism{
 
         //Shooter config
         double strollSpeed_ = ShooterConstants::STROLL_SPEED;
-        double shootTimer_ = ShooterConstants::SHOOT_TIME;
+        double shootTime_ = ShooterConstants::SHOOT_TIME;
 
         std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;
         double kSpin_ = ShooterConstants::K_SPIN;

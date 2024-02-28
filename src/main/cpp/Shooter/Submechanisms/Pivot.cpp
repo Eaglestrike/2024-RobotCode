@@ -60,6 +60,9 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
 
 void Pivot::CoreInit(){
     ZeroRelative();
+
+    currPose_ = GetAbsPose();
+    profile_.setTarget(currPose_, currPose_);
 }
 
 /**

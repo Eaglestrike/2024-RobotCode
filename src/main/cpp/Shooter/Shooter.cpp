@@ -43,12 +43,12 @@ void Shooter::CoreTeleopPeriodic(){
         case STOP:
             break;
         case SHOOT:
-            if((!hasPiece_) && (Utils::GetCurTimeS() - shootTimer_ > shootTimer_)){
+            [[fallthrough]];
+        case AMP:
+            if((!hasPiece_) && (Utils::GetCurTimeS() - timerStart_ > shootTime_)){
                 hasShot_ = false;
                 Stroll(); //Stroll after shooting (not seeing piece for some time)
             }
-            break;
-        case AMP:
             break;
         case STROLL:
             Stroll();
@@ -87,7 +87,7 @@ void Shooter::Stroll(){
         return;
     }
 
-    if((state_ == AMP) && hasPiece_){
+    if((state_ == AMP) && hasPiece_){ //Don't exit amp
         return;
     }
 
@@ -114,6 +114,10 @@ void Shooter::Stroll(){
 }
 
 void Shooter::Amp(){
+    if(!hasPiece_){
+        Stroll();
+        return;
+    }
     SetUp(ShooterConstants::FLYWHEEL_SPEED_AMP, ShooterConstants::FLYWHEEL_SPIN_AMP, ShooterConstants::PIVOT_AMP);
     state_ = AMP;
 }
@@ -258,7 +262,7 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
 void Shooter::SetGamepiece(bool hasPiece){
     hasPiece_ = hasPiece;
     if(hasPiece){
-        shootTimer_ = Utils::GetCurTimeS(); //Zero timer whenever have piece (timer starts when switches off)
+        timerStart_ = Utils::GetCurTimeS(); //Zero timer whenever have piece (timer starts when switches off)
     }
 }
 

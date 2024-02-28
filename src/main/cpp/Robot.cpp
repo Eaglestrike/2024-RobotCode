@@ -317,7 +317,6 @@ void Robot::TeleopPeriodic()
       else
       {
         m_intake.FeedIntoShooter();
-        m_shooter.Stroll();
       }
     }
     else if (m_controller.getPressed(INTAKE))
