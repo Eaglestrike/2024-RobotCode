@@ -142,6 +142,11 @@ void Shooter::ManualTarget(double target){
  * @param toSpeaker field-oriented vector to the speaker 
 */
 void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
+    if(!hasPiece_){
+        Stroll();
+        return;
+    }
+
     state_ = SHOOT;
     targetPos_ = robotPos;
     targetVel_ = {0.0, 0.0};
@@ -213,11 +218,6 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
 
     targetYaw_ = static_cast<vec::Vector2D>((toSpeaker - (robotVel*t))).angle();
     **/
-
-    if(!hasPiece_){
-        Stroll();
-        return;
-    }
 
     auto shot = shootData_.lower_bound(dist);
     if(shot == shootData_.begin() || shot == shootData_.end()){ //No shot in data (too far or too close)
@@ -294,7 +294,7 @@ void Shooter::Trim(vec::Vector2D trim){
 /**
  * Returns if you can shoot
 */
-bool Shooter::CanShoot(int posVal, bool amp){
+bool Shooter::CanShoot(int posVal){
     if(state_ != SHOOT){
         if(shuff_.isEnabled()){
             shuff_.PutBoolean("Can Shoot", false);
@@ -318,7 +318,7 @@ bool Shooter::CanShoot(int posVal, bool amp){
     bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
     bool canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
 
-    if (amp) {
+    if (state_ == AMP) {
         canShoot = true;
     }
 
@@ -507,7 +507,7 @@ void Shooter::CoreShuffleboardPeriodic(){
 
     shuff_.update(true);
 
-    CanShoot(0, true);
+    CanShoot(0);
 
     #if PIVOT_AUTO_TUNE
     pivotTuner_.ShuffleboardUpdate();
