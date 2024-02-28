@@ -4,8 +4,8 @@
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
     state_{STOP},
-    lflywheel_{ShooterConstants::LEFT_FLYWHEEL, enabled, shuffleboard},
-    rflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, shuffleboard},
+    bflywheel_{ShooterConstants::BOTTOM_FLYWHEEL, enabled, shuffleboard},
+    tflywheel_{ShooterConstants::TOP_FLYWHEEL, enabled, shuffleboard},
     pivot_{"Pivot", enabled, shuffleboard},
     shuff_{name, shuffleboard}
 
@@ -21,8 +21,8 @@ Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
 */
 
 void Shooter::CoreInit(){
-    lflywheel_.Init();
-    rflywheel_.Init();
+    bflywheel_.Init();
+    tflywheel_.Init();
     pivot_.Init();
 }
 
@@ -33,8 +33,8 @@ void Shooter::CorePeriodic(){
     pivotTuner_.ShuffleboardUpdate();
     #endif
 
-    lflywheel_.Periodic();
-    rflywheel_.Periodic();
+    bflywheel_.Periodic();
+    tflywheel_.Periodic();
     pivot_.Periodic();
 }
 
@@ -67,8 +67,8 @@ void Shooter::CoreTeleopPeriodic(){
     }
     #endif
 
-    lflywheel_.TeleopPeriodic();
-    rflywheel_.TeleopPeriodic();
+    bflywheel_.TeleopPeriodic();
+    tflywheel_.TeleopPeriodic();
     pivot_.TeleopPeriodic();
 }
 
@@ -76,8 +76,8 @@ void Shooter::CoreTeleopPeriodic(){
  * Turns off (no voltage)
 */
 void Shooter::Stop(){
-    lflywheel_.Stop();
-    rflywheel_.Stop();
+    bflywheel_.Stop();
+    tflywheel_.Stop();
     pivot_.Stop();
     state_ = STOP;
 }
@@ -107,12 +107,12 @@ void Shooter::Stroll(){
 
     pivot_.SetAngle(0.7);
     if(dist < 6.0){
-        lflywheel_.SetTarget(15.0);
-        rflywheel_.SetTarget(15.0);
+        bflywheel_.SetTarget(15.0);
+        tflywheel_.SetTarget(15.0);
     }
     else{
-        lflywheel_.SetVoltage(strollSpeed_);
-        rflywheel_.SetVoltage(strollSpeed_);
+        bflywheel_.SetVoltage(strollSpeed_);
+        tflywheel_.SetVoltage(strollSpeed_);
     }
     //pivot_.Stop();
     state_ = STROLL;
@@ -124,8 +124,8 @@ void Shooter::Stroll(){
 void Shooter::BringDown(){
     pivot_.SetAngle(pivotIntake_);
     
-    lflywheel_.SetVoltage(strollSpeed_);
-    rflywheel_.SetVoltage(strollSpeed_);  
+    bflywheel_.SetVoltage(strollSpeed_);
+    tflywheel_.SetVoltage(strollSpeed_);  
 }
 
 /**
@@ -136,8 +136,8 @@ void Shooter::BringDown(){
 void Shooter::ManualTarget(double target){
     pivot_.SetAngle(target);
     
-    lflywheel_.SetVoltage(-strollSpeed_);
-    rflywheel_.SetVoltage(-strollSpeed_);
+    bflywheel_.SetVoltage(-strollSpeed_);
+    tflywheel_.SetVoltage(-strollSpeed_);
     
     state_ = MANUAL_TARGET;
 }
@@ -285,8 +285,8 @@ void Shooter::SetUp(double vel, double spin, double pivot){
     shot_.ang = pivot;
     spin_ = spin;
 
-    lflywheel_.SetTarget(vel - spin);
-    rflywheel_.SetTarget(vel + spin);
+    bflywheel_.SetTarget(vel - spin);
+    tflywheel_.SetTarget(vel + spin);
     pivot_.SetAngle(pivot);
 
     state_ = SHOOT;
@@ -303,42 +303,47 @@ void Shooter::Trim(vec::Vector2D trim){
 /**
  * Returns if you can shoot
 */
-bool Shooter::CanShoot(int posVal){
+bool Shooter::CanShoot(int posVal, bool amp){
     if(state_ != SHOOT){
         if(shuff_.isEnabled()){
             shuff_.PutBoolean("Can Shoot", false);
         }
         return false;
     }
+
     //Can only shoot within target
     double posError = (targetPos_ - robotPos_).magn();
     double velError = (targetVel_ - robotVel_).magn();
     double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
 
-    if (posVal != 0) {
+    if ((posVal != 0)) {
         posError = 0;
         velError = 0;
-        if (posVal == 3) {
+        if ((posVal == 3)) {
             yawError = 0;
         }
     }
 
-
     bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
     bool canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
+
+    if (amp) {
+        canShoot = true;
+    }
+
     if(shuff_.isEnabled()){
         shuff_.PutNumber("Pos Error", posError, {1,1,8,2});
         shuff_.PutNumber("Vel Error", velError, {1,1,9,2});
         shuff_.PutNumber("Yaw Error", yawError, {1,1,10,2});
         
-        shuff_.PutBoolean("lfly at targ", lflywheel_.AtTarget(), {1,1,8,3});
-        shuff_.PutBoolean("rfly at targ", rflywheel_.AtTarget(), {1,1,9,3});
+        shuff_.PutBoolean("lfly at targ", bflywheel_.AtTarget(), {1,1,8,3});
+        shuff_.PutBoolean("rfly at targ", tflywheel_.AtTarget(), {1,1,9,3});
         shuff_.PutBoolean("pivot at targ", pivot_.AtTarget(), {1,1,10,3});
 
         shuff_.PutBoolean("Can Shoot", canShoot);
     }
     //Return if everything's prepared
-    return canShoot && lflywheel_.AtTarget() && rflywheel_.AtTarget() && pivot_.AtTarget();
+    return canShoot && bflywheel_.AtTarget() && tflywheel_.AtTarget() && pivot_.AtTarget();
 }
 
 bool Shooter::UseAutoLineup(){
@@ -512,7 +517,7 @@ void Shooter::CoreShuffleboardPeriodic(){
 
     shuff_.update(true);
 
-    CanShoot(false);
+    CanShoot(0, true);
 
     #if PIVOT_AUTO_TUNE
     pivotTuner_.ShuffleboardUpdate();
