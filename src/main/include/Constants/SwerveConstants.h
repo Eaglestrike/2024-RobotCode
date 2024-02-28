@@ -17,7 +17,7 @@ namespace SwerveConstants
 {
   const double MAG_ENCODER_COUNTS_PER_REV = 4096;
   const double TALON_FX_COUNTS_PER_REV = 2048;
-  const double WHEEL_RADIUS = 0.0500; // in meters
+  const double WHEEL_RADIUS = 0.049; // in meters
   const double WHEEL_GEAR_RATIO = 6.12; // stolen from Alex, 6.12 motor spins = 1 wheel spin
 
   // meters
