@@ -238,7 +238,7 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     negYawTol_ = std::clamp(negYawTol_, -M_PI/2.0, -0.01);
 
     auto shot = shootData_.lower_bound(dist);
-    if(shot == shootData_.begin() || shot == shootData_.end()){ //No shot in data (too far or too close)
+    if((shot == shootData_.begin()) || (shot == shootData_.end())){ //No shot in data (too far or too close)
         //Check functionality (maybe idle at some distance)
         Stroll();
         return;
@@ -252,10 +252,10 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     ShooterConstants::ShootConfig lowerShot = shot->second;
 
     double upperPercent = (dist - lowerDist) / (upperDist - lowerDist);
-    double percent = 1.0 - upperPercent;
+    double lowerPercent = 1.0 - upperPercent;
 
-    double pivotAng = percent*lowerShot.ang + upperPercent*upperShot.ang;
-    double shotVel = percent*lowerShot.vel + upperPercent*upperShot.vel;
+    double pivotAng = lowerPercent*lowerShot.ang + upperPercent*upperShot.ang;
+    double shotVel = lowerPercent*lowerShot.vel + upperPercent*upperShot.vel;
 
     //Pivot set tolerance (max - min)/2.0
     double pivotTol = (std::atan(dist/ShooterConstants::SPEAKER_MIN) - std::atan((dist-ShooterConstants::SPEAKER_DEPTH)/ShooterConstants::SPEAKER_MIN))/2.0;
