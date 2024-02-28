@@ -43,12 +43,12 @@ void Shooter::CoreTeleopPeriodic(){
         case STOP:
             break;
         case SHOOT:
-            [[fallthrough]];
-        case AMP:
             if((!hasPiece_) && (Utils::GetCurTimeS() - timerStart_ > shootTime_)){
                 hasShot_ = false;
                 Stroll(); //Stroll after shooting (not seeing piece for some time)
             }
+            break;
+        case AMP:
             break;
         case STROLL:
             Stroll();
@@ -115,7 +115,6 @@ void Shooter::Stroll(){
 
 void Shooter::Amp(){
     if(!hasPiece_){
-        Stroll();
         return;
     }
     SetUp(ShooterConstants::FLYWHEEL_SPEED_AMP, ShooterConstants::FLYWHEEL_SPIN_AMP, ShooterConstants::PIVOT_AMP);
@@ -143,7 +142,6 @@ void Shooter::ManualTarget(double target){
 */
 void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
     if(!hasPiece_){
-        Stroll();
         return;
     }
 
@@ -295,44 +293,37 @@ void Shooter::Trim(vec::Vector2D trim){
  * Returns if you can shoot
 */
 bool Shooter::CanShoot(int posVal){
-    if(state_ != SHOOT){
+    bool canShoot = false;
+    if(state_ == SHOOT){ //Can only shoot within target
+        double posError = (targetPos_ - robotPos_).magn();
+        double velError = (targetVel_ - robotVel_).magn();
+        double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
+
+        if ((posVal != 0)) {
+            posError = 0;
+            velError = 0;
+            if ((posVal == 3)) {
+                yawError = 0;
+            }
+        }
+
+        bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
+        canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
+
         if(shuff_.isEnabled()){
-            shuff_.PutBoolean("Can Shoot", false);
-        }
-        return false;
-    }
-
-    //Can only shoot within target
-    double posError = (targetPos_ - robotPos_).magn();
-    double velError = (targetVel_ - robotVel_).magn();
-    double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
-
-    if ((posVal != 0)) {
-        posError = 0;
-        velError = 0;
-        if ((posVal == 3)) {
-            yawError = 0;
+            shuff_.PutNumber("Pos Error", posError, {1,1,8,2});
+            shuff_.PutNumber("Vel Error", velError, {1,1,9,2});
+            shuff_.PutNumber("Yaw Error", yawError, {1,1,10,2});
+            
+            shuff_.PutBoolean("lfly at targ", bflywheel_.AtTarget(), {1,1,8,3});
+            shuff_.PutBoolean("rfly at targ", tflywheel_.AtTarget(), {1,1,9,3});
+            shuff_.PutBoolean("pivot at targ", pivot_.AtTarget(), {1,1,10,3});
         }
     }
-
-    bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
-    bool canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
-
-    if (state_ == AMP) {
+    else if (state_ == AMP) {
         canShoot = true;
     }
 
-    if(shuff_.isEnabled()){
-        shuff_.PutNumber("Pos Error", posError, {1,1,8,2});
-        shuff_.PutNumber("Vel Error", velError, {1,1,9,2});
-        shuff_.PutNumber("Yaw Error", yawError, {1,1,10,2});
-        
-        shuff_.PutBoolean("lfly at targ", bflywheel_.AtTarget(), {1,1,8,3});
-        shuff_.PutBoolean("rfly at targ", tflywheel_.AtTarget(), {1,1,9,3});
-        shuff_.PutBoolean("pivot at targ", pivot_.AtTarget(), {1,1,10,3});
-
-        shuff_.PutBoolean("Can Shoot", canShoot);
-    }
     //Return if everything's prepared
     return canShoot && bflywheel_.AtTarget() && tflywheel_.AtTarget() && pivot_.AtTarget();
 }
@@ -421,6 +412,7 @@ std::string Shooter::StateToString(State state){
     switch(state){
         case STOP: return "Stop";
         case SHOOT: return "Shoot";
+        case AMP: return "Amp";
         case STROLL: return "Stroll";
         default: return "Unknown";
     }
@@ -506,8 +498,8 @@ void Shooter::CoreShuffleboardPeriodic(){
     // shuff_.PutString("Shot Error", fk.error.toString());
 
     shuff_.update(true);
-
-    CanShoot(0);
+    
+    shuff_.PutBoolean("Can Shoot", CanShoot(0));
 
     #if PIVOT_AUTO_TUNE
     pivotTuner_.ShuffleboardUpdate();

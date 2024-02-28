@@ -123,7 +123,7 @@ namespace ShooterConstants{
 
     const double STROLL_SPEED = 0.5; //Voltage of strolling
 
-    const double SHOOT_TIME = 1.0; //Time for piece to exit shooter
+    const double SHOOT_TIME = 0.5; //Time for piece to exit shooter
  
     //Tolerances
     const double SHOOT_POS_TOL = 0.3;
