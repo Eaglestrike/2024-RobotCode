@@ -475,7 +475,7 @@ void Shooter::CoreShuffleboardInit(){
     //         shootData_.insert_or_assign({distance, {vel, pivot}});
     //         std::cout<<"Added distance:"<<distance<<" vel:"<<vel<<" pivot:"<<pivot<<std::endl;
     //     }, {1,1,4,2});
-    shuff_.add("Shoot timer", &shootTimer_, {1,1,5,2}, true);
+    shuff_.add("Shoot time", &shootTime_, {1,1,5,2}, true);
 
     //Shot data (row 3)
     shuff_.add("kSpin", &kSpin_, {1,1,0,3}, true);
