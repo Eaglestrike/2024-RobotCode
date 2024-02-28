@@ -93,13 +93,24 @@ void Pivot::CoreTeleopPeriodic(){
         case AT_TARGET:
         {
             Poses::Pose1D target = profile_.currentPose();
-            double ff = ff_.ks*Utils::Sign(target.vel) + ff_.kv*target.vel + ff_.ka*target.acc + ff_.kg*cos(target.pos);
+            double ff = ff_.ks*Utils::Sign(target.vel) + ff_.kv*target.vel + ff_.ka*target.acc;
+            double grav = ff_.kg*cos(currPose_.pos); //Have gravity be feedback
+            
+            volts_ = ff + grav;
 
             Poses::Pose1D error = target - currPose_;
-            accum_ += error.pos * dt;
-            double pid = pid_.kp*error.pos + pid_.ki*accum_ + pid_.kd*error.vel;
-
-            volts_ = ff + pid;
+            if(std::abs(error.pos) < inchTol_){
+                cycle_++;
+                cycle_ %= inch_.numCycles;
+                double inch = (cycle_ < inch_.onCycles) ? inch_.volts : 0.0;
+                inch *= Utils::Sign(error.pos);
+                volts_ += inch;
+            }
+            else{
+                accum_ += error.pos * dt;
+                double pid = pid_.kp*error.pos + pid_.ki*accum_ + pid_.kd*error.vel;
+                volts_ += pid;
+            }
 
             bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
             if(state_ == AIMING && profile_.isFinished()){ //if case to deal with fallthrough
@@ -322,6 +333,11 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("kP", &pid_.kp, {1,1,0,4}, true);
     shuff_.add("kI", &pid_.ki, {1,1,1,4}, true);
     shuff_.add("kD", &pid_.kd, {1,1,2,4}, true);
+
+    shuff_.add("inch volts", &inch_.volts, {1,1,0,5}, true);
+    shuff_.add("inch onCycles", &inch_.onCycles, {1,1,1,5}, true);
+    shuff_.add("inch numCycles", &inch_.numCycles, {1,1,2,5}, true);
+    shuff_.add("inch tol", &inchTol_, {1,1,3,5}, true);
 }
 
 void Pivot::CoreShuffleboardPeriodic(){

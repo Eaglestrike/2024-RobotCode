@@ -15,6 +15,7 @@
 #include "Constants/AutoConstants.h"
 #include "Constants/AutoLineupConstants.h"
 #include "Controller/ControllerMap.h"
+#include "DebugConfig.h"
 #include "Util/SideHelper.h"
 
 using namespace Actions;
@@ -26,17 +27,17 @@ Robot::Robot() :
   m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang", "Intake State"}},
   m_prevIsLogging{false},
   //Mechanisms
-  m_swerveController{true, false},
-  m_intake{true, false},
-  m_climb{true, false},
-  m_shooter{"Shooter", true, true},
+  m_swerveController{true, DebugConfig::DRIVE},
+  m_intake{true, DebugConfig::INTAKE},
+  m_climb{true, DebugConfig::CLIMB},
+  m_shooter{"Shooter", true, DebugConfig::SHOOTER.SHOOTER},
   //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
   //Auto
   m_autoLineup{false, m_odom},  
-  m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
+  m_auto{DebugConfig::AUTO, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
   m_autoChooser{false, m_auto},
   m_led{}
 {

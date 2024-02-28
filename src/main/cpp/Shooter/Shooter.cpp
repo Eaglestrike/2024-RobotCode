@@ -1,12 +1,14 @@
 #include "Shooter/Shooter.h"
 #include "Util/SideHelper.h"
 
+#include "DebugConfig.h"
+
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
     state_{STOP},
-    bflywheel_{ShooterConstants::BOTTOM_FLYWHEEL, enabled, shuffleboard},
-    tflywheel_{ShooterConstants::TOP_FLYWHEEL, enabled, shuffleboard},
-    pivot_{"Pivot", enabled, shuffleboard},
+    bflywheel_{ShooterConstants::LEFT_FLYWHEEL, enabled, (shuffleboard && DebugConfig::SHOOTER.LEFT_FLY)},
+    tflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, (shuffleboard && DebugConfig::SHOOTER.RIGHT_FLY)},
+    pivot_{"Pivot", enabled, (shuffleboard && DebugConfig::SHOOTER.PIVOT)},
     shuff_{name, shuffleboard}
 
     #if PIVOT_AUTO_TUNE
