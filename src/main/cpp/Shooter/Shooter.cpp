@@ -6,8 +6,8 @@
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
     state_{STOP},
-    bflywheel_{ShooterConstants::LEFT_FLYWHEEL, enabled, (shuffleboard && DebugConfig::SHOOTER.LEFT_FLY)},
-    tflywheel_{ShooterConstants::RIGHT_FLYWHEEL, enabled, (shuffleboard && DebugConfig::SHOOTER.RIGHT_FLY)},
+    bflywheel_{ShooterConstants::BOTTOM_FLYWHEEL, enabled, (shuffleboard && DebugConfig::SHOOTER.LEFT_FLY)},
+    tflywheel_{ShooterConstants::TOP_FLYWHEEL, enabled, (shuffleboard && DebugConfig::SHOOTER.RIGHT_FLY)},
     pivot_{"Pivot", enabled, (shuffleboard && DebugConfig::SHOOTER.PIVOT)},
     shuff_{name, shuffleboard}
 
@@ -195,12 +195,9 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     double dotPosVel = px*vx + py*vy;
     double velSquare = vx*vx + vy*vy;
 
-    const double kD = ShooterConstants::kD;
-    const double cT = ShooterConstants::cT;
-
-    double a = kD*kD * velSquare - 1.0;
-    double b = 2.0*kD*(dotPosVel + cT*velSquare);
-    double c = posSquare + 2.0*cT + cT*cT*velSquare;
+    double a = kD_*kD_ * velSquare - 1.0;
+    double b = 2.0*kD_*(dotPosVel + cT_*velSquare);
+    double c = posSquare + 2.0*cT_ + cT_*cT_*velSquare;
 
     double determinant = b*b - 4*a*c;
     if((determinant < 0.0) || (a == 0.0)){
@@ -210,7 +207,7 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     }
 
     double dist = (-b-std::sqrt(determinant))/(2.0*a);
-    double t = kD*dist + cT;
+    double t = kD_*dist + cT_;
 
     toSpeaker -= (robotVel*t);
 
@@ -272,9 +269,9 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     if(angToSpeaker < -M_PI/2.0){
         angToSpeaker += M_PI;
     }
-    double spin = -angToSpeaker * kSpin_; //Spin opposite to way pointing
+    //double spin = -angToSpeaker * kSpin_; //Spin opposite to way pointing
 
-    SetUp(shotVel, spin, pivotAng);
+    SetUp(shotVel, 0.0, pivotAng);
 }
 
 /**
@@ -493,9 +490,11 @@ void Shooter::CoreShuffleboardInit(){
     shuff_.add("Shoot time", &shootTime_, {1,1,5,2}, true);
 
     //Shot data (row 3)
-    shuff_.add("kSpin", &kSpin_, {1,1,0,3}, true);
+    //shuff_.add("kSpin", &kSpin_, {1,1,0,3}, true);
     shuff_.add("Shot Vel", &shot_.vel, {1,1,1,3});
     shuff_.add("Shot Ang", &shot_.ang, {1,1,2,3});
+    shuff_.add("kD", &kD_, {1,1,4,3});
+    shuff_.add("cT", &cT_, {1,1,5,3});
     
     //Tolerance (row 4)
     shuff_.add("pos tol", &posTol_, {1,1,0,4}, true);
@@ -504,9 +503,8 @@ void Shooter::CoreShuffleboardInit(){
     shuff_.add("lineup percent", &lineupYawPercent_, {1,1,3,4}, true);
     shuff_.add("pivot percent", &pivotAngPercent_, {1,1,4,4}, true);
 
-    
-    shuff_.add("yaw pos", &posYawTol_, {1,1,3,4}, false);
-    shuff_.add("yaw neg", &negYawTol_, {1,1,4,4}, false);    
+    shuff_.add("yaw pos", &posYawTol_, {1,1,6,4}, false);
+    shuff_.add("yaw neg", &negYawTol_, {1,1,7,4}, false);    
 }
 
 void Shooter::CoreShuffleboardPeriodic(){
