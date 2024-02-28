@@ -121,7 +121,7 @@ namespace ShooterConstants{
 
     const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
-    const double STROLL_SPEED = 0.5; //Voltage of strolling
+    const double STROLL_SPEED = 0.7; //Voltage of strolling
 
     const double SHOOT_TIME = 0.5; //Time for piece to exit shooter
  

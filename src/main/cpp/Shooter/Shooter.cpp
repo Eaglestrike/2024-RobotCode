@@ -89,10 +89,6 @@ void Shooter::Stop(){
  * Sets to low speed/voltage to constantly spin
 */
 void Shooter::Stroll(){
-    if(state_ == MANUAL_TARGET){ //Don't exit manual when called
-        return;
-    }
-
     if((state_ == AMP) && hasPiece_){ //Don't exit amp
         return;
     }
@@ -119,6 +115,9 @@ void Shooter::Stroll(){
 }
 
 void Shooter::Amp(){
+    if(state_ == MANUAL_TARGET){ //Don't exit manual when called
+        return;
+    }
     if(!hasPiece_){
         return;
     }
@@ -135,8 +134,8 @@ void Shooter::ManualTarget(double target){
     pivot_.SetAngle(target);
     
     if(state_ != EJECT){
-        lflywheel_.SetVoltage(-strollSpeed_);
-        rflywheel_.SetVoltage(-strollSpeed_);
+        bflywheel_.SetVoltage(-strollSpeed_);
+        tflywheel_.SetVoltage(-strollSpeed_);
         
         state_ = MANUAL_TARGET;
     }
@@ -148,8 +147,8 @@ void Shooter::ManualTarget(double target){
  * only controls the flywheels
 */
 void Shooter::Eject(){
-    lflywheel_.SetVoltage(strollSpeed_);
-    rflywheel_.SetVoltage(strollSpeed_);
+    bflywheel_.SetVoltage(strollSpeed_);
+    tflywheel_.SetVoltage(strollSpeed_);
 
     state_ = EJECT;
 }
@@ -160,6 +159,9 @@ void Shooter::Eject(){
  * @param toSpeaker field-oriented vector to the speaker 
 */
 void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
+    if(state_ == MANUAL_TARGET){ //Don't exit manual when called
+        return;
+    }
     if(!hasPiece_){
         return;
     }
