@@ -4,8 +4,8 @@
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
     state_{STOP},
-    bflywheel_{ShooterConstants::BOTTOM_FLYWHEEL, enabled, shuffleboard},
-    tflywheel_{ShooterConstants::TOP_FLYWHEEL, enabled, shuffleboard},
+    bflywheel_{ShooterConstants::BOTTOM_FLYWHEEL, enabled, false},
+    tflywheel_{ShooterConstants::TOP_FLYWHEEL, enabled, false},
     pivot_{"Pivot", enabled, shuffleboard},
     shuff_{name, shuffleboard}
 
