@@ -160,11 +160,11 @@ void Shooter::Eject(){
  * 
  * @param toSpeaker field-oriented vector to the speaker 
 */
-void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker){
+void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needGamePiece){
     if(state_ == MANUAL_TARGET){ //Don't exit manual when called
         return;
     }
-    if(!hasPiece_){
+    if((!hasPiece_) && needGamePiece){
         return;
     }
 
@@ -174,6 +174,7 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueS
     //targetVel_ = robotVel;
 
     //Speaker targetting
+    bool blueSpeaker = SideHelper::IsBlue();
     vec::Vector2D speaker = blueSpeaker? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
     vec::Vector2D trim{trim_.y(), trim_.x()};
     trim *= (blueSpeaker? 1.0: -1.0);

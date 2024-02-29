@@ -157,6 +157,7 @@ void Auto::AutoInit(){
         pathNum_ = 100000; //Give up
     }
 
+    shooter_.Stop();
     shootPos_ = startPos;
 
     segments_.Clear();
@@ -210,27 +211,21 @@ void Auto::AutoPeriodic(){
         NextBlock();
     }
     
-    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) && shooter_.UseAutoLineup()/*&& (inChannel_ || intake_.HasGamePiece())*/;
+    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) /*&& (inChannel_ || intake_.HasGamePiece())*/;
     if(shuff_.isEnabled()){
         shuff_.PutBoolean("ang lineup", useAngLineup, {2,2,0,1});
+        shuff_.PutNumber("targ angle", shooter_.GetTargetRobotYaw(), {2,1,0,3});
     }
 
     if(useAngLineup){
-        if(!startedLineup_){
-            shooter_.Prepare(odometry_.GetPos(), {0.0, 0.0}, SideHelper::IsBlue());
-            autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
-            autoLineup_.Start();
-            startedLineup_ = true;
-        } else{
-            //shuff_.PutNumber("ang lineup vel", autoLineup_.GetAngVel());
-            swerve_.SetAutoMode(false);
-            swerve_.SetRobotVelocity({0,0}, autoLineup_.GetAngVel(), odometry_.GetAng());
-            swerve_.SetAutoMode(true);
+        if(shooter_.UseAutoLineup()){ //Angle lineup
+            autoLineup_.Recalc(shooter_.GetTargetRobotYaw());
+            autoLineup_.Periodic();
+            segments_.Periodic(autoLineup_.GetAngVel() * 0.4);  
         }
-        // autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
-        // autoLineup_.Start();
-        //segments_.Periodic(autoLineup_.GetAngVel());
-       
+        else{
+            segments_.Periodic(0.0);
+        }
     }
     else{
         autoLineup_.Stop();
@@ -240,7 +235,6 @@ void Auto::AutoPeriodic(){
     DrivePeriodic(t);
     ShooterPeriodic(t);
     IntakePeriodic(t);
-    autoLineup_.Periodic();
 
     logger_.LogNum("Shooter ang lineup targ", autoLineup_.GetTargAng());
     logger_.LogNum("Shooter ang lineup exp", autoLineup_.GetExpAng());
@@ -285,7 +279,7 @@ void Auto::ShooterPeriodic(double t){
     }
 
     if(shooterTiming_.finished){
-        shooter_.Stroll();
+        //shooter_.Stroll();
     }
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
@@ -301,15 +295,15 @@ void Auto::ShooterPeriodic(double t){
         }
 
         if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target
-            shooter_.Prepare(pos, {0, 0}, SideHelper::IsBlue());
+            shooter_.Prepare(pos, {0, 0}, false);
         }
         else{
-            shooter_.Prepare(shootPos_, {0,0}, SideHelper::IsBlue()); //Prepare for the target shot
+            shooter_.Prepare(shootPos_, {0,0}, false); //Prepare for the target shot
         }
         
     }
     else{
-        shooter_.Stroll();
+        //shooter_.Stroll();
     }
 }
 

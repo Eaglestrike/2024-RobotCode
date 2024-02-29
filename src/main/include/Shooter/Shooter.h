@@ -43,7 +43,7 @@ class Shooter : public Mechanism{
         void Eject(); //Only spins flywheels
 
         void SetUp(double vel, double spin, double ang);
-        void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker);
+        void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needGamePiece);
         void SetGamepiece(bool hasPiece);
 
         void Trim(vec::Vector2D trim); //Up/down left/right trim for target
