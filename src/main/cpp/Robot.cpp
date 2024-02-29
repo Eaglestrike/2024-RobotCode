@@ -91,9 +91,6 @@ Robot::Robot() :
       m_isSecondTag = false;
     } },
               5_ms, 2_ms);
-  // AddPeriodic([&]()
-  //             { m_led.LEDPeriodic(); },
-  //             50_ms);
 }
 
 void Robot::RobotInit()
@@ -114,7 +111,6 @@ void Robot::RobotInit()
   m_swerveController.Init();
   m_shooter.Init();
   m_led.Init();
-  m_led.Start();
 }
 
 /**
@@ -165,13 +161,11 @@ void Robot::RobotPeriodic()
   // LED
   if (m_intake.HasGamePiece())
   {
-    m_led.SetStripColor(255, 0, 0);
-    m_led.SetBlinkMode(true);
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 255, 0, 0, 100);
   }
   else
   {
-    m_led.SetStripColor(0, 0, 255);
-    m_led.SetBlinkMode(false);
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 0, 255, 0);
   }
 
 #if SWERVE_AUTOTUNING
@@ -182,6 +176,7 @@ void Robot::RobotPeriodic()
   m_intake.Periodic();
   m_climb.Periodic();
   m_shooter.Periodic();
+  m_led.Periodic();
 }
 
 /**
@@ -221,7 +216,6 @@ void Robot::AutonomousPeriodic()
 
 void Robot::TeleopInit()
 {
-  m_led.Start();
   m_odom.SetAuto(false);
   m_swerveController.SetAngCorrection(true);
   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
@@ -240,6 +234,7 @@ void Robot::TeleopPeriodic()
   int ctrlVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
   if (ctrlVal != 0) {
     m_posVal = ctrlVal;
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 255, 0, 0);
   }
 
   if (m_controller.getPressed(SHOOT_AUTO)) {
@@ -430,16 +425,6 @@ void Robot::TeleopPeriodic()
     m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   }
 
-  // // LED
-  // if (m_amp)
-  // {
-  //   m_led.SetBlinkMode(true);
-  // }
-  // else
-  // {
-  //   m_led.SetBlinkMode(false);
-  // }
-
   // Shooter
 
   m_climb.TeleopPeriodic();
@@ -450,7 +435,6 @@ void Robot::TeleopPeriodic()
 }
 
 void Robot::DisabledInit() {
-  m_led.Stop();
 }
 
 void Robot::DisabledPeriodic()
