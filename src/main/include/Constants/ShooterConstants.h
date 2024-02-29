@@ -181,8 +181,8 @@ namespace ShooterConstants{
 
     //Shooter amp : ang:1.0, vel:3.9
     //Constants for time calculation (t = kD * d + cT)
-    const double kD = 0.0424441;
-    const double cT = 0.0834987;
+    const double kD = 0.0489123;
+    const double cT = 0.177579;
     const double prepareT = 0.1;
 
     // amp
