@@ -76,6 +76,8 @@ namespace ShooterConstants{
     
     const double PIVOT_MIN = 17.7 * M_PI/180.0;
     const double PIVOT_MAX = 67.2 * M_PI/180.0;
+
+    const double PIVOT_UNHOOK = PIVOT_MAX - 0.02;
    
     const double PIVOT_MAX_VOLTS = 4.0;
 
@@ -115,8 +117,8 @@ namespace ShooterConstants{
 
     const std::map<double, ShootConfig> SHOOT_DATA = {
     //distance-> ang, vel
-        {0.0,   {1.07,  17.0}}, //0 distance shot (used just for interpolation)
-        {1.32,  {1.02,  17.0}},
+        {0.0,   {1.07,  15.0}}, //0 distance shot (used just for interpolation)
+        {1.32,  {1.02,  15.0}},
         {1.51,  {0.97,  17.0}},
         {1.68,  {0.93,  17.0}},
         {1.88,  {0.87,  17.0}},

@@ -204,16 +204,22 @@ void Robot::AutonomousInit()
   m_swerveController.SetAutoMode(true);
 
   // zero
-  m_intake.Zero();
-  m_climb.Zero();
-  m_climbZeroed = true;
-  m_intakeZeroed = true;
-  m_navx->Reset();
-  m_navx->ZeroYaw();
-  m_odom.Reset();
-  m_swerveController.ResetAngleCorrection(m_odom.GetAng());
-  m_swerveController.ResetFF();
-  m_driveZeroed = true;
+  if (!m_intakeZeroed) {
+    m_intake.Zero();
+    m_intakeZeroed = true;
+  }
+  if (!m_climbZeroed) {
+    m_climb.Zero();
+    m_climbZeroed = true;
+  }
+  if (!m_driveZeroed) {
+    m_navx->Reset();
+    m_navx->ZeroYaw();
+    m_odom.Reset();
+    m_swerveController.ResetAngleCorrection(m_odom.GetAng());
+    m_swerveController.ResetFF();
+    m_driveZeroed = true;
+  }
 
   m_autoChooser.ProcessChoosers(false);
   m_auto.AutoInit();
@@ -328,11 +334,11 @@ void Robot::TeleopPeriodic()
   }
   else{
     if(m_posVal == 0){
-      m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), SideHelper::IsBlue());  //Shoot into speaker
+      m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), true);  //Shoot into speaker
     }
     else{
       vec::Vector2D manualLineupPos = SideHelper::GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[m_posVal - 1]); //Manual positions
-      m_shooter.Prepare(manualLineupPos, {0, 0}, SideHelper::IsBlue());
+      m_shooter.Prepare(manualLineupPos, {0, 0}, true);
     }
   }
 
@@ -509,7 +515,9 @@ void Robot::DisabledPeriodic()
   }
 }
 
-void Robot::TestInit() {}
+void Robot::TestInit() {
+  m_swerveController.SetAutoMode(false);
+}
 
 void Robot::TestPeriodic()
 {
@@ -550,7 +558,7 @@ void Robot::TestPeriodic()
   double xVolts = m_swerveXTuner.getVoltage();
   double yVolts = m_swerveYTuner.getVoltage();
 
-  m_swerveController.SetRobotVelocity({xVolts, yVolts}, 0.0, angNavX);
+  m_swerveController.SetRobotVelocity({xVolts, yVolts}, 0.0, curYaw);
 #endif
 
   if (m_controller.getPressed(INTAKE))
@@ -562,7 +570,7 @@ void Robot::TestPeriodic()
     m_intake.FeedIntoShooter();
   }
 
-  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
+  //m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
 
   m_swerveController.Periodic();
   m_shooter.TeleopPeriodic();

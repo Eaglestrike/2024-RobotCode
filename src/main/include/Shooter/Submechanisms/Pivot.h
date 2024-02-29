@@ -18,6 +18,7 @@ class Pivot : public Mechanism{
     public:
         enum State{
             STOP,
+            UNHOOK,
             AIMING,
             AT_TARGET,
             JUST_VOLTAGE
@@ -60,6 +61,9 @@ class Pivot : public Mechanism{
         double offset_;
         double relOffset_;
         double gearing_;
+
+        bool hooked_;
+        double tempTarg_; //Temporary target (to reaim after unhooking)
 
         struct Bounds{
             double min;

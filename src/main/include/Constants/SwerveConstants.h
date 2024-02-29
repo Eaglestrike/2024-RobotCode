@@ -79,9 +79,9 @@ namespace SwerveConstants
   const bool NAVX_UPSIDE_DOWN = false;
 
   const double MAX_VOLTS = 12.0; 
-  const double kS = 0.1833;
-  const double kV = 1.455;
-  const double kA = 0.1410;
+  const double kS = 0.259;
+  const double kV = 2;
+  const double kA = 0.20;
 
   const double NORMAL_SWERVE_MULT = 12.0;
   const double SLOW_SWERVE_MULT = 3.0;
