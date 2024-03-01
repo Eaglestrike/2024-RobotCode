@@ -51,7 +51,7 @@ void Pivot::CoreInit(){
     ZeroRelative();
 
     currPose_ = GetAbsPose();
-    profile_.setTarget(currPose_, currPose_);
+    profile_.setTarget({0.7, 0, 0}, {0.7, 0, 0});
 
     hooked_ = true;
 }
@@ -89,6 +89,10 @@ void Pivot::CoreTeleopPeriodic(){
             [[fallthrough]];
         case AT_TARGET:
         {
+            if(hooked_ && (state_ != UNHOOK)){
+                SetAngle(profile_.getTargetPose().pos);
+            }
+
             Poses::Pose1D target = profile_.currentPose();
             double ff = ff_.ks*Utils::Sign(target.vel) + ff_.kv*target.vel + ff_.ka*target.acc + ff_.kg*cos(target.pos);
 
@@ -255,6 +259,10 @@ bool Pivot::AtTarget(){
 void Pivot::SetTolerance(double posTol){
     posTol_ = posTol;
     velTol_ = posTol * (ShooterConstants::PIVOT_VEL_TOL / ShooterConstants::PIVOT_POS_TOL); //Scale vel tol by how pos tol scales
+}
+
+void Pivot::SetHooked(bool hooked){
+    hooked_ = hooked;
 }
 
 /**

@@ -165,7 +165,7 @@ void AutoPathSegment::SetAngTol(double tol) {
 */
 void AutoPathSegment::Periodic(){
   if(!m_hasStarted){
-    std::cout<<"Has not started segment"<<std::endl;
+    // std::cout<<"Has not started segment"<<std::endl;
     return;
   }
   // get relative time
@@ -218,7 +218,7 @@ void AutoPathSegment::Periodic(){
 */
 void AutoPathSegment::Periodic(double angVel) {
   if(!m_hasStarted){
-    std::cout<<"Has not started segment"<<std::endl;
+    // std::cout<<"Has not started segment"<<std::endl;
     return;
   }
   // get relative time
