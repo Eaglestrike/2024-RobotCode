@@ -71,7 +71,7 @@ void Auto::SetSegment(uint index, std::string to, std::string back){
         index,
         {
             {DRIVE, AFTER, to},
-            {INTAKE, AT_START}, //Can keep intake down if needed (then use stow)
+            {INTAKE, BEFORE_END}, //Can keep intake down if needed (then use stow)
             {DRIVE, AFTER, back},
             {SHOOT, AFTER},
         }
@@ -96,7 +96,7 @@ void Auto::SetSegment(uint index, std::string path){
         index,
         {
             {DRIVE, AFTER, path},
-            {INTAKE, AT_START},
+            {INTAKE, BEFORE_END},
             {SHOOT, AFTER}
         }
     );
@@ -280,7 +280,7 @@ void Auto::ShooterPeriodic(double t){
     }
 
     if(shooterTiming_.finished){
-        //shooter_.Stroll();
+
     }
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
@@ -305,7 +305,6 @@ void Auto::ShooterPeriodic(double t){
         
     }
     else{
-        //shooter_.Stroll();
     }
 }
 
@@ -319,18 +318,21 @@ void Auto::IntakePeriodic(double t){
         intakeTiming_.hasStarted = true;
         std::cout<<"Intake Start"<<std::endl;
     }
-    //Check if finished
-    if(intake_.HasGamePiece()){  // End intake if has game piece
-        if(!intakeTiming_.finished){
+    if(intakeTiming_.finished){
+    }
+    else if(intakeTiming_.hasStarted){
+        //Check if finished
+        if(intake_.HasGamePiece()){  // End intake if has game piece
             std::cout<< "Intake end" << std::endl;
+            intakeTiming_.finished = true;
         }
-        intakeTiming_.finished = true;
+        if(t > intakeTiming_.end + INTAKE_PADDING){
+            std::cout<<"Intake expire"<<std::endl;
+            intakeTiming_.finished = true;
+            intake_.Stow();
+        }
     }
-    if(t > intakeTiming_.end + INTAKE_PADDING){
-        std::cout<<"Intake expire"<<std::endl;
-        intakeTiming_.finished = true;
-        intake_.Stow();
-    }
+    
 }
 
 /**
