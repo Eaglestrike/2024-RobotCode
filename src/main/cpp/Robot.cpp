@@ -164,7 +164,11 @@ void Robot::RobotPeriodic()
   // LED
   if (m_intake.HasGamePiece())
   {
-    m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 255, 0, 0, 100);
+    if (m_intake.InIntake()) {
+      m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 255, 0, 40);
+    } else if (m_intake.InChannel()) {
+      m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 255, 0, 0);
+    }
   }
   else
   {
