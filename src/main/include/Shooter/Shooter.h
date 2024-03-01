@@ -27,21 +27,23 @@ class Shooter : public Mechanism{
     public:
         enum State{
             STOP,
-            LOADPIECE, //Unused state (because stroll does same thing)
             SHOOT,
+            AMP,
             STROLL, //Set to low speed
-            MANUAL_TARGET //Input angles
+            MANUAL_TARGET, //Manual input angles
+            EJECT
         };
   
         Shooter(std::string name, bool enabled, bool shuffleboard);
 
         void Stop();
         void Stroll();
-        void BringDown(); //Intake into shooter
+        void Amp();
         void ManualTarget(double target);
+        void Eject(); //Only spins flywheels
 
         void SetUp(double vel, double spin, double ang);
-        void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker);
+        void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needGamePiece);
         void SetGamepiece(bool hasPiece);
 
         void Trim(vec::Vector2D trim); //Up/down left/right trim for target
@@ -64,9 +66,10 @@ class Shooter : public Mechanism{
 
         State state_;
         bool hasPiece_;
+        double timerStart_;
 
-        Flywheel lflywheel_;
-        Flywheel rflywheel_;
+        Flywheel bflywheel_;
+        Flywheel tflywheel_;
         Pivot pivot_;
         
         // rev::CANSparkMax m_kickerMotor;
@@ -74,8 +77,7 @@ class Shooter : public Mechanism{
 
         //Shooter config
         double strollSpeed_ = ShooterConstants::STROLL_SPEED;
-        double pivotIntake_ = ShooterConstants::PIVOT_INTAKE;
-        double shootTimer_ = ShooterConstants::SHOOT_TIME;
+        double shootTime_ = ShooterConstants::SHOOT_TIME;
 
         std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;
         double kSpin_ = ShooterConstants::K_SPIN;

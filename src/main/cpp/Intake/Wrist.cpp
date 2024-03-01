@@ -88,7 +88,7 @@ void Wrist::ChangeSetPt(double newSetpt){
 
 void Wrist::Coast(){
     if (!m_wasCoasting) {
-        m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
+        // m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Coast);
         m_wasCoasting = true;
     }
     m_state = COAST;
@@ -102,7 +102,7 @@ void Wrist::MoveToSetPt(){
     m_trapezoidalProfile.setTarget({m_curPos, vel, acc}, {m_setPt, 0.0, 0.0});
     ResetPID();
     m_wasCoasting = false;
-    m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
+    // m_wristMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
     m_state = MOVING;
 }
 

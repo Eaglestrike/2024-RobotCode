@@ -83,16 +83,16 @@ namespace AutoConstants {
       {"Nothing", NOTHING}
   };
 
-  const double CHANNEL_TIME = 2.0;
-  const double SHOOT_TIME = 1.5;
-  const double INTAKE_TIME = 1.0;
-  const double STOW_TIME = 1.0;
+  const double CHANNEL_TIME = 1;
+  const double SHOOT_TIME = 2.5;
+  const double INTAKE_TIME = 2.5;
+  const double STOW_TIME = 1.5;
 
   //Time padding
-  const double DRIVE_PADDING = 0.5;
-  const double INTAKE_PADDING = 0.5;
-  const double STOW_PADDING = 0.5;
-  const double SHOOT_PADDING = 0.5; //Shoot earlier bc channel
+  const double DRIVE_PADDING = 1;
+  const double INTAKE_PADDING = 1;
+  const double STOW_PADDING = 1;
+  const double SHOOT_PADDING = 1; //Shoot earlier bc channel
 
   //Pos tol for shoot aiming
   const double SHOOT_POS_TOL = 0.1;
