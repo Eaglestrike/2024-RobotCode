@@ -108,8 +108,8 @@ void Pivot::CoreTeleopPeriodic(){
             if(state_ == UNHOOK && finished && atTarget){ //Go to next target after unhooking
                 hooked_ = false;
                 SetAngle(tempTarg_);
-                profile_.setMaxAcc(ShooterConstants::PIVOT_MAX_A);
-                profile_.setMaxVel(ShooterConstants::PIVOT_MAX_V);
+                //profile_.setMaxAcc(ShooterConstants::PIVOT_MAX_A);
+                //profile_.setMaxVel(ShooterConstants::PIVOT_MAX_V);
             }
             else if(state_ == AIMING && finished){ //if case to deal with fallthrough
                 if(atTarget){
@@ -169,8 +169,8 @@ void Pivot::SetAngle(double angle){
             return;
         }
         angle = ShooterConstants::PIVOT_UNHOOK;
-        profile_.setMaxAcc(7.0); //Go faster when unhooking
-        profile_.setMaxVel(6.0);
+        //profile_.setMaxAcc(7.0); //Go faster when unhooking
+        //profile_.setMaxVel(6.0);
     }
     Poses::Pose1D currTarg = profile_.getTargetPose();
     Poses::Pose1D target = {.pos = angle, .vel = 0.0, .acc = 0.0};

@@ -197,7 +197,7 @@ void Auto::AutoPeriodic(){
             channelTiming_.end = t + CHANNEL_TIME;
             channelTiming_.hasStarted = true;
         }
-        if(t > channelTiming_.end){ //Did not have piece for a bit
+        else if(t > channelTiming_.end){ //Did not have piece for a bit
             channelTiming_.hasStarted = false;
             inChannel_ = false;
         }
