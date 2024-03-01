@@ -83,7 +83,7 @@ namespace AutoConstants {
       {"Nothing", NOTHING}
   };
 
-  const double CHANNEL_TIME = 2.5;
+  const double CHANNEL_TIME = 1;
   const double SHOOT_TIME = 2.5;
   const double INTAKE_TIME = 2.5;
   const double STOW_TIME = 1.5;

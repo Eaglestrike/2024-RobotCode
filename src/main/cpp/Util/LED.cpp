@@ -22,7 +22,7 @@ void LED::SetStripColor(int r, int g, int b)
     m_led.Start();
     for (int i = 0; i < LEDConstants::LED_STRIP_LENGTH; i++)
     {
-        m_ledBuffer[i].SetRGB(r, g, b);
+        m_ledBuffer[i].SetRGB(g, r, b);
     }
     m_led.SetData(m_ledBuffer);
     m_led.Stop();

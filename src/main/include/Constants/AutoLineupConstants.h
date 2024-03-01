@@ -8,7 +8,7 @@
 namespace vec = svector;
 
 namespace AutoLineupConstants {
-  const double ANG_P = 11;
+  const double ANG_P = 10;
   const double ANG_I = 0.001;
   const double ANG_D = 0.02;
 

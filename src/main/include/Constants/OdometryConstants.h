@@ -44,8 +44,8 @@ namespace OdometryConstants {
   const vec::Vector2D SYS_STD_DEV_TELE = {0.003, 0.003};
 
   // camera std dev coefficient (0 stddev if 0 m from camera, increases quadratically with distance)
-  const double CAM_STD_DEV_COEF_AUTO = 0.01;
-  const double CAM_STD_DEV_COEF_TELE = 0.01;
+  const double CAM_STD_DEV_COEF_AUTO = 0.003;
+  const double CAM_STD_DEV_COEF_TELE = 0.003;
 
   //
   const double TRUST_CAMS_MORE_THRESH = 1;

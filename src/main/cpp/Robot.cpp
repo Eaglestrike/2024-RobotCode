@@ -29,14 +29,14 @@ Robot::Robot() :
   m_swerveController{true, false},
   m_intake{true, false},
   m_climb{true, false},
-  m_shooter{"Shooter", true, false},
+  m_shooter{"Shooter", true, true},
   //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
   //Auto
   m_autoLineup{false, m_odom},  
-  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
+  m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
   m_autoChooser{false, m_auto},
   m_led{}
 {
@@ -83,6 +83,8 @@ Robot::Robot() :
 
       if (tagId != 0 && m_isSecondTag) {
         frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
+        frc::SmartDashboard::PutNumber("Cams x dist", x);
+        frc::SmartDashboard::PutNumber("Cams z dist", y);
         m_odom.UpdateCams({x, y}, tagId, uniqueId, age);
       }
 
@@ -166,7 +168,7 @@ void Robot::RobotPeriodic()
   // LED
   if (m_intake.HasGamePiece())
   {
-    m_led.SetStripColor(255, 0, 0);
+    m_led.SetStripColor(0, 255, 0);
     m_led.SetBlinkMode(true);
   }
   else
