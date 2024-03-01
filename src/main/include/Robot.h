@@ -113,6 +113,7 @@ class Robot : public frc::TimedRobot {
     // zerored states
     bool m_intakeZeroed = false;
     bool m_climbZeroed = false;
+    bool m_driveZeroed = false;
 
     // LED
     LED m_led;

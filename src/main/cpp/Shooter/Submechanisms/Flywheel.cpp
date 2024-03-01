@@ -35,6 +35,9 @@ void Flywheel::CorePeriodic(){
 void Flywheel::CoreTeleopPeriodic(){
     double t = Utils::GetCurTimeS();
     double dt = t - prevT_;
+    if(dt > 0.04){
+        dt = 0.0;
+    }
     switch(state_){
         case State::STOP:
             volts_ = 0.0;
@@ -49,7 +52,9 @@ void Flywheel::CoreTeleopPeriodic(){
             Poses::Pose1D targetPose = profile_.GetPose();
             double ff = (Utils::Sign(targetPose.vel) * feedforward_.ks) + (targetPose.vel * feedforward_.kv) + (targetPose.acc * feedforward_.ka);
             Poses::Pose1D error = targetPose - currPose_;
-            accum_ += error.vel * dt;
+            if(profile_.isFinished()){
+                accum_ += error.vel * dt;
+            }
             double pid = (error.vel*pid_.kp) + (accum_*pid_.ki) + (error.acc*pid_.kd);
             volts_ = ff + pid;
 
@@ -60,12 +65,14 @@ void Flywheel::CoreTeleopPeriodic(){
                 }
                 else{
                     profile_.Regenerate(currPose_);
+                    accum_ = 0.0;
                 }
             }
             if (state_ == State::AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
                     profile_.Regenerate(currPose_);
                     state_ = State::RAMPING;
+                    accum_ = 0.0;
                 }
             }
 
@@ -97,17 +104,20 @@ void Flywheel::Stop(){
  * @param spin rad/s
 */
 void Flywheel::SetTarget(double vel){
+    bool atTarget = (std::abs(vel - currPose_.vel) < velTol_);
+
     Poses::Pose1D startPose;
     if(profile_.isFinished()){
         startPose = currPose_;
-        accum_ = 0.0;
+        if(!atTarget){
+            accum_ = 0.0;
+        }
     }
     else{
         startPose = profile_.GetPose();
     }
     profile_.SetTarget(vel, startPose);
 
-    bool atTarget = (std::abs(vel - currPose_.vel) < velTol_);
     if(atTarget){
         state_ = State::AT_TARGET;
     }

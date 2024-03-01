@@ -21,13 +21,12 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
 
     motor_{ShooterConstants::PIVOT_ID},
     motorChild_{ShooterConstants::PIVOT_CHILD_ID},
-    //follower_{ShooterConstants::PIVOT_ID, true},
-    gearing_{ShooterConstants::PIVOT_GEARING},
     volts_{0.0},
     maxVolts_{ShooterConstants::PIVOT_MAX_VOLTS},
 
     encoder_{ShooterConstants::PIVOT_ENCODER_ID, ShooterConstants::SHOOTER_CANBUS},
     offset_{ShooterConstants::PIVOT_OFFSET},
+    gearing_{ShooterConstants::PIVOT_GEARING},
 
     bounds_{
         .min = ShooterConstants::PIVOT_MIN,
@@ -41,25 +40,20 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     currPose_{0.0, 0.0, 0.0},
     shuff_{name, shuffleboard}
 {
-    // motor_.RestoreFactoryDefaults();
-    // motorChild_.RestoreFactoryDefaults();
-
-    // motor_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
-    // motorChild_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
-
     motor_.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
     motorChild_.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
 
     motor_.SetInverted(true);
     motorChild_.SetInverted(false);
-
-    //motorChild_.SetControl(follower_);
-
-    //motorChild_.Follow(motor_, true);
 }
 
 void Pivot::CoreInit(){
     ZeroRelative();
+
+    currPose_ = GetAbsPose();
+    profile_.setTarget({0.7, 0, 0}, {0.7, 0, 0});
+
+    hooked_ = true;
 }
 
 /**
@@ -85,14 +79,20 @@ void Pivot::CoreTeleopPeriodic(){
     switch(state_){
         case STOP:
             volts_ = 0.0;
+            profile_.setTarget(currPose_, currPose_);
             break;
+        case UNHOOK:
+            posTol_ = 0.02;
+            velTol_ = 10.0;
+            [[fallthrough]];
         case AIMING:
-            // if(profile_.isFinished()){ //Enable if profile is good but tolerances are bad
-            //     state_ = AT_TARGET;
-            // }
             [[fallthrough]];
         case AT_TARGET:
         {
+            if(hooked_ && (state_ != UNHOOK)){
+                SetAngle(profile_.getTargetPose().pos);
+            }
+
             Poses::Pose1D target = profile_.currentPose();
             double ff = ff_.ks*Utils::Sign(target.vel) + ff_.kv*target.vel + ff_.ka*target.acc + ff_.kg*cos(target.pos);
 
@@ -102,8 +102,16 @@ void Pivot::CoreTeleopPeriodic(){
 
             volts_ = ff + pid;
 
+            bool finished = profile_.isFinished();
             bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
-            if(state_ == AIMING && profile_.isFinished()){ //if case deal with fallthrough
+
+            if(state_ == UNHOOK && finished && atTarget){ //Go to next target after unhooking
+                hooked_ = false;
+                SetAngle(tempTarg_);
+                //profile_.setMaxAcc(ShooterConstants::PIVOT_MAX_A);
+                //profile_.setMaxVel(ShooterConstants::PIVOT_MAX_V);
+            }
+            else if(state_ == AIMING && finished){ //if case to deal with fallthrough
                 if(atTarget){
                     state_ = AT_TARGET; //At target due to tolerances
                 }
@@ -111,7 +119,7 @@ void Pivot::CoreTeleopPeriodic(){
                     profile_.regenerate(currPose_);
                 }
             }
-            if (state_ == AT_TARGET){
+            else if (state_ == AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
                     profile_.regenerate(currPose_);
                     state_ = AIMING;
@@ -154,12 +162,25 @@ void Pivot::SetAngle(double angle){
     if(angle > bounds_.max || angle < bounds_.min){
         return;
     }
+
+    if(hooked_){
+        tempTarg_ = angle;
+        if(state_ == UNHOOK){ //No need to regenerate
+            return;
+        }
+        angle = ShooterConstants::PIVOT_UNHOOK;
+        //profile_.setMaxAcc(7.0); //Go faster when unhooking
+        //profile_.setMaxVel(6.0);
+    }
     Poses::Pose1D currTarg = profile_.getTargetPose();
     Poses::Pose1D target = {.pos = angle, .vel = 0.0, .acc = 0.0};
 
     Poses::Pose1D error = target - currPose_;
     bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
-    if(atTarget){
+    if(hooked_){
+        state_ = UNHOOK;
+    }
+    else if(atTarget){
         state_ = AT_TARGET;
     }
     else{
@@ -192,6 +213,7 @@ void Pivot::SetVoltage(double volts){
 */
 void Pivot::Zero(){
     offset_ = 2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + bounds_.min;
+    ZeroRelative();
 }
 
 /**
@@ -239,6 +261,10 @@ void Pivot::SetTolerance(double posTol){
     velTol_ = posTol * (ShooterConstants::PIVOT_VEL_TOL / ShooterConstants::PIVOT_POS_TOL); //Scale vel tol by how pos tol scales
 }
 
+void Pivot::SetHooked(bool hooked){
+    hooked_ = hooked;
+}
+
 /**
  * Get Pose
 */
@@ -252,6 +278,7 @@ Poses::Pose1D Pivot::GetPose(){
 std::string Pivot::StateToString(Pivot::State state){
     switch(state){
         case STOP : return "Stop";
+        case UNHOOK : return "Unhook";
         case AIMING : return "AIMING";
         case AT_TARGET : return "AT_TARGET";
         case JUST_VOLTAGE : return "Voltage";
@@ -280,14 +307,14 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("pos", &currPose_.pos, {1,1,4,1}, false);
     shuff_.add("vel", &currPose_.vel, {1,1,5,1}, false);
     shuff_.add("acc", &currPose_.acc, {1,1,6,1}, false);
-    shuff_.add("volts", &volts_, {1,1,4,2}, false);
     shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
-    shuff_.addButton("zero rel", [&](){ZeroRelative(); std::cout<<"Zeroed Rel"<<std::endl;}, {1,1,7,2});
 
-    shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
-    shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
-    shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
-    shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
+    shuff_.add("hooked", &hooked_, {1,1,7,2}, true);
+
+    // shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
+    // shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
+    // shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
+    // shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
 
     //Bounds (middle-bottom)
     shuff_.add("min", &bounds_.min, {1,1,4,4}, true);
@@ -327,12 +354,12 @@ void Pivot::CoreShuffleboardInit(){
 void Pivot::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
 
-    Poses::Pose1D relPose = GetRelPose();
-    Poses::Pose1D absPose = GetAbsPose();
-    shuff_.PutNumber("relPos", relPose.pos);
-    shuff_.PutNumber("relVel", relPose.vel);
-    shuff_.PutNumber("absPos", absPose.pos);
-    shuff_.PutNumber("absVel", absPose.vel);
+    // Poses::Pose1D relPose = GetRelPose();
+    // Poses::Pose1D absPose = GetAbsPose();
+    // shuff_.PutNumber("relPos", relPose.pos);
+    // shuff_.PutNumber("relVel", relPose.vel);
+    // shuff_.PutNumber("absPos", absPose.pos);
+    // shuff_.PutNumber("absVel", absPose.vel);
 
     shuff_.update(true);
 

@@ -115,6 +115,7 @@ void AutoPathSegment::Clear(){
   m_spline.pos = {1000};
   m_spline.ang = {1000};
   m_hasSpline = false;
+  Stop();
 }
 
 /**
@@ -164,7 +165,7 @@ void AutoPathSegment::SetAngTol(double tol) {
 */
 void AutoPathSegment::Periodic(){
   if(!m_hasStarted){
-    std::cout<<"Has not started segment"<<std::endl;
+    // std::cout<<"Has not started segment"<<std::endl;
     return;
   }
   // get relative time
@@ -217,7 +218,7 @@ void AutoPathSegment::Periodic(){
 */
 void AutoPathSegment::Periodic(double angVel) {
   if(!m_hasStarted){
-    std::cout<<"Has not started segment"<<std::endl;
+    // std::cout<<"Has not started segment"<<std::endl;
     return;
   }
   // get relative time
@@ -423,10 +424,10 @@ void AutoPathSegment::ShuffleboardPeriodic() {
   double wkD =  m_shuff.GetNumber("turn kD", AutoConstants::ANG_D);
   SetAngPID(wkP, wkI, wkD);
 
-  double pTol = m_shuff.GetNumber("pos tol", AutoConstants::POS_TOL);
-  SetDriveTol(pTol);
-  double aTol = m_shuff.GetNumber("ang tol", AutoConstants::ANG_TOL);
-  SetAngTol(aTol);
+  // double pTol = m_shuff.GetNumber("pos tol", AutoConstants::POS_TOL);
+  // SetDriveTol(pTol);
+  // double aTol = m_shuff.GetNumber("ang tol", AutoConstants::ANG_TOL);
+  // SetAngTol(aTol);
 
   m_shuff.PutBoolean("At Target", AtTarget(), {3,3,5,0});
 

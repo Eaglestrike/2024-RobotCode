@@ -40,12 +40,15 @@ namespace OdometryConstants {
 
   // drivebase system std dev x, y
   // TODO need to change
-  const vec::Vector2D SYS_STD_DEV_AUTO = {0.003, 0.003};
-  const vec::Vector2D SYS_STD_DEV_TELE = {0.01, 0.01};
+  const vec::Vector2D SYS_STD_DEV_AUTO = {0.001, 0.001};
+  const vec::Vector2D SYS_STD_DEV_TELE = {0.003, 0.003};
 
   // camera std dev coefficient (0 stddev if 0 m from camera, increases quadratically with distance)
   const double CAM_STD_DEV_COEF_AUTO = 0.01;
-  const double CAM_STD_DEV_COEF_TELE = 0.003;
+  const double CAM_STD_DEV_COEF_TELE = 0.006;
+
+  //
+  const double TRUST_CAMS_MORE_THRESH = 0.5;
 
   // angular speed above which we use swerve angle, in degrees / sec
   const double USE_SWERVE_ANG_VEL = Utils::DegToRad(5);

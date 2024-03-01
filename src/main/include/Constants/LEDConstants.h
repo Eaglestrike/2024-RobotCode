@@ -11,7 +11,7 @@ namespace LEDConstants
         VERTICAL
     };
     // how many LEDs are in the strip
-    const int LED_STRIP_LENGTH = 15;
+    const int LED_STRIP_LENGTH = 22;
     const int LED_PWM_PORT = 5;
     typedef std::vector<std::pair<int, int>> LEDSegmentRange;
     const std::map<LEDSegment, LEDSegmentRange> LED_SEGMENTS = {

@@ -28,13 +28,13 @@ namespace ShooterConstants{
         bool inverted;
     };
 
-    const FlywheelConfig LEFT_FLYWHEEL{
+    const FlywheelConfig BOTTOM_FLYWHEEL{
         .name = "Bottom Flywheel",
         .id = 30,
         .inverted = true
     };
 
-    const FlywheelConfig RIGHT_FLYWHEEL{
+    const FlywheelConfig TOP_FLYWHEEL{
         .name = "Top Flywheel",
         .id = 25,
         .inverted = true
@@ -47,13 +47,13 @@ namespace ShooterConstants{
     const double FLYWHEEL_MAX_VOLTS = 10.0; //Max velocity -> ~20.0
 
     const PID FLYWHEEL_PID = {
-        .kp = 0.1,
+        .kp = 0.0,
         .ki = 0.1,
         .kd = 0.0
     };
 
     const Feedforward FLYWHEEL_FF = {
-        .ks = 0.297,
+        .ks = 0.197,
         .kv = 0.506,
         .ka = 0.01142
     };
@@ -70,8 +70,10 @@ namespace ShooterConstants{
     
     const double PIVOT_MIN = 17.7 * M_PI/180.0;
     const double PIVOT_MAX = 67.2 * M_PI/180.0;
+
+    const double PIVOT_UNHOOK = PIVOT_MAX - 0.02;
    
-    const double PIVOT_MAX_VOLTS = 3.0;
+    const double PIVOT_MAX_VOLTS = 4.0;
 
     const double PIVOT_OFFSET = 5.587;
  
@@ -82,17 +84,17 @@ namespace ShooterConstants{
     };
 
     const Feedforward PIVOT_FF = {
-        .ks = 0.08,
-        .kv = 0.356,
-        .ka = 0.0352,
-        .kg = 0.36
+        .ks = 0.01,
+        .kv = 0.366,
+        .ka = 0.0152,
+        .kg = 0.375
     };
 
-    const double PIVOT_MAX_V = 2.0;
+    const double PIVOT_MAX_V = 2.5;
     const double PIVOT_MAX_A = 3.0;
 
     const double PIVOT_POS_TOL = 0.02;
-    const double PIVOT_VEL_TOL = 0.05;
+    const double PIVOT_VEL_TOL = 1;
 
     //Shooter data
     struct ShootConfig{
@@ -102,29 +104,25 @@ namespace ShooterConstants{
 
     const std::map<double, ShootConfig> SHOOT_DATA = {
     //distance-> ang, vel
-        {0.0,   {1.07,  17.0}}, //0 distance shot (used just for interpolation)
-        {1.32,  {1.05,  17.0}},
-        {1.55,  {1.02,   17.0}},
-        {1.7,   {0.90,  17.0}}, // bad
-        {1.857, {0.86,  17.0}}, // too low
-        {1.97,  {0.83,  17.0}}, // too low
-        {2.06,  {0.8,   17.0}},
-        {2.65,  {0.7,   17.0}},
-        {2.86,  {0.64,  18.0}},
-        {3.32,  {0.62,  18.5}},
-        {3.39,  {0.6,   19.0}},
-        {4.14,  {0.54,  19.0}},
-        {4.40,  {0.52,  19.0}},
-        {4.47,  {0.51,  19.0}},
-        {5.461, {0.43,  19.0}}
+        {0.0,   {1.07,  15.0}}, //0 distance shot (used just for interpolation)
+        {1.32,  {1.02,  15.0}},
+        {1.51,  {0.97,  17.0}},
+        {1.68,  {0.93,  17.0}},
+        {1.88,  {0.87,  17.0}},
+        {2.10,  {0.81,  17.0}},
+        {2.37,  {0.74,  17.0}},
+        {2.64,  {0.69,  17.0}},
+        {3.08,  {0.625, 18.0}},
+        {3.46,  {0.585, 18.0}},
+        {3.89,  {0.54,  18.0}},
+        {4.37,  {0.51,  18.0}}
     };
 
     const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
-    const double STROLL_SPEED = 0.5; //Voltage of strolling
+    const double STROLL_SPEED = 0.7; //Voltage of strolling
 
-    const double PIVOT_INTAKE = PIVOT_MIN + 0.4; //Angle for pivot to intake piece into shooter
-    const double SHOOT_TIME = 1.0; //Time for piece to exit shooter
+    const double SHOOT_TIME = 0.5; //Time for piece to exit shooter
  
     //Tolerances
     const double SHOOT_POS_TOL = 0.3;
@@ -134,7 +132,7 @@ namespace ShooterConstants{
     const double LINEUP_YAW_PERCENT = 0.45;
     const double PIVOT_ANG_PERCENT = 0.4; // 0.8
 
-    //Kinematics calc (Field Data)
+    //Field Data
 
     //Speaker center positions (x, y)
     const vec::Vector2D RED_SPEAKER = {17-18*0.0254, 5.58};
@@ -173,4 +171,9 @@ namespace ShooterConstants{
     const double kD = 0.0424441;
     const double cT = 0.0834987;
     const double prepareT = 0.1;
+
+    // amp
+    const double PIVOT_AMP = 1.1;
+    const double FLYWHEEL_SPEED_AMP = 4.25;
+    const double FLYWHEEL_SPIN_AMP = -0.25;
 }
