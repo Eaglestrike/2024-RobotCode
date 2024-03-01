@@ -381,6 +381,10 @@ void Shooter::SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double
     robotYaw_ = robotYaw;
 }
 
+void Shooter::SetHooked(bool hooked){
+    pivot_.SetHooked(hooked);
+}
+
 
 /**
  * Calculates the forward kinematics of the shot

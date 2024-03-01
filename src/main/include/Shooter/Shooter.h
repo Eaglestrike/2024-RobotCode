@@ -55,6 +55,7 @@ class Shooter : public Mechanism{
         double GetTargetRobotYaw();
 
         void SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);//Debug info passing in
+        void SetHooked(bool hooked);
 
     private:
         void CoreInit() override;

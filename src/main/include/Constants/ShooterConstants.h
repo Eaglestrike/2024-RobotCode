@@ -94,7 +94,7 @@ namespace ShooterConstants{
     const double PIVOT_MAX_A = 3.0;
 
     const double PIVOT_POS_TOL = 0.02;
-    const double PIVOT_VEL_TOL = 0.05;
+    const double PIVOT_VEL_TOL = 1;
 
     //Shooter data
     struct ShootConfig{
