@@ -304,7 +304,9 @@ void Robot::TeleopPeriodic()
     }
 
     //Shooting
-    if (m_controller.getPressed(SHOOT)){
+    if (m_controller.getPressed(FORCE_SHOOT)) {
+      m_intake.FeedIntoShooter();
+    } else if (m_controller.getPressed(SHOOT)){
       if(m_intake.HasGamePiece()){
         if (!m_amp) {
           if (m_posVal != 3) {

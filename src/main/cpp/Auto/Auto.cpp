@@ -246,7 +246,7 @@ void Auto::AutoPeriodic(){
 */
 void Auto::DrivePeriodic(double t){
     if(!driveTiming_.hasStarted && t > driveTiming_.start){
-        std::cout<<"Drive start"<<std::endl;
+        // std::cout<<"Drive start"<<std::endl;
         segments_.Start();
         driveTiming_.hasStarted = true;
 
@@ -255,14 +255,14 @@ void Auto::DrivePeriodic(double t){
             pathNum_ = 100000; //Give up
             segments_.Stop();
             swerve_.SetRobotVelocity({0.0, 0.0}, 0.0, odometry_.GetAng());
-            std::cout<<"Safety disabled"<<std::endl;
+            // std::cout<<"Safety disabled"<<std::endl;
             return;
         }
     }
 
     if(segments_.AtTarget() || (t > driveTiming_.end + DRIVE_PADDING)){
         if(!driveTiming_.finished){
-            std::cout<<"Drive end"<<std::endl;
+            // std::cout<<"Drive end"<<std::endl;
         }
         driveTiming_.finished = true;
     }
@@ -276,7 +276,7 @@ void Auto::DrivePeriodic(double t){
 void Auto::ShooterPeriodic(double t){
     if(!shooterTiming_.hasStarted && t > shooterTiming_.start){
         shooterTiming_.hasStarted = true;
-        std::cout<<"Shooter start" << std::endl;
+        // std::cout<<"Shooter start" << std::endl;
     }
 
     if(shooterTiming_.finished){
@@ -293,7 +293,7 @@ void Auto::ShooterPeriodic(double t){
         if((!inChannel_) && (!intake_.HasGamePiece())){ 
             shooterTiming_.finished = true;
             startedLineup_ = false;
-            std::cout<<"Shooter end" << std::endl;
+            // std::cout<<"Shooter end" << std::endl;
         }
 
         if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target
@@ -316,18 +316,18 @@ void Auto::IntakePeriodic(double t){
     if(!intakeTiming_.hasStarted && t > intakeTiming_.start){
         intake_.Passthrough();
         intakeTiming_.hasStarted = true;
-        std::cout<<"Intake Start"<<std::endl;
+        // std::cout<<"Intake Start"<<std::endl;
     }
     if(intakeTiming_.finished){
     }
     else if(intakeTiming_.hasStarted){
         //Check if finished
         if(intake_.HasGamePiece()){  // End intake if has game piece
-            std::cout<< "Intake end" << std::endl;
+            // std::cout<< "Intake end" << std::endl;
             intakeTiming_.finished = true;
         }
         if(t > intakeTiming_.end + INTAKE_PADDING){
-            std::cout<<"Intake expire"<<std::endl;
+            // std::cout<<"Intake expire"<<std::endl;
             intakeTiming_.finished = true;
             intake_.Stow();
         }
