@@ -226,7 +226,7 @@ double AutoAngLineup::CalcPID(double deltaT) {
   double err = CalcError();
 
   // double deltaErr = (err - m_prevAngErr) / deltaT;
-  double deltaErr = (m_curExpectedAngVel - m_odom.GetAngVel()) / deltaT;
+  double deltaErr = (m_curExpectedAngVel - m_odom.GetAngVel());
   m_totalAngErr += err * deltaT;
   double res = err * m_kP + m_totalAngErr * m_kI + deltaErr * m_kD;
 
@@ -347,7 +347,7 @@ bool AutoAngLineup::AtAngTarget() const {
 */
 bool AutoAngLineup::AtAngTarget(double posErrTol, double velErrTol) const {
   double curAng = m_odom.GetAngNorm();
-  return Utils::NearZero(m_targetAng - curAng, posErrTol) && Utils::NearZero(m_curAngVel, velErrTol);
+  return Utils::NearZero(Utils::NormalizeAng(m_targetAng - curAng), posErrTol) && Utils::NearZero(m_curAngVel, velErrTol);
 }
 
 /**
@@ -363,7 +363,7 @@ void AutoAngLineup::ShuffleboardInit() {
   frc::SmartDashboard::PutNumber("lineup ang kp", m_kP);
   frc::SmartDashboard::PutNumber("lineup ang ki", m_kI);
   frc::SmartDashboard::PutNumber("lineup ang kd", m_kD);
-  frc::SmartDashboard::PutNumber("targ ang", m_targetAng);
+  // frc::SmartDashboard::PutNumber("targ ang", m_targetAng);
   frc::SmartDashboard::PutNumber("pos error", 0);
   frc::SmartDashboard::PutNumber("vel error", 0);
   frc::SmartDashboard::PutString("state", GetStateString());
@@ -382,11 +382,11 @@ void AutoAngLineup::ShuffleboardPeriodic() {
   double kP = frc::SmartDashboard::GetNumber("lineup ang kp", m_kP);
   double kI = frc::SmartDashboard::GetNumber("lineup ang ki", m_kI);
   double kD = frc::SmartDashboard::GetNumber("lineup ang kd", m_kD);
-  double targAng = frc::SmartDashboard::GetNumber("targ ang", m_targetAng);
+  // double targAng = frc::SmartDashboard::GetNumber("targ ang", m_targetAng);
 
   SetProfileConfig(maxSpeed, maxAccel);
   SetPID(kP, kI, kD);
-  SetTarget(targAng);
+  // SetTarget(targAng);
 
   frc::SmartDashboard::PutNumber("pos error", CalcError());
   frc::SmartDashboard::PutNumber("cur ang", m_odom.GetAngNorm());

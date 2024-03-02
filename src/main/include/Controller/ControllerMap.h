@@ -33,6 +33,7 @@ namespace Actions{
         ZERO_CLIMB,
         ZERO_INTAKE,
         SHOOT_AUTO,
+        FORCE_SHOOT,
         ACTION_COUNT //Just the number of actions, as it is at the end of a enum
     };
 
@@ -64,7 +65,7 @@ namespace ControllerMapData{
         {{LJOY, X_AXIS},        SWERVE_STRAFEX},
         {{LJOY, Y_AXIS},        SWERVE_STRAFEY},
         {{LJOY, TRIGGER},       SHOOT},
-        {{LJOY, B_4},           NONE},
+        {{LJOY, B_4},           FORCE_SHOOT},
         {{LJOY, B_2},           NONE},
         {{RJOY, B_3},           NONE},
         {{RJOY, X_AXIS},        SWERVE_ROTATION},

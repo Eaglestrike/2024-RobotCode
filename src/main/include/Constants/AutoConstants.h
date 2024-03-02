@@ -60,7 +60,7 @@ namespace AutoConstants {
 
   const double CHANNEL_TIME = 5.0;
   const double SHOOT_TIME = 3.0;
-  const double INTAKE_TIME = 2.0;
+  const double INTAKE_TIME = 4.0;
 
   //Time padding
   const double DRIVE_PADDING = 1;
