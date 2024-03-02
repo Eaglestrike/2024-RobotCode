@@ -13,9 +13,7 @@ Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     ,pivotTuning_{false},
     pivotTuner_{"pivot tuner", FFAutotuner::ARM, ShooterConstants::PIVOT_MIN, ShooterConstants::PIVOT_MAX}
     #endif
-{
-    trim_ = {-0.3, 0.0};
-}
+{}
 
 /**
  * Core functions
