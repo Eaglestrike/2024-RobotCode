@@ -205,6 +205,7 @@ void Robot::AutonomousInit()
   m_odom.SetAuto(true);
   m_swerveController.SetAngCorrection(false);
   m_swerveController.SetAutoMode(true);
+  m_autoLineup.SetPID(AutoLineupConstants::ANG_AUTO_P, AutoLineupConstants::ANG_AUTO_I, AutoLineupConstants::ANG_AUTO_D);
 
   // zero
   if (!m_intakeZeroed) {
@@ -243,6 +244,7 @@ void Robot::TeleopInit()
   m_swerveController.SetAngCorrection(true);
   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
   m_swerveController.SetAutoMode(false);
+  m_autoLineup.SetPID(AutoLineupConstants::ANG_P, AutoLineupConstants::ANG_I, AutoLineupConstants::ANG_D);
   m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
 }
 

@@ -12,6 +12,10 @@ namespace AutoLineupConstants {
   const double ANG_I = 0.001;
   const double ANG_D = 0.02;
 
+  const double ANG_AUTO_P = 2.83;
+  const double ANG_AUTO_I = 0.03;
+  const double ANG_AUTO_D = 0.001;
+
   // const double ANG_VEL_MULT = 4;
 
   const double ANG_TOL = Utils::DegToRad(3);
