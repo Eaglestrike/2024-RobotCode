@@ -110,7 +110,6 @@ void Pivot::CoreTeleopPeriodic(){
                 cycle_ %= inch_.numCycles;
                 double inch = (cycle_ < inch_.onCycles) ? inch_.volts : 0.0;
                 inch *= Utils::Sign(error.pos);
-                std::cout<<inch<<" "<<cycle_<<std::endl;
                 volts_ += inch;
             }
 
