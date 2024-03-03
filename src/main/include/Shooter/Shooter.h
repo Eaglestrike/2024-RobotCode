@@ -41,6 +41,7 @@ class Shooter : public Mechanism{
         void Amp();
         void ManualTarget(double target);
         void Eject(); //Only spins flywheels
+        void ZeroRelative();
 
         void SetUp(double vel, double spin, double ang);
         void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needGamePiece);
@@ -51,6 +52,7 @@ class Shooter : public Mechanism{
         bool CanShoot(int posVal = 0);
         bool UseAutoLineup();
         vec::Vector2D GetTrim();
+        bool IsManual();
 
         double GetTargetRobotYaw();
 

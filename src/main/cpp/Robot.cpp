@@ -36,7 +36,7 @@ Robot::Robot() :
   m_odom{false},
   //Auto
   m_autoLineup{false, m_odom},  
-  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
+  m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
   m_autoChooser{false, m_auto},
   m_led{}
 {
@@ -161,18 +161,28 @@ void Robot::RobotPeriodic()
   m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetYaw());
   m_shooter.SetGamepiece(m_intake.InChannel());
 
-  // LED
-  if (m_intake.HasGamePiece())
+  // LED vertical
+  if (m_intake.HasGamePiece() || m_eject)
   {
-    if (m_intake.InIntake()) {
-      m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 255, 0, 40);
-    } else if (m_intake.InChannel()) {
-      m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 255, 0, 0);
+    if (m_intake.InChannel()) {
+      m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 100, 0, 0);
+    } else {
+      m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 100, 0, 40);
     }
   }
   else
   {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 0, 255, 0);
+  }
+
+  if (m_shooter.IsManual()) {
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 69, 0, 40);
+  } else if (m_posVal != 0) {
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 255, 0, 0);
+  } else if (m_amp) {
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 255, 0, 0);
+  } else {
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 0, 255, 0);
   }
 
 #if SWERVE_AUTOTUNING
@@ -200,6 +210,7 @@ void Robot::RobotPeriodic()
 void Robot::AutonomousInit()
 {
   m_shooter.SetHooked(true);
+  m_shooter.ZeroRelative();
   
   m_odom.SetAuto(true);
   m_swerveController.SetAngCorrection(false);
@@ -244,6 +255,7 @@ void Robot::TeleopInit()
   m_swerveController.SetAutoMode(false);
   m_autoLineup.SetPID(AutoLineupConstants::ANG_P, AutoLineupConstants::ANG_I, AutoLineupConstants::ANG_D);
   m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
+  m_shooter.ZeroRelative();
 }
 
 void Robot::TeleopPeriodic()
@@ -254,13 +266,14 @@ void Robot::TeleopPeriodic()
   double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
 
   // angle lock
-  int ctrlVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
+  int ctrlVal = m_controller.getValueOnce(ControllerMapData::SCORING_POS, 0);
   if (ctrlVal != 0) {
+    m_shooter.Stop();
     m_posVal = ctrlVal;
-    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 255, 0, 0);
   }
 
-  if (m_controller.getPressed(SHOOT_AUTO)) {
+  if (m_controller.getPressedOnce(SHOOT_AUTO)) {
+    m_shooter.Stop();
     m_posVal = 0;
   }
 
@@ -340,7 +353,9 @@ void Robot::TeleopPeriodic()
   }
   else{
     if(m_posVal == 0){
-      m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), true);  //Shoot into speaker
+      if(!m_controller.getPressed(SHOOT)){
+        m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), true);  //Shoot into speaker
+      }
     }
     else{
       vec::Vector2D manualLineupPos = SideHelper::GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[m_posVal - 1]); //Manual positions

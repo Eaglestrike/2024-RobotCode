@@ -62,7 +62,7 @@ void Pivot::CoreInit(){
 void Pivot::CorePeriodic(){
     Poses::Pose1D absPose = GetAbsPose();
     Poses::Pose1D newPose = GetRelPose(); //Use relative encoder
-    if(std::abs(newPose.pos - absPose.pos) > 0.02){
+    if(std::abs(newPose.pos - absPose.pos) > 0.20){
         ZeroRelative();
         newPose = absPose;
     }
@@ -129,6 +129,9 @@ void Pivot::CoreTeleopPeriodic(){
             if(shuff_.isEnabled()){ //Shuff prints
                 shuff_.PutNumber("pos error", error.pos, {1,1,5,3});
                 shuff_.PutNumber("vel error", error.vel, {1,1,6,3});
+
+                shuff_.PutNumber("targ pos", target.pos, {1,1,7,3});
+                shuff_.PutNumber("cur pos", currPose_.pos, {1,1,8,3});
             }
             break;
         }
@@ -311,10 +314,10 @@ void Pivot::CoreShuffleboardInit(){
 
     shuff_.add("hooked", &hooked_, {1,1,7,2}, true);
 
-    // shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
-    // shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
-    // shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
-    // shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
+    shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
+    shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
+    shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
+    shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
 
     //Bounds (middle-bottom)
     shuff_.add("min", &bounds_.min, {1,1,4,4}, true);
@@ -354,12 +357,12 @@ void Pivot::CoreShuffleboardInit(){
 void Pivot::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
 
-    // Poses::Pose1D relPose = GetRelPose();
-    // Poses::Pose1D absPose = GetAbsPose();
-    // shuff_.PutNumber("relPos", relPose.pos);
-    // shuff_.PutNumber("relVel", relPose.vel);
-    // shuff_.PutNumber("absPos", absPose.pos);
-    // shuff_.PutNumber("absVel", absPose.vel);
+    Poses::Pose1D relPose = GetRelPose();
+    Poses::Pose1D absPose = GetAbsPose();
+    shuff_.PutNumber("relPos", relPose.pos);
+    shuff_.PutNumber("relVel", relPose.vel);
+    shuff_.PutNumber("absPos", absPose.pos);
+    shuff_.PutNumber("absVel", absPose.vel);
 
     shuff_.update(true);
 

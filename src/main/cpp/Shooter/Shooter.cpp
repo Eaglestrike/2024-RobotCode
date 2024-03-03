@@ -107,8 +107,8 @@ void Shooter::Stroll(){
         tflywheel_.SetTarget(15.0);
     }
     else{
-        bflywheel_.SetVoltage(strollSpeed_);
-        tflywheel_.SetVoltage(strollSpeed_);
+        bflywheel_.SetTarget(strollSpeed_);
+        tflywheel_.SetTarget(strollSpeed_);
     }
     state_ = STROLL;
 }
@@ -151,6 +151,13 @@ void Shooter::Eject(){
     tflywheel_.SetVoltage(strollSpeed_);
 
     state_ = EJECT;
+}
+
+/**
+ * zero rel to abs
+*/
+void Shooter::ZeroRelative() {
+    pivot_.ZeroRelative();
 }
 
 /**
@@ -368,6 +375,13 @@ double Shooter::GetTargetRobotYaw(){
 */
 vec::Vector2D Shooter::GetTrim() {
     return trim_;
+}
+
+/**
+ * gets if manual
+*/
+bool Shooter::IsManual() {
+    return state_ == MANUAL_TARGET;
 }
 
 /**

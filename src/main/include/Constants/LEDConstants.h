@@ -16,5 +16,6 @@ namespace LEDConstants
     typedef std::vector<std::pair<int, int>> LEDSegmentRange;
     const std::map<LEDSegment, LEDSegmentRange> LED_SEGMENTS = {
         {LEDSegment::VERTICAL, {{0, 9}, {17, 23}}},
-        {LEDSegment::HORIZONTAL, {{10, 16}}}};
+        {LEDSegment::HORIZONTAL, {{10, 16}}}
+    };
 }

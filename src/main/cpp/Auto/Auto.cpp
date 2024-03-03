@@ -221,7 +221,7 @@ void Auto::AutoPeriodic(){
         if(shooter_.UseAutoLineup()){ //Angle lineup
             autoLineup_.Recalc(shooter_.GetTargetRobotYaw());
             autoLineup_.Periodic();
-            segments_.Periodic(autoLineup_.GetAngVel() * 0.4);  
+            segments_.Periodic(autoLineup_.GetAngVel());  
         }
         else{
             segments_.Periodic(0.0);
