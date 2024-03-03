@@ -84,8 +84,8 @@ namespace ShooterConstants{
     const double PIVOT_OFFSET = 5.587;
  
     const PID PIVOT_PID = {
-        .kp = 6.0,
-        .ki = 0.8,
+        .kp = 11.0,
+        .ki = 0.4,
         .kd = 0.2
     };
 
@@ -93,15 +93,16 @@ namespace ShooterConstants{
         .ks = 0.01,
         .kv = 0.366,
         .ka = 0.0152,
-        .kg = 0.375
+        .kg = 0.475
     };
 
     const Incher PIVOT_INCH = {
-        .volts = 3.0,
-        .onCycles = 11,
+        .volts = 0.7,
+        .onCycles = 2,
         .numCycles = 20
     };
-    const double PIVOT_INCH_TOL = 0.01;
+    const double PIVOT_INCH_TOL = 0.04;
+    const double PIVOT_INCH_DEADBAND = 0.007;
 
     const double PIVOT_MAX_V = 2.5;
     const double PIVOT_MAX_A = 3.0;

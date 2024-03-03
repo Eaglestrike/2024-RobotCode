@@ -6,9 +6,9 @@
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
     state_{STOP},
-    bflywheel_{ShooterConstants::BOTTOM_FLYWHEEL, enabled, (shuffleboard && DebugConfig::SHOOTER.LEFT_FLY)},
-    tflywheel_{ShooterConstants::TOP_FLYWHEEL, enabled, (shuffleboard && DebugConfig::SHOOTER.RIGHT_FLY)},
-    pivot_{"Pivot", enabled, (shuffleboard && DebugConfig::SHOOTER.PIVOT)},
+    bflywheel_{ShooterConstants::BOTTOM_FLYWHEEL, enabled, DebugConfig::SHOOTER.LEFT_FLY},
+    tflywheel_{ShooterConstants::TOP_FLYWHEEL, enabled, DebugConfig::SHOOTER.RIGHT_FLY},
+    pivot_{"Pivot", enabled, DebugConfig::SHOOTER.PIVOT},
     shuff_{name, shuffleboard}
 
     #if PIVOT_AUTO_TUNE
@@ -175,11 +175,6 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
         return;
     }
 
-    state_ = SHOOT;
-    targetPos_ = robotPos;
-    //targetVel_ = {0.0, 0.0};
-    targetVel_ = robotVel;
-
     //Speaker targetting
     bool blueSpeaker = SideHelper::IsBlue();
     vec::Vector2D speaker = blueSpeaker? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
@@ -187,37 +182,42 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     trim *= (blueSpeaker? 1.0: -1.0);
 
     vec::Vector2D toSpeaker = speaker - targetPos_ + trim;
+    
+    state_ = SHOOT;
+    targetPos_ = robotPos;
+    targetVel_ = {0.0, 0.0};
+    double dist = toSpeaker.magn();
+    //targetVel_ = robotVel;
 
     // Shooting while moving (modify speaker location)
     // https://www.desmos.com/calculator/5hd2snnrwz
 
-    double px = toSpeaker.x();
-    double py = toSpeaker.y();
+    // double px = toSpeaker.x();
+    // double py = toSpeaker.y();
 
-    double vx = -robotVel.x();
-    double vy = -robotVel.y();    
+    // double vx = -robotVel.x();
+    // double vy = -robotVel.y();    
 
-    double posSquare = px*px + py*py;
-    double dotPosVel = px*vx + py*vy;
-    double velSquare = vx*vx + vy*vy;
+    // double posSquare = px*px + py*py;
+    // double dotPosVel = px*vx + py*vy;
+    // double velSquare = vx*vx + vy*vy;
 
-    double a = kD_*kD_ * velSquare - 1.0;
-    double b = 2.0*kD_*(dotPosVel + cT_*velSquare);
-    double c = posSquare + 2.0*cT_ + cT_*cT_*velSquare;
+    // double a = kD_*kD_ * velSquare - 1.0;
+    // double b = 2.0*kD_*(dotPosVel + cT_*velSquare);
+    // double c = posSquare + 2.0*cT_ + cT_*cT_*velSquare;
 
-    double determinant = b*b - 4*a*c;
-    if((determinant < 0.0) || (a == 0.0)){
-        std::cout << "Shot not possible" << std::endl;
-        Stroll();
-        return;
-    }
+    // double determinant = b*b - 4*a*c;
+    // if((determinant < 0.0) || (a == 0.0)){
+    //     std::cout << "Shot not possible" << std::endl;
+    //     Stroll();
+    //     return;
+    // }
 
-    double dist = (-b-std::sqrt(determinant))/(2.0*a);
-    double t = kD_*dist + cT_;
+    // double dist = (-b-std::sqrt(determinant))/(2.0*a);
+    // double t = kD_*dist + cT_;
 
-    toSpeaker -= (robotVel*t);
+    // toSpeaker -= (robotVel*t);
 
-    //double dist = toSpeaker.magn();
     if(shuff_.isEnabled()){
         shuff_.PutNumber("Shot dist", dist, {1,1,3,3});
     }

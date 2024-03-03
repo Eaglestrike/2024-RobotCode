@@ -104,11 +104,13 @@ void Pivot::CoreTeleopPeriodic(){
             double pid = pid_.kp*error.pos + pid_.ki*accum_ + pid_.kd*error.vel;
             volts_ += pid;
 
-            if(std::abs(error.pos) < inchTol_){
+            double absError = std::abs(error.pos);
+            if((absError < inchTol_) && (absError > ShooterConstants::PIVOT_INCH_DEADBAND)){
                 cycle_++;
                 cycle_ %= inch_.numCycles;
                 double inch = (cycle_ < inch_.onCycles) ? inch_.volts : 0.0;
                 inch *= Utils::Sign(error.pos);
+                std::cout<<inch<<" "<<cycle_<<std::endl;
                 volts_ += inch;
             }
 
@@ -126,12 +128,12 @@ void Pivot::CoreTeleopPeriodic(){
                     state_ = AT_TARGET; //At target due to tolerances
                 }
                 else{
-                    profile_.regenerate(currPose_);
+                    //profile_.regenerate(currPose_);
                 }
             }
             else if (state_ == AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
-                    profile_.regenerate(currPose_);
+                    //profile_.regenerate(currPose_);
                     state_ = AIMING;
                 }
             }
@@ -155,7 +157,7 @@ void Pivot::CoreTeleopPeriodic(){
     else if((currPose_.pos < bounds_.min) && (volts_ < ff_.kg*cos(bounds_.min))){
         volts_ = 0.0;
     }
-    motor_.SetVoltage(units::volt_t{volts_ + 0.2*Utils::Sign(volts_)}); //This motor has more weight
+    motor_.SetVoltage(units::volt_t{volts_}); //This motor has more weight
     motorChild_.SetVoltage(units::volt_t{volts_});
 
     prevT_ = t;
