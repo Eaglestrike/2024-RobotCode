@@ -149,7 +149,7 @@ namespace ShooterConstants{
     //Field Data
 
     //Speaker center positions (x, y)
-    const vec::Vector2D RED_SPEAKER = {16.54-0.15, 5.58};
+    const vec::Vector2D RED_SPEAKER = {16.54-0.30, 5.58};
     const vec::Vector2D BLUE_SPEAKER = {0.0, 5.58};
 
     //Dimensions of the shootable area
