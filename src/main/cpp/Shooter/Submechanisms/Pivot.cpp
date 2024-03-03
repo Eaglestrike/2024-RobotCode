@@ -51,7 +51,7 @@ void Pivot::CoreInit(){
     ZeroRelative();
 
     currPose_ = GetAbsPose();
-    profile_.setTarget(currPose_, currPose_);
+    profile_.setTarget({0.7, 0, 0}, {0.7, 0, 0});
 
     hooked_ = true;
 }
@@ -62,7 +62,7 @@ void Pivot::CoreInit(){
 void Pivot::CorePeriodic(){
     Poses::Pose1D absPose = GetAbsPose();
     Poses::Pose1D newPose = GetRelPose(); //Use relative encoder
-    if(std::abs(newPose.pos - absPose.pos) > 0.02){
+    if(std::abs(newPose.pos - absPose.pos) > 0.20){
         ZeroRelative();
         newPose = absPose;
     }
@@ -89,6 +89,10 @@ void Pivot::CoreTeleopPeriodic(){
             [[fallthrough]];
         case AT_TARGET:
         {
+            if(hooked_ && (state_ != UNHOOK)){
+                SetAngle(profile_.getTargetPose().pos);
+            }
+
             Poses::Pose1D target = profile_.currentPose();
             double ff = ff_.ks*Utils::Sign(target.vel) + ff_.kv*target.vel + ff_.ka*target.acc;
             double grav = ff_.kg*cos(currPose_.pos); //Have gravity be feedback
@@ -114,8 +118,8 @@ void Pivot::CoreTeleopPeriodic(){
             if(state_ == UNHOOK && finished && atTarget){ //Go to next target after unhooking
                 hooked_ = false;
                 SetAngle(tempTarg_);
-                profile_.setMaxAcc(ShooterConstants::PIVOT_MAX_A);
-                profile_.setMaxVel(ShooterConstants::PIVOT_MAX_V);
+                //profile_.setMaxAcc(ShooterConstants::PIVOT_MAX_A);
+                //profile_.setMaxVel(ShooterConstants::PIVOT_MAX_V);
             }
             else if(state_ == AIMING && finished){ //if case to deal with fallthrough
                 if(atTarget){
@@ -135,6 +139,9 @@ void Pivot::CoreTeleopPeriodic(){
             if(shuff_.isEnabled()){ //Shuff prints
                 shuff_.PutNumber("pos error", error.pos, {1,1,5,3});
                 shuff_.PutNumber("vel error", error.vel, {1,1,6,3});
+
+                shuff_.PutNumber("targ pos", target.pos, {1,1,7,3});
+                shuff_.PutNumber("cur pos", currPose_.pos, {1,1,8,3});
             }
             break;
         }
@@ -175,8 +182,8 @@ void Pivot::SetAngle(double angle){
             return;
         }
         angle = ShooterConstants::PIVOT_UNHOOK;
-        profile_.setMaxAcc(7.0); //Go faster when unhooking
-        profile_.setMaxVel(6.0);
+        //profile_.setMaxAcc(7.0); //Go faster when unhooking
+        //profile_.setMaxVel(6.0);
     }
     Poses::Pose1D currTarg = profile_.getTargetPose();
     Poses::Pose1D target = {.pos = angle, .vel = 0.0, .acc = 0.0};
@@ -267,11 +274,23 @@ void Pivot::SetTolerance(double posTol){
     velTol_ = posTol * (ShooterConstants::PIVOT_VEL_TOL / ShooterConstants::PIVOT_POS_TOL); //Scale vel tol by how pos tol scales
 }
 
+void Pivot::SetHooked(bool hooked){
+    hooked_ = hooked;
+}
+
 /**
  * Get Pose
 */
 Poses::Pose1D Pivot::GetPose(){
     return currPose_;
+}
+
+double Pivot::GetTolerance() {
+    return posTol_;
+}
+
+std::string Pivot::GetStateStr() {
+    return StateToString(state_);
 }
 
 /**
@@ -313,10 +332,10 @@ void Pivot::CoreShuffleboardInit(){
 
     shuff_.add("hooked", &hooked_, {1,1,7,2}, true);
 
-    // shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
-    // shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
-    // shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
-    // shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
+    shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
+    shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
+    shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
+    shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
 
     //Bounds (middle-bottom)
     shuff_.add("min", &bounds_.min, {1,1,4,4}, true);
@@ -361,12 +380,12 @@ void Pivot::CoreShuffleboardInit(){
 void Pivot::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
 
-    // Poses::Pose1D relPose = GetRelPose();
-    // Poses::Pose1D absPose = GetAbsPose();
-    // shuff_.PutNumber("relPos", relPose.pos);
-    // shuff_.PutNumber("relVel", relPose.vel);
-    // shuff_.PutNumber("absPos", absPose.pos);
-    // shuff_.PutNumber("absVel", absPose.vel);
+    Poses::Pose1D relPose = GetRelPose();
+    Poses::Pose1D absPose = GetAbsPose();
+    shuff_.PutNumber("relPos", relPose.pos);
+    shuff_.PutNumber("relVel", relPose.vel);
+    shuff_.PutNumber("absPos", absPose.pos);
+    shuff_.PutNumber("absVel", absPose.vel);
 
     shuff_.update(true);
 

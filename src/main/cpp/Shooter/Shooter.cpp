@@ -15,9 +15,7 @@ Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     ,pivotTuning_{false},
     pivotTuner_{"pivot tuner", FFAutotuner::ARM, ShooterConstants::PIVOT_MIN, ShooterConstants::PIVOT_MAX}
     #endif
-{
-    trim_ = {-0.3, 0.0};
-}
+{}
 
 /**
  * Core functions
@@ -111,8 +109,8 @@ void Shooter::Stroll(){
         tflywheel_.SetTarget(15.0);
     }
     else{
-        bflywheel_.SetVoltage(strollSpeed_);
-        tflywheel_.SetVoltage(strollSpeed_);
+        bflywheel_.SetTarget(strollSpeed_);
+        tflywheel_.SetTarget(strollSpeed_);
     }
     state_ = STROLL;
 }
@@ -155,6 +153,13 @@ void Shooter::Eject(){
     tflywheel_.SetVoltage(strollSpeed_);
 
     state_ = EJECT;
+}
+
+/**
+ * zero rel to abs
+*/
+void Shooter::ZeroRelative() {
+    pivot_.ZeroRelative();
 }
 
 /**
@@ -370,12 +375,34 @@ vec::Vector2D Shooter::GetTrim() {
 }
 
 /**
+ * gets if manual
+*/
+bool Shooter::IsManual() {
+    return state_ == MANUAL_TARGET;
+}
+
+/**
  * Debug odometry
 */
 void Shooter::SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw){
     robotPos_ = robotPos;
     robotVel_ = robotVel;
     robotYaw_ = robotYaw;
+}
+
+void Shooter::SetHooked(bool hooked){
+    pivot_.SetHooked(hooked);
+}
+
+void Shooter::Log(FRCLogger &logger) {
+    logger.LogNum("Shot Vel", shot_.vel);
+    logger.LogNum("Shot Ang", shot_.ang);
+    logger.LogStr("Pivot state", pivot_.GetStateStr());
+    logger.LogStr("Top Flywheel state", tflywheel_.GetStateStr());
+    logger.LogStr("Bottom flywheel state", bflywheel_.GetStateStr());
+    logger.LogStr("Shooter state", StateToString(state_));
+    logger.LogBool("Can shoot", CanShoot());
+    logger.LogNum("Pivot tol", pivot_.GetTolerance());
 }
 
 

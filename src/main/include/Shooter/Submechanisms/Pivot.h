@@ -37,7 +37,11 @@ class Pivot : public Mechanism{
         bool AtTarget();
 
         void SetTolerance(double posTol);
+        void SetHooked(bool hooked);
         Poses::Pose1D GetPose();
+        double GetTolerance();
+
+        std::string GetStateStr();
 
     private:
         Poses::Pose1D GetAbsPose();

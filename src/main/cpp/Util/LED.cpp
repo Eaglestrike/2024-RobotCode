@@ -10,63 +10,68 @@ void LED::Init()
     m_led.Start();
 }
 
-void LED::SetStripColor(int r, int g, int b)
+void LED::SetLEDSegment(LEDConstants::LEDSegment segment, int r, int g, int b, int blink_freq)
 {
-    if (curr_r == r && curr_g == g && curr_b == b)
+    LEDSegmentState state = m_ledState[segment];
+    if (state.r == r && state.g == g && state.b == b && state.blink_freq == blink_freq)
     {
         return;
     }
-    curr_r = r;
-    curr_g = g;
-    curr_b = b;
+    state.r = r;
+    state.g = g;
+    state.b = b;
+    state.blink_freq = blink_freq;
+    m_ledState[segment] = state;
     m_led.Start();
-    for (int i = 0; i < LEDConstants::LED_STRIP_LENGTH; i++)
+    for (auto &seg : LEDConstants::LED_SEGMENTS.at(segment))
     {
-        m_ledBuffer[i].SetRGB(r, g, b);
+        for (int i = seg.first; i <= seg.second; i++)
+        {
+            // our led strip is GRB
+            m_ledBuffer[i].SetRGB(g, r, b);
+        }
     }
     m_led.SetData(m_ledBuffer);
     m_led.Stop();
 }
 
-void LED::SetStripEnabled(bool enabled)
+void LED::Periodic()
 {
-    if (enabled && !m_ledEnabled)
+    for (auto &seg : m_ledState)
     {
-        m_led.SetData(m_emptyLedBuffer);
-        m_ledEnabled = true;
-    }
-    else
-    {
-        m_led.SetData(m_ledBuffer);
-        m_ledEnabled = false;
-    }
-}
-
-void LED::ToggleStripEnabled()
-{
-    SetStripEnabled(!m_ledEnabled);
-}
-
-void LED::SetBlinkMode(bool blinkMode)
-{
-    m_blinkMode = blinkMode;
-}
-
-void LED::LEDPeriodic()
-{
-    if (m_blinkMode)
-    {
-        ToggleStripEnabled();
+        if (seg.second.blink_freq > 0)
+        {
+            seg.second.time_on += 20;
+            if (seg.second.time_on >= seg.second.blink_freq)
+            {
+                seg.second.time_on = 0;
+                seg.second.is_on = !seg.second.is_on;
+                if (seg.second.is_on)
+                {
+                    SetLEDSegment(seg.first, seg.second.r, seg.second.g, seg.second.b, seg.second.blink_freq);
+                }
+                else
+                {
+                    SetLEDSegment(seg.first, 0, 0, 0, 0);
+                }
+            }
+        }
     }
 }
 
-void LED::Start()
+void LED::TurnAllOff()
+{
+    m_led.Start();
+    m_led.SetData(m_emptyLedBuffer);
+    m_led.Stop();
+}
+
+void LED::StartOutput()
 {
     m_led.Start();
 }
 
-void LED::Stop()
+void LED::StopOutput()
 {
-    m_led.SetData(m_emptyLedBuffer);
     m_led.Stop();
 }

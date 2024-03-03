@@ -107,7 +107,7 @@ namespace ShooterConstants{
     const double PIVOT_MAX_A = 3.0;
 
     const double PIVOT_POS_TOL = 0.02;
-    const double PIVOT_VEL_TOL = 0.05;
+    const double PIVOT_VEL_TOL = 1;
 
     //Shooter data
     struct ShootConfig{
@@ -143,12 +143,12 @@ namespace ShooterConstants{
     //const double SHOOT_YAW_TOL = 0.05;
     const double SHOOT_YAW_PERCENT = 0.5;
     const double LINEUP_YAW_PERCENT = 0.45;
-    const double PIVOT_ANG_PERCENT = 0.4; // 0.8
+    const double PIVOT_ANG_PERCENT = 0.7; // 0.8
 
     //Field Data
 
     //Speaker center positions (x, y)
-    const vec::Vector2D RED_SPEAKER = {17-18*0.0254, 5.58};
+    const vec::Vector2D RED_SPEAKER = {16.54-0.15, 5.58};
     const vec::Vector2D BLUE_SPEAKER = {0.0, 5.58};
 
     //Dimensions of the shootable area

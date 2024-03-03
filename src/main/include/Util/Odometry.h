@@ -49,6 +49,7 @@ private:
   std::pair<bool, double> GetInterpolAng(const double &camTime);
 
   bool m_shuffleboard;
+  bool m_isAuto;
 
   vec::Vector2D m_curPos, m_startPos, m_vel;
   double m_curAng, m_startAng, m_angVel;
@@ -60,6 +61,7 @@ private:
 
   PoseEstimator m_estimator;
   long long m_uniqueId;
+  double m_timeOffset;
   double m_prevCamTime;
   double m_camStdDevCoef;
 
@@ -69,5 +71,5 @@ private:
 
   // debug stuff
   vec::Vector2D m_camPos; // only used for shuffleboard prints for now
-  frc::Field2d m_field;
+  // frc::Field2d m_field;
 };
