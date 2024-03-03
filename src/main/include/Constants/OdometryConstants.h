@@ -45,7 +45,10 @@ namespace OdometryConstants {
 
   // camera std dev coefficient (0 stddev if 0 m from camera, increases quadratically with distance)
   const double CAM_STD_DEV_COEF_AUTO = 0.01; // 0.03
-  const double CAM_STD_DEV_COEF_TELE = 0.006; // 0.003
+  const double CAM_STD_DEV_COEF_TELE = 0.001; // 0.003
+
+  // turning std dev coef
+  const double CAM_TURN_STD_DEV_COEF = 0.01909859317;
 
   // if greater than this distance but less than AT_REJECT, immediately correct
   const double TRUST_CAMS_MORE_THRESH = 1;

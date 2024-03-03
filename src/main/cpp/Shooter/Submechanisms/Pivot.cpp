@@ -133,7 +133,7 @@ void Pivot::CoreTeleopPeriodic(){
             }
             else if (state_ == AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
-                    //profile_.regenerate(currPose_);
+                    profile_.regenerate(currPose_);
                     state_ = AIMING;
                 }
             }

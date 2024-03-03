@@ -228,14 +228,12 @@ void Robot::AutonomousInit()
     m_climb.Zero();
     m_climbZeroed = true;
   }
-  if (!m_driveZeroed) {
-    m_navx->Reset();
-    m_navx->ZeroYaw();
-    m_odom.Reset();
-    m_swerveController.ResetAngleCorrection(m_odom.GetAng());
-    m_swerveController.ResetFF();
-    m_driveZeroed = true;
-  }
+  m_navx->Reset();
+  m_navx->ZeroYaw();
+  m_odom.Reset();
+  m_swerveController.ResetAngleCorrection(m_odom.GetAng());
+  m_swerveController.ResetFF();
+  m_driveZeroed = true;
 
   m_autoChooser.ProcessChoosers(false);
   m_auto.AutoInit();
@@ -367,9 +365,7 @@ void Robot::TeleopPeriodic()
   }
   else{
     if(m_posVal == 0){
-      if(!m_controller.getPressed(SHOOT)){
-        m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), true);  //Shoot into speaker
-      }
+      m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), true);  //Shoot into speaker
     }
     else{
       vec::Vector2D manualLineupPos = SideHelper::GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[m_posVal - 1]); //Manual positions

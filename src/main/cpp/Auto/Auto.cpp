@@ -70,10 +70,10 @@ void Auto::SetSegment(uint index, std::string to, std::string back){
     SetPath(
         index,
         {
-            {DRIVE, AFTER, to},
+            {DRIVE, AFTER, to}, // 0.5?
             {INTAKE, BEFORE_END}, //Can keep intake down if needed (then use stow)
             {DRIVE, AFTER, back},
-            {SHOOT, AFTER},
+            {SHOOT, BEFORE_END, ""},
         }
     );
 }
@@ -97,7 +97,7 @@ void Auto::SetSegment(uint index, std::string path){
         {
             {DRIVE, AFTER, path},
             {INTAKE, BEFORE_END},
-            {SHOOT, AFTER}
+            {SHOOT, BEFORE_END, ""}
         }
     );
 }
@@ -188,6 +188,12 @@ void Auto::AutoPeriodic(){
         return;
     }
 
+    // if (driveTiming_.hasStarted && !driveTiming_.finished) {
+    //     odometry_.SetAuto(true);
+    // } else {
+    //     odometry_.SetAuto(false);
+    // }
+
     //Code to deal with blind spot
     if(intake_.InIntake()){
         inChannel_ = true;
@@ -211,7 +217,7 @@ void Auto::AutoPeriodic(){
         NextBlock();
     }
     
-    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) /*&& (inChannel_ || intake_.HasGamePiece())*/;
+    bool useAngLineup = pathNum_ != 0 && shooterTiming_.hasStarted && (!shooterTiming_.finished) && (intakeTiming_.finished)/*&& (inChannel_ || intake_.HasGamePiece())*/;
     if(shuff_.isEnabled()){
         shuff_.PutBoolean("ang lineup", useAngLineup, {2,2,0,1});
         shuff_.PutNumber("targ angle", shooter_.GetTargetRobotYaw(), {2,1,0,3});
@@ -276,7 +282,12 @@ void Auto::DrivePeriodic(double t){
 void Auto::ShooterPeriodic(double t){
     if(!shooterTiming_.hasStarted && t > shooterTiming_.start){
         shooterTiming_.hasStarted = true;
+        hadPiece_ = false;
         // std::cout<<"Shooter start" << std::endl;
+    }
+
+    if(inChannel_ || intake_.HasGamePiece()){
+        hadPiece_ = true;
     }
 
     if(shooterTiming_.finished){
@@ -285,18 +296,19 @@ void Auto::ShooterPeriodic(double t){
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
         //Feed into shooter when can shoot
-        if(shooter_.CanShoot() || (t > shooterTiming_.end + SHOOT_PADDING)){ 
+        int posVal = pathNum_ == 0 ? 3 : 0;
+        if(shooter_.CanShoot(posVal) || (t > shooterTiming_.end + SHOOT_PADDING)){ 
             intake_.FeedIntoShooter();
         }
         
         //Finish shooting when can't see piece for a bit
-        if((!inChannel_) && (!intake_.HasGamePiece())){ 
+        if((!inChannel_) && (!intake_.HasGamePiece()) && (hadPiece_)){ 
             shooterTiming_.finished = true;
             startedLineup_ = false;
             // std::cout<<"Shooter end" << std::endl;
         }
 
-        if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target
+        if(((pos - shootPos_).magn() < SHOOT_POS_TOL) || intake_.HasGamePiece() || inChannel_){ //Constantly prepare to current position if within some distance to the target
             shooter_.Prepare(pos, {0, 0}, false);
         }
         else{
