@@ -275,6 +275,14 @@ Poses::Pose1D Pivot::GetPose(){
     return currPose_;
 }
 
+double Pivot::GetTolerance() {
+    return posTol_;
+}
+
+std::string Pivot::GetStateStr() {
+    return StateToString(state_);
+}
+
 /**
  * State to string
 */

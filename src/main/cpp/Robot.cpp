@@ -23,7 +23,7 @@ Robot::Robot() :
   //Controller
   m_controller{},
   //Logger
-  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang", "Intake State"}},
+  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Manual Pos Val", "Amp mode", "Intake State", "In intake", "In channel", "Shot Vel", "Shot Ang", "Pivot state", "Top Flywheel state", "Bottom flywheel state", "Shooter state", "Can shoot", "Pivot tol"}},
   m_prevIsLogging{false},
   //Mechanisms
   m_swerveController{true, false},
@@ -52,7 +52,8 @@ Robot::Robot() :
   }
 
   // logger
-  m_logger.SetLogToConsole(true);
+  m_logger.SetLogToConsole(false);
+  m_logger.SetLevel(LogLevels::INFO);
 
   // Periodic fast
   AddPeriodic([&]()
@@ -260,6 +261,17 @@ void Robot::TeleopInit()
 
 void Robot::TeleopPeriodic()
 {
+  // logging controls
+  if (m_controller.getPressedOnce(FORCE_SHOOT)) {
+    m_logger.Warn("Input", "Force shooting");
+  } else if (m_controller.getPressedOnce(SHOOT)) {
+    m_logger.Info("Input", "Pressed shoot");
+  } else if (m_controller.getPressedOnce(INTAKE)) {
+    m_logger.Info("Input", "Pressed intaking");
+  } else if (m_controller.getPressedOnce(MANUAL_EJECT_IN) || m_controller.getPressedOnce(MANUAL_EJECT_OUT)) {
+    m_logger.Info("Input", "Ejecting");
+  }
+
   // Swerve
   double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
   double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
@@ -295,6 +307,7 @@ void Robot::TeleopPeriodic()
   // auto lineup to amp
   if (m_controller.getPOVDownOnce(AMP_AUTO_LINEUP))
   {
+    m_logger.Info("Input", "Starting Angle Lineup");
     m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
     m_autoLineup.Start();
   }
@@ -663,7 +676,6 @@ void Robot::ShuffleboardInit()
  */
 void Robot::ShuffleboardPeriodic()
 {
-  m_intake.Log(m_logger);
   // LOGGING
   {
     bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
@@ -676,6 +688,11 @@ void Robot::ShuffleboardPeriodic()
       m_logger.Disable();
     }
     m_prevIsLogging = isLogging;
+
+    m_intake.Log(m_logger);
+    m_shooter.Log(m_logger);
+    m_logger.LogNum("Manual Pos Val", m_posVal);
+    m_logger.LogBool("Amp mode", m_amp);
   }
 
   // ODOMETRY

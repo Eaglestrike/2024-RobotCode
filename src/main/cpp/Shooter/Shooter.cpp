@@ -397,6 +397,17 @@ void Shooter::SetHooked(bool hooked){
     pivot_.SetHooked(hooked);
 }
 
+void Shooter::Log(FRCLogger &logger) {
+    logger.LogNum("Shot Vel", shot_.vel);
+    logger.LogNum("Shot Ang", shot_.ang);
+    logger.LogStr("Pivot state", pivot_.GetStateStr());
+    logger.LogStr("Top Flywheel state", tflywheel_.GetStateStr());
+    logger.LogStr("Bottom flywheel state", bflywheel_.GetStateStr());
+    logger.LogStr("Shooter state", StateToString(state_));
+    logger.LogBool("Can shoot", CanShoot());
+    logger.LogNum("Pivot tol", pivot_.GetTolerance());
+}
+
 
 /**
  * Calculates the forward kinematics of the shot

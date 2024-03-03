@@ -7,6 +7,7 @@
 
 #include "Util/Mechanism.h"
 #include "Util/simplevectors.hpp"
+#include "Util/Logger.h"
 
 #if PIVOT_AUTO_TUNE
 #include "FFAutotuner/FFAutotuner.h"
@@ -58,6 +59,8 @@ class Shooter : public Mechanism{
 
         void SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);//Debug info passing in
         void SetHooked(bool hooked);
+
+        void Log(FRCLogger &logger);
 
     private:
         void CoreInit() override;
