@@ -15,6 +15,7 @@
 #include "Constants/AutoConstants.h"
 #include "Constants/AutoLineupConstants.h"
 #include "Controller/ControllerMap.h"
+#include "DebugConfig.h"
 #include "Util/SideHelper.h"
 
 using namespace Actions;
@@ -26,17 +27,17 @@ Robot::Robot() :
   m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Manual Pos Val", "Amp mode", "Intake State", "In intake", "In channel", "Shot Vel", "Shot Ang", "Pivot state", "Top Flywheel state", "Bottom flywheel state", "Shooter state", "Can shoot", "Pivot tol"}},
   m_prevIsLogging{false},
   //Mechanisms
-  m_swerveController{true, false},
-  m_intake{true, false},
-  m_climb{true, false},
-  m_shooter{"Shooter", true, false},
+  m_swerveController{true, DebugConfig::DRIVE},
+  m_intake{true, DebugConfig::INTAKE},
+  m_climb{true, DebugConfig::CLIMB},
+  m_shooter{"Shooter", true, DebugConfig::SHOOTER.SHOOTER},
   //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
   //Auto
   m_autoLineup{false, m_odom},  
-  m_auto{false, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
+  m_auto{DebugConfig::AUTO, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
   m_autoChooser{false, m_auto},
   m_led{}
 {
@@ -227,14 +228,12 @@ void Robot::AutonomousInit()
     m_climb.Zero();
     m_climbZeroed = true;
   }
-  if (!m_driveZeroed) {
-    m_navx->Reset();
-    m_navx->ZeroYaw();
-    m_odom.Reset();
-    m_swerveController.ResetAngleCorrection(m_odom.GetAng());
-    m_swerveController.ResetFF();
-    m_driveZeroed = true;
-  }
+  m_navx->Reset();
+  m_navx->ZeroYaw();
+  m_odom.Reset();
+  m_swerveController.ResetAngleCorrection(m_odom.GetAng());
+  m_swerveController.ResetFF();
+  m_driveZeroed = true;
 
   m_autoChooser.ProcessChoosers(false);
   m_auto.AutoInit();
@@ -366,9 +365,7 @@ void Robot::TeleopPeriodic()
   }
   else{
     if(m_posVal == 0){
-      if(!m_controller.getPressed(SHOOT)){
-        m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), true);  //Shoot into speaker
-      }
+      m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), true);  //Shoot into speaker
     }
     else{
       vec::Vector2D manualLineupPos = SideHelper::GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[m_posVal - 1]); //Manual positions

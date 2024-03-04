@@ -1,12 +1,14 @@
 #include "Shooter/Shooter.h"
 #include "Util/SideHelper.h"
 
+#include "DebugConfig.h"
+
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
     state_{STOP},
-    bflywheel_{ShooterConstants::BOTTOM_FLYWHEEL, enabled, false},
-    tflywheel_{ShooterConstants::TOP_FLYWHEEL, enabled, false},
-    pivot_{"Pivot", enabled, shuffleboard},
+    bflywheel_{ShooterConstants::BOTTOM_FLYWHEEL, enabled, DebugConfig::SHOOTER.LEFT_FLY},
+    tflywheel_{ShooterConstants::TOP_FLYWHEEL, enabled, DebugConfig::SHOOTER.RIGHT_FLY},
+    pivot_{"Pivot", enabled, DebugConfig::SHOOTER.PIVOT},
     shuff_{name, shuffleboard}
 
     #if PIVOT_AUTO_TUNE
@@ -173,11 +175,6 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
         return;
     }
 
-    state_ = SHOOT;
-    targetPos_ = robotPos;
-    targetVel_ = {0.0, 0.0};
-    //targetVel_ = robotVel;
-
     //Speaker targetting
     bool blueSpeaker = SideHelper::IsBlue();
     vec::Vector2D speaker = blueSpeaker? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
@@ -185,8 +182,42 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     trim *= (blueSpeaker? 1.0: -1.0);
 
     vec::Vector2D toSpeaker = speaker - targetPos_ + trim;
-
+    
+    state_ = SHOOT;
+    targetPos_ = robotPos;
+    targetVel_ = {0.0, 0.0};
     double dist = toSpeaker.magn();
+    //targetVel_ = robotVel;
+
+    // Shooting while moving (modify speaker location)
+    // https://www.desmos.com/calculator/5hd2snnrwz
+
+    // double px = toSpeaker.x();
+    // double py = toSpeaker.y();
+
+    // double vx = -robotVel.x();
+    // double vy = -robotVel.y();    
+
+    // double posSquare = px*px + py*py;
+    // double dotPosVel = px*vx + py*vy;
+    // double velSquare = vx*vx + vy*vy;
+
+    // double a = kD_*kD_ * velSquare - 1.0;
+    // double b = 2.0*kD_*(dotPosVel + cT_*velSquare);
+    // double c = posSquare + 2.0*cT_ + cT_*cT_*velSquare;
+
+    // double determinant = b*b - 4*a*c;
+    // if((determinant < 0.0) || (a == 0.0)){
+    //     std::cout << "Shot not possible" << std::endl;
+    //     Stroll();
+    //     return;
+    // }
+
+    // double dist = (-b-std::sqrt(determinant))/(2.0*a);
+    // double t = kD_*dist + cT_;
+
+    // toSpeaker -= (robotVel*t);
+
     if(shuff_.isEnabled()){
         shuff_.PutNumber("Shot dist", dist, {1,1,3,3});
     }
@@ -212,42 +243,8 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     posYawTol_ = std::clamp(posYawTol_, 0.01, M_PI/2.0); //Tol cannot be greater than 90 degrees
     negYawTol_ = std::clamp(negYawTol_, -M_PI/2.0, -0.01);
 
-    // Shooting while moving
-    // https://www.desmos.com/calculator/5hd2snnrwz
-
-    /**
-    double px = toSpeaker.x();
-    double py = toSpeaker.y();
-
-    double vx = -robotVel.x();
-    double vy = -robotVel.y();    
-
-    double posSquare = px*px + py*py;
-    double dotPosVel = px*vx + py*vy;
-    double velSquare = vx*vx + vy*vy;
-
-    const double kD = ShooterConstants::kD;
-    const double cT = ShooterConstants::cT;
-
-    double a = kD*kD * velSquare - 1.0;
-    double b = 2.0*kD*(dotPosVel + cT*velSquare);
-    double c = posSquare + 2.0*cT + cT*cT*velSquare;
-
-    double determinant = b*b - 4*a*c;
-    if((determinant < 0.0) || (a == 0.0)){
-        std::cout << "Shot not possible" << std::endl;
-        Stroll();
-        return;
-    }
-
-    double dist = (-b-std::sqrt(determinant))/(2.0*a);
-    double t = kD*dist + cT;
-
-    targetYaw_ = static_cast<vec::Vector2D>((toSpeaker - (robotVel*t))).angle();
-    **/
-
     auto shot = shootData_.lower_bound(dist);
-    if(shot == shootData_.begin() || shot == shootData_.end()){ //No shot in data (too far or too close)
+    if((shot == shootData_.begin()) || (shot == shootData_.end())){ //No shot in data (too far or too close)
         //Check functionality (maybe idle at some distance)
         Stroll();
         return;
@@ -261,10 +258,10 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     ShooterConstants::ShootConfig lowerShot = shot->second;
 
     double upperPercent = (dist - lowerDist) / (upperDist - lowerDist);
-    double percent = 1.0 - upperPercent;
+    double lowerPercent = 1.0 - upperPercent;
 
-    double pivotAng = percent*lowerShot.ang + upperPercent*upperShot.ang;
-    double shotVel = percent*lowerShot.vel + upperPercent*upperShot.vel;
+    double pivotAng = lowerPercent*lowerShot.ang + upperPercent*upperShot.ang;
+    double shotVel = lowerPercent*lowerShot.vel + upperPercent*upperShot.vel;
 
     //Pivot set tolerance (max - min)/2.0
     double pivotTol = (std::atan(dist/ShooterConstants::SPEAKER_MIN) - std::atan((dist-ShooterConstants::SPEAKER_DEPTH)/ShooterConstants::SPEAKER_MIN))/2.0;
@@ -278,9 +275,9 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     if(angToSpeaker < -M_PI/2.0){
         angToSpeaker += M_PI;
     }
-    double spin = -angToSpeaker * kSpin_; //Spin opposite to way pointing
+    //double spin = -angToSpeaker * kSpin_; //Spin opposite to way pointing
 
-    SetUp(shotVel, spin, pivotAng);
+    SetUp(shotVel, 0.0, pivotAng);
 }
 
 /**
@@ -521,9 +518,11 @@ void Shooter::CoreShuffleboardInit(){
     shuff_.add("Shoot time", &shootTime_, {1,1,5,2}, true);
 
     //Shot data (row 3)
-    shuff_.add("kSpin", &kSpin_, {1,1,0,3}, true);
+    //shuff_.add("kSpin", &kSpin_, {1,1,0,3}, true);
     shuff_.add("Shot Vel", &shot_.vel, {1,1,1,3});
     shuff_.add("Shot Ang", &shot_.ang, {1,1,2,3});
+    shuff_.add("kD", &kD_, {1,1,4,3});
+    shuff_.add("cT", &cT_, {1,1,5,3});
     
     //Tolerance (row 4)
     shuff_.add("pos tol", &posTol_, {1,1,0,4}, true);
@@ -532,9 +531,8 @@ void Shooter::CoreShuffleboardInit(){
     shuff_.add("lineup percent", &lineupYawPercent_, {1,1,3,4}, true);
     shuff_.add("pivot percent", &pivotAngPercent_, {1,1,4,4}, true);
 
-    
-    shuff_.add("yaw pos", &posYawTol_, {1,1,3,4}, false);
-    shuff_.add("yaw neg", &negYawTol_, {1,1,4,4}, false);    
+    shuff_.add("yaw pos", &posYawTol_, {1,1,6,4}, false);
+    shuff_.add("yaw neg", &negYawTol_, {1,1,7,4}, false);    
 }
 
 void Shooter::CoreShuffleboardPeriodic(){

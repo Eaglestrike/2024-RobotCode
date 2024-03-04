@@ -86,7 +86,8 @@ class Shooter : public Mechanism{
         double shootTime_ = ShooterConstants::SHOOT_TIME;
 
         std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;
-        double kSpin_ = ShooterConstants::K_SPIN;
+        double kD_ = ShooterConstants::kD;
+        double cT_ = ShooterConstants::cT;
 
         bool hasShot_;
         ShooterConstants::ShootConfig shot_;
@@ -113,6 +114,7 @@ class Shooter : public Mechanism{
         double lineupYawPercent_ = ShooterConstants::LINEUP_YAW_PERCENT; //Percent of lineup needing area
         double pivotAngPercent_ = ShooterConstants::PIVOT_ANG_PERCENT;
         
+
 
         //Kinematic calculations (unused)
         struct FKRes{

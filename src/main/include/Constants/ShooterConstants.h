@@ -19,6 +19,12 @@ namespace ShooterConstants{
         double kg = 0.0;
     };
 
+    struct Incher{
+        double volts;
+        int onCycles;
+        int numCycles;
+    };
+
     const std::string SHOOTER_CANBUS = "";
 
     //Flywheel Constants
@@ -78,8 +84,8 @@ namespace ShooterConstants{
     const double PIVOT_OFFSET = 5.587;
  
     const PID PIVOT_PID = {
-        .kp = 6.0,
-        .ki = 0.8,
+        .kp = 11.0,
+        .ki = 0.4,
         .kd = 0.2
     };
 
@@ -87,8 +93,16 @@ namespace ShooterConstants{
         .ks = 0.01,
         .kv = 0.366,
         .ka = 0.0152,
-        .kg = 0.375
+        .kg = 0.475
     };
+
+    const Incher PIVOT_INCH = {
+        .volts = 0.7,
+        .onCycles = 2,
+        .numCycles = 20
+    };
+    const double PIVOT_INCH_TOL = 0.04;
+    const double PIVOT_INCH_DEADBAND = 0.007;
 
     const double PIVOT_MAX_V = 2.5;
     const double PIVOT_MAX_A = 3.0;
@@ -118,7 +132,7 @@ namespace ShooterConstants{
         {4.37,  {0.51,  18.0}}
     };
 
-    const double K_SPIN = 0.0; //Constant of how much the robot spins the note
+    //const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
     const double STROLL_SPEED = 0.7; //Voltage of strolling
 
@@ -135,7 +149,7 @@ namespace ShooterConstants{
     //Field Data
 
     //Speaker center positions (x, y)
-    const vec::Vector2D RED_SPEAKER = {16.54-0.15, 5.58};
+    const vec::Vector2D RED_SPEAKER = {16.54-0.30, 5.58};
     const vec::Vector2D BLUE_SPEAKER = {0.0, 5.58};
 
     //Dimensions of the shootable area
@@ -168,8 +182,8 @@ namespace ShooterConstants{
 
     //Shooter amp : ang:1.0, vel:3.9
     //Constants for time calculation (t = kD * d + cT)
-    const double kD = 0.0424441;
-    const double cT = 0.0834987;
+    const double kD = 0.0489123;
+    const double cT = 0.177579;
     const double prepareT = 0.1;
 
     // amp

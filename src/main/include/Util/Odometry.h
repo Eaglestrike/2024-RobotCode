@@ -64,6 +64,7 @@ private:
   double m_timeOffset;
   double m_prevCamTime;
   double m_camStdDevCoef;
+  double m_turnStdDevCoef;
 
   std::map<double, double> m_angHistory;
 
