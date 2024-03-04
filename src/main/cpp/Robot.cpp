@@ -24,7 +24,7 @@ Robot::Robot() :
   //Controller
   m_controller{},
   //Logger
-  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Manual Pos Val", "Amp mode", "Intake State", "In intake", "In channel", "Shot Vel", "Shot Ang", "Pivot state", "Top Flywheel state", "Bottom flywheel state", "Shooter state", "Can shoot", "Pivot tol"}},
+  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Manual Pos Val", "Amp mode", "Intake State", "In intake", "In channel", "Shot Vel", "Shot Ang", "Pivot state", "Top Flywheel state", "Bottom flywheel state", "Shooter state", "Can shoot", "Pivot tol", "Trim X", "Trim Y"}},
   m_prevIsLogging{false},
   //Mechanisms
   m_swerveController{true, DebugConfig::DRIVE},
@@ -727,6 +727,8 @@ void Robot::ShuffleboardPeriodic()
   {
     frc::SmartDashboard::PutNumber("Trim X", m_shooter.GetTrim().x());
     frc::SmartDashboard::PutNumber("Trim Y", m_shooter.GetTrim().y());
+    m_logger.LogNum("Trim X", m_shooter.GetTrim().x());
+    m_logger.LogNum("Trim Y", m_shooter.GetTrim().y());
   }
 
   // MANUAL
