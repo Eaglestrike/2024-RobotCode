@@ -18,7 +18,7 @@ public:
     LED();
     void Init();
     /**
-     * Set the horizontal LED strip to a specific color
+     * Set the LED strip to a specific color
      * @param r Red value
      * @param g Green value
      * @param b Blue value
