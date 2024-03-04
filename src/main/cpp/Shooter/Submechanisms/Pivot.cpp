@@ -62,7 +62,7 @@ void Pivot::CoreInit(){
 void Pivot::CorePeriodic(){
     Poses::Pose1D absPose = GetAbsPose();
     Poses::Pose1D newPose = GetRelPose(); //Use relative encoder
-    if(std::abs(newPose.pos - absPose.pos) > 0.02){
+    if(std::abs(newPose.pos - absPose.pos) > 0.20){
         ZeroRelative();
         newPose = absPose;
     }
@@ -94,13 +94,24 @@ void Pivot::CoreTeleopPeriodic(){
             }
 
             Poses::Pose1D target = profile_.currentPose();
-            double ff = ff_.ks*Utils::Sign(target.vel) + ff_.kv*target.vel + ff_.ka*target.acc + ff_.kg*cos(target.pos);
+            double ff = ff_.ks*Utils::Sign(target.vel) + ff_.kv*target.vel + ff_.ka*target.acc;
+            double grav = ff_.kg*cos(currPose_.pos); //Have gravity be feedback
+            
+            volts_ = ff + grav;
 
             Poses::Pose1D error = target - currPose_;
             accum_ += error.pos * dt;
             double pid = pid_.kp*error.pos + pid_.ki*accum_ + pid_.kd*error.vel;
+            volts_ += pid;
 
-            volts_ = ff + pid;
+            double absError = std::abs(error.pos);
+            if((absError < inchTol_) && (absError > ShooterConstants::PIVOT_INCH_DEADBAND)){
+                cycle_++;
+                cycle_ %= inch_.numCycles;
+                double inch = (cycle_ < inch_.onCycles) ? inch_.volts : 0.0;
+                inch *= Utils::Sign(error.pos);
+                volts_ += inch;
+            }
 
             bool finished = profile_.isFinished();
             bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
@@ -116,7 +127,7 @@ void Pivot::CoreTeleopPeriodic(){
                     state_ = AT_TARGET; //At target due to tolerances
                 }
                 else{
-                    profile_.regenerate(currPose_);
+                    //profile_.regenerate(currPose_);
                 }
             }
             else if (state_ == AT_TARGET){
@@ -129,6 +140,9 @@ void Pivot::CoreTeleopPeriodic(){
             if(shuff_.isEnabled()){ //Shuff prints
                 shuff_.PutNumber("pos error", error.pos, {1,1,5,3});
                 shuff_.PutNumber("vel error", error.vel, {1,1,6,3});
+
+                shuff_.PutNumber("targ pos", target.pos, {1,1,7,3});
+                shuff_.PutNumber("cur pos", currPose_.pos, {1,1,8,3});
             }
             break;
         }
@@ -142,7 +156,7 @@ void Pivot::CoreTeleopPeriodic(){
     else if((currPose_.pos < bounds_.min) && (volts_ < ff_.kg*cos(bounds_.min))){
         volts_ = 0.0;
     }
-    motor_.SetVoltage(units::volt_t{volts_ + 0.2*Utils::Sign(volts_)}); //This motor has more weight
+    motor_.SetVoltage(units::volt_t{volts_}); //This motor has more weight
     motorChild_.SetVoltage(units::volt_t{volts_});
 
     prevT_ = t;
@@ -272,6 +286,14 @@ Poses::Pose1D Pivot::GetPose(){
     return currPose_;
 }
 
+double Pivot::GetTolerance() {
+    return posTol_;
+}
+
+std::string Pivot::GetStateStr() {
+    return StateToString(state_);
+}
+
 /**
  * State to string
 */
@@ -311,10 +333,10 @@ void Pivot::CoreShuffleboardInit(){
 
     shuff_.add("hooked", &hooked_, {1,1,7,2}, true);
 
-    // shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
-    // shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
-    // shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
-    // shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
+    shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
+    shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
+    shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
+    shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
 
     //Bounds (middle-bottom)
     shuff_.add("min", &bounds_.min, {1,1,4,4}, true);
@@ -349,17 +371,22 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("kP", &pid_.kp, {1,1,0,4}, true);
     shuff_.add("kI", &pid_.ki, {1,1,1,4}, true);
     shuff_.add("kD", &pid_.kd, {1,1,2,4}, true);
+
+    shuff_.add("inch volts", &inch_.volts, {1,1,0,5}, true);
+    shuff_.add("inch onCycles", &inch_.onCycles, {1,1,1,5}, true);
+    shuff_.add("inch numCycles", &inch_.numCycles, {1,1,2,5}, true);
+    shuff_.add("inch tol", &inchTol_, {1,1,3,5}, true);
 }
 
 void Pivot::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
 
-    // Poses::Pose1D relPose = GetRelPose();
-    // Poses::Pose1D absPose = GetAbsPose();
-    // shuff_.PutNumber("relPos", relPose.pos);
-    // shuff_.PutNumber("relVel", relPose.vel);
-    // shuff_.PutNumber("absPos", absPose.pos);
-    // shuff_.PutNumber("absVel", absPose.vel);
+    Poses::Pose1D relPose = GetRelPose();
+    Poses::Pose1D absPose = GetAbsPose();
+    shuff_.PutNumber("relPos", relPose.pos);
+    shuff_.PutNumber("relVel", relPose.vel);
+    shuff_.PutNumber("absPos", absPose.pos);
+    shuff_.PutNumber("absVel", absPose.vel);
 
     shuff_.update(true);
 

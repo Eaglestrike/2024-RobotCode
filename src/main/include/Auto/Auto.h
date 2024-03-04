@@ -71,6 +71,7 @@ class Auto{
         vec::Vector2D shootPos_;
         SubsystemTiming channelTiming_; //Used to time channel loading time 
         SubsystemTiming shooterTiming_;
+        bool hadPiece_;
         SubsystemTiming intakeTiming_;
 
         double CHANNEL_TIME = AutoConstants::CHANNEL_TIME;

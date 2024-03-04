@@ -163,6 +163,10 @@ void Flywheel::SetFeedforward(double ks, double kv, double ka){
     feedforward_.ka = ka;
 }
 
+std::string Flywheel::GetStateStr() {
+    return StateToString(state_);
+}
+
 void Flywheel::CoreShuffleboardInit(){
     //Voltage Control (row 0)
     shuff_.add("volts", &volts_, {1,1,0,0}, true);

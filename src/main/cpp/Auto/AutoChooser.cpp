@@ -54,6 +54,14 @@ void AutoChooser::ProcessChoosers(bool dryRun) {
       continue;
     }
 
+    if (primary == AutoConstants::M_FAR && secondary != "") {
+      if (prevName == AutoConstants::R_SCORE || prevName == AutoConstants::R_NEAR || prevName == AutoConstants::R_START) {
+        secondary = AutoConstants::R_SCORE;
+      } else {
+        secondary = AutoConstants::M_SCORE;
+      }
+    }
+
     std::string path1 = prevName + "_to_" + primary + ".csv";
     path1 = SideHelper::GetPath(path1);
     if (dryRun) {

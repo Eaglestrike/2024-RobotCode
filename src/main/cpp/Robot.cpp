@@ -15,6 +15,7 @@
 #include "Constants/AutoConstants.h"
 #include "Constants/AutoLineupConstants.h"
 #include "Controller/ControllerMap.h"
+#include "DebugConfig.h"
 #include "Util/SideHelper.h"
 
 using namespace Actions;
@@ -23,20 +24,20 @@ Robot::Robot() :
   //Controller
   m_controller{},
   //Logger
-  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Ang", "Intake State"}},
+  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Manual Pos Val", "Amp mode", "Intake State", "In intake", "In channel", "Shot Vel", "Shot Ang", "Pivot state", "Top Flywheel state", "Bottom flywheel state", "Shooter state", "Can shoot", "Pivot tol"}},
   m_prevIsLogging{false},
   //Mechanisms
-  m_swerveController{true, false},
-  m_intake{true, false},
-  m_climb{true, false},
-  m_shooter{"Shooter", true, false},
+  m_swerveController{true, DebugConfig::DRIVE},
+  m_intake{true, DebugConfig::INTAKE},
+  m_climb{true, DebugConfig::CLIMB},
+  m_shooter{"Shooter", true, DebugConfig::SHOOTER.SHOOTER},
   //Sensors
   m_client{"stadlerpi.local", 5590, 500, 5000},
   m_isSecondTag{false},
   m_odom{false},
   //Auto
   m_autoLineup{false, m_odom},  
-  m_auto{true, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
+  m_auto{DebugConfig::AUTO, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
   m_autoChooser{false, m_auto},
   m_led{}
 {
@@ -52,7 +53,8 @@ Robot::Robot() :
   }
 
   // logger
-  m_logger.SetLogToConsole(true);
+  m_logger.SetLogToConsole(false);
+  m_logger.SetLevel(LogLevels::INFO);
 
   // Periodic fast
   AddPeriodic([&]()
@@ -93,9 +95,6 @@ Robot::Robot() :
       m_isSecondTag = false;
     } },
               5_ms, 2_ms);
-  // AddPeriodic([&]()
-  //             { m_led.LEDPeriodic(); },
-  //             50_ms);
 }
 
 void Robot::RobotInit()
@@ -116,7 +115,6 @@ void Robot::RobotInit()
   m_swerveController.Init();
   m_shooter.Init();
   m_led.Init();
-  m_led.Start();
 }
 
 /**
@@ -165,16 +163,28 @@ void Robot::RobotPeriodic()
   m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetYaw());
   m_shooter.SetGamepiece(m_intake.InChannel());
 
-  // LED
-  if (m_intake.HasGamePiece())
+  // LED vertical
+  if (m_intake.HasGamePiece() || m_eject)
   {
-    m_led.SetStripColor(0, 255, 0);
-    m_led.SetBlinkMode(true);
+    if (m_intake.InChannel()) {
+      m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 100, 0, 0);
+    } else {
+      m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 100, 0, 40);
+    }
   }
   else
   {
-    m_led.SetStripColor(0, 0, 255);
-    m_led.SetBlinkMode(false);
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 0, 255, 0);
+  }
+
+  if (m_shooter.IsManual()) {
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 69, 0, 40);
+  } else if (m_posVal != 0) {
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 255, 0, 0);
+  } else if (m_amp) {
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 255, 0, 0);
+  } else {
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 0, 255, 0);
   }
 
 #if SWERVE_AUTOTUNING
@@ -185,6 +195,7 @@ void Robot::RobotPeriodic()
   m_intake.Periodic();
   m_climb.Periodic();
   m_shooter.Periodic();
+  m_led.Periodic();
 }
 
 /**
@@ -201,6 +212,7 @@ void Robot::RobotPeriodic()
 void Robot::AutonomousInit()
 {
   m_shooter.SetHooked(true);
+  m_shooter.ZeroRelative();
   
   m_odom.SetAuto(true);
   m_swerveController.SetAngCorrection(false);
@@ -216,14 +228,12 @@ void Robot::AutonomousInit()
     m_climb.Zero();
     m_climbZeroed = true;
   }
-  if (!m_driveZeroed) {
-    m_navx->Reset();
-    m_navx->ZeroYaw();
-    m_odom.Reset();
-    m_swerveController.ResetAngleCorrection(m_odom.GetAng());
-    m_swerveController.ResetFF();
-    m_driveZeroed = true;
-  }
+  m_navx->Reset();
+  m_navx->ZeroYaw();
+  m_odom.Reset();
+  m_swerveController.ResetAngleCorrection(m_odom.GetAng());
+  m_swerveController.ResetFF();
+  m_driveZeroed = true;
 
   m_autoChooser.ProcessChoosers(false);
   m_auto.AutoInit();
@@ -239,29 +249,42 @@ void Robot::AutonomousPeriodic()
 
 void Robot::TeleopInit()
 {
-  m_led.Start();
   m_odom.SetAuto(false);
   m_swerveController.SetAngCorrection(true);
   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
   m_swerveController.SetAutoMode(false);
   m_autoLineup.SetPID(AutoLineupConstants::ANG_P, AutoLineupConstants::ANG_I, AutoLineupConstants::ANG_D);
   m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
+  m_shooter.ZeroRelative();
 }
 
 void Robot::TeleopPeriodic()
 {
+  // logging controls
+  if (m_controller.getPressedOnce(FORCE_SHOOT)) {
+    m_logger.Warn("Input", "Force shooting");
+  } else if (m_controller.getPressedOnce(SHOOT)) {
+    m_logger.Info("Input", "Pressed shoot");
+  } else if (m_controller.getPressedOnce(INTAKE)) {
+    m_logger.Info("Input", "Pressed intaking");
+  } else if (m_controller.getPressedOnce(MANUAL_EJECT_IN) || m_controller.getPressedOnce(MANUAL_EJECT_OUT)) {
+    m_logger.Info("Input", "Ejecting");
+  }
+
   // Swerve
   double lx = m_controller.getWithDeadContinuous(SWERVE_STRAFEX, 0.15);
   double ly = m_controller.getWithDeadContinuous(SWERVE_STRAFEY, 0.15);
   double rx = m_controller.getWithDeadContinuous(SWERVE_ROTATION, 0.15);
 
   // angle lock
-  int ctrlVal = m_controller.getValue(ControllerMapData::SCORING_POS, 0);
+  int ctrlVal = m_controller.getValueOnce(ControllerMapData::SCORING_POS, 0);
   if (ctrlVal != 0) {
+    m_shooter.Stop();
     m_posVal = ctrlVal;
   }
 
-  if (m_controller.getPressed(SHOOT_AUTO)) {
+  if (m_controller.getPressedOnce(SHOOT_AUTO)) {
+    m_shooter.Stop();
     m_posVal = 0;
   }
 
@@ -283,6 +306,7 @@ void Robot::TeleopPeriodic()
   // auto lineup to amp
   if (m_controller.getPOVDownOnce(AMP_AUTO_LINEUP))
   {
+    m_logger.Info("Input", "Starting Angle Lineup");
     m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
     m_autoLineup.Start();
   }
@@ -446,16 +470,6 @@ void Robot::TeleopPeriodic()
     m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   }
 
-  // // LED
-  // if (m_amp)
-  // {
-  //   m_led.SetBlinkMode(true);
-  // }
-  // else
-  // {
-  //   m_led.SetBlinkMode(false);
-  // }
-
   // Shooter
 
   m_climb.TeleopPeriodic();
@@ -466,7 +480,6 @@ void Robot::TeleopPeriodic()
 }
 
 void Robot::DisabledInit() {
-  m_led.Stop();
 }
 
 void Robot::DisabledPeriodic()
@@ -660,7 +673,6 @@ void Robot::ShuffleboardInit()
  */
 void Robot::ShuffleboardPeriodic()
 {
-  m_intake.Log(m_logger);
   // LOGGING
   {
     bool isLogging = frc::SmartDashboard::GetBoolean("Logging", true);
@@ -673,6 +685,11 @@ void Robot::ShuffleboardPeriodic()
       m_logger.Disable();
     }
     m_prevIsLogging = isLogging;
+
+    m_intake.Log(m_logger);
+    m_shooter.Log(m_logger);
+    m_logger.LogNum("Manual Pos Val", m_posVal);
+    m_logger.LogBool("Amp mode", m_amp);
   }
 
   // ODOMETRY

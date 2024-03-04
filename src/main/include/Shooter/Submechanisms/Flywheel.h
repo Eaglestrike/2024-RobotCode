@@ -37,6 +37,8 @@ class Flywheel : public Mechanism{
         Poses::Pose1D GetPose();
         void SetFeedforward(double ks, double kv, double ka);
 
+        std::string GetStateStr();
+
     private:
         //Core Functions
         void CorePeriodic() override;

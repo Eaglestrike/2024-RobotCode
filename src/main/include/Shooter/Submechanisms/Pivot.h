@@ -39,6 +39,9 @@ class Pivot : public Mechanism{
         void SetTolerance(double posTol);
         void SetHooked(bool hooked);
         Poses::Pose1D GetPose();
+        double GetTolerance();
+
+        std::string GetStateStr();
 
     private:
         Poses::Pose1D GetAbsPose();
@@ -75,6 +78,10 @@ class Pivot : public Mechanism{
         double accum_;
         double prevT_;
         ShooterConstants::Feedforward ff_;
+        ShooterConstants::Incher inch_;
+        int cycle_;
+        double inchTol_;
+
         double posTol_;
         double velTol_;
 

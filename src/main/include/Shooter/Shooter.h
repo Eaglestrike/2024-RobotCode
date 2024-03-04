@@ -7,6 +7,7 @@
 
 #include "Util/Mechanism.h"
 #include "Util/simplevectors.hpp"
+#include "Util/Logger.h"
 
 #if PIVOT_AUTO_TUNE
 #include "FFAutotuner/FFAutotuner.h"
@@ -41,6 +42,7 @@ class Shooter : public Mechanism{
         void Amp();
         void ManualTarget(double target);
         void Eject(); //Only spins flywheels
+        void ZeroRelative();
 
         void SetUp(double vel, double spin, double ang);
         void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needGamePiece);
@@ -51,11 +53,14 @@ class Shooter : public Mechanism{
         bool CanShoot(int posVal = 0);
         bool UseAutoLineup();
         vec::Vector2D GetTrim();
+        bool IsManual();
 
         double GetTargetRobotYaw();
 
         void SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);//Debug info passing in
         void SetHooked(bool hooked);
+
+        void Log(FRCLogger &logger);
 
     private:
         void CoreInit() override;
@@ -81,7 +86,8 @@ class Shooter : public Mechanism{
         double shootTime_ = ShooterConstants::SHOOT_TIME;
 
         std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;
-        double kSpin_ = ShooterConstants::K_SPIN;
+        double kD_ = ShooterConstants::kD;
+        double cT_ = ShooterConstants::cT;
 
         bool hasShot_;
         ShooterConstants::ShootConfig shot_;
@@ -108,6 +114,7 @@ class Shooter : public Mechanism{
         double lineupYawPercent_ = ShooterConstants::LINEUP_YAW_PERCENT; //Percent of lineup needing area
         double pivotAngPercent_ = ShooterConstants::PIVOT_ANG_PERCENT;
         
+
 
         //Kinematic calculations (unused)
         struct FKRes{

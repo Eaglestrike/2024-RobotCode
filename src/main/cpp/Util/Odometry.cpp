@@ -14,10 +14,11 @@
  * Constructor
 */
 Odometry::Odometry(const bool &shuffleboard) :
-  m_shuffleboard{shuffleboard}, m_curAng{0}, m_startAng{0}, m_angVel{0},
+  m_isAuto{false}, m_shuffleboard{shuffleboard}, m_curAng{0}, m_startAng{0}, m_angVel{0},
   m_curYaw{0}, m_joystickAng{0}, 
   m_prevDriveTime{Utils::GetCurTimeS()}, m_estimator{OdometryConstants::SYS_STD_DEV_AUTO},
-  m_uniqueId{-1000}, m_prevCamTime{-1000}, m_camStdDevCoef{OdometryConstants::CAM_STD_DEV_COEF_AUTO},
+  m_uniqueId{-1000}, m_timeOffset{OdometryConstants::CAM_TIME_OFFSET}, m_prevCamTime{-1000},
+  m_camStdDevCoef{OdometryConstants::CAM_STD_DEV_COEF_AUTO}, m_turnStdDevCoef{OdometryConstants::CAM_TURN_STD_DEV_COEF},
   m_trustCamsMore{false} {}
 
 /**
@@ -44,12 +45,16 @@ void Odometry::SetAuto(const bool &autoMode) {
   if (autoMode) {
     m_camStdDevCoef = OdometryConstants::CAM_STD_DEV_COEF_AUTO;
     m_estimator.SetQ(OdometryConstants::SYS_STD_DEV_AUTO);
+    m_turnStdDevCoef = 0;
     m_trustCamsMore = false;
   } else {
+    m_turnStdDevCoef = OdometryConstants::CAM_TURN_STD_DEV_COEF;
     m_camStdDevCoef = OdometryConstants::CAM_STD_DEV_COEF_TELE;
     m_estimator.SetQ(OdometryConstants::SYS_STD_DEV_TELE);
     m_trustCamsMore = true;
   }
+
+  m_isAuto = autoMode;
 }
 
 /**
@@ -260,7 +265,7 @@ std::pair<bool, double> Odometry::GetInterpolAng(const double &camTime) {
 */
 void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age) {
   double curTime = Utils::GetCurTimeS();
-  double camTime = curTime - age / 1000.0 - OdometryConstants::CAM_TIME_OFFSET;
+  double camTime = curTime - age / 1000.0 - m_timeOffset;
 
   if (curTime - camTime >= PoseEstimator::MAX_HISTORY_TIME) {
     // std::cout << "too old" << std::endl;
@@ -326,7 +331,7 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   }
 
   // update cams in pose estimator
-  double stdDev = m_camStdDevCoef * magn(vecRot) * magn(vecRot);
+  double stdDev = m_camStdDevCoef /* * magn(vecRot) * magn(vecRot) */ + m_turnStdDevCoef * GetAngVel();
   if (magn(odomPos - robotPosCams) > OdometryConstants::TRUST_CAMS_MORE_THRESH && m_trustCamsMore) {
     stdDev = 0;
   }
@@ -343,8 +348,10 @@ void Odometry::ShuffleboardInit() {
     return;
   }
 
-  frc::SmartDashboard::PutNumber("Pos stddev", OdometryConstants::SYS_STD_DEV_AUTO.x());
+  frc::SmartDashboard::PutNumber("Pos stddev", OdometryConstants::SYS_STD_DEV_TELE.x());
   frc::SmartDashboard::PutNumber("Cam stddev", m_camStdDevCoef);
+  frc::SmartDashboard::PutNumber("Time offset", m_timeOffset);
+  frc::SmartDashboard::PutNumber("Cam turn stddev", m_turnStdDevCoef);
 }
 
 /**
@@ -355,14 +362,17 @@ void Odometry::ShuffleboardPeriodic() {
     return;
   }
 
-  double stdDev = frc::SmartDashboard::GetNumber("Pos stddev", OdometryConstants::SYS_STD_DEV_AUTO.x());
+  double def = m_isAuto ? OdometryConstants::CAM_STD_DEV_COEF_AUTO : OdometryConstants::CAM_STD_DEV_COEF_TELE;
+  double stdDev = frc::SmartDashboard::GetNumber("Pos stddev", def);
   m_camStdDevCoef = frc::SmartDashboard::GetNumber("Cam stddev", m_camStdDevCoef);
+  m_turnStdDevCoef = frc::SmartDashboard::GetNumber("Cam turn stddev", m_turnStdDevCoef);
+  m_timeOffset = frc::SmartDashboard::GetNumber("Time offset", m_timeOffset);
   m_estimator.SetQ({stdDev, stdDev});
 
   vec::Vector2D pos = GetPos();
   double ang = GetAng();
-  m_field.SetRobotPose(frc::Pose2d{units::meter_t{x(pos)}, units::meter_t{y(pos)}, units::radian_t{ang}});
-  frc::SmartDashboard::PutData("Field", &m_field);
+  // m_field.SetRobotPose(frc::Pose2d{units::meter_t{x(pos)}, units::meter_t{y(pos)}, units::radian_t{ang}});
+  // frc::SmartDashboard::PutData("Field", &m_field);
   frc::SmartDashboard::PutString("Robot Pos From Cam", m_camPos.toString());
   frc::SmartDashboard::PutNumber("Cur Yaw", m_curYaw);
 }
