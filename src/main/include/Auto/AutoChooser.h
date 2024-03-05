@@ -14,7 +14,7 @@ public:
   AutoChooser(bool shuffleboard, Auto &auton);
 
   void SetPosition(int idx, std::string primary, std::string secondary);
-  void ProcessChoosers(bool dryRun);
+  bool ProcessChoosers(bool dryRun);
 
   void ShuffleboardInit();
   void ShuffleboardPeriodic();
@@ -22,5 +22,6 @@ private:
   bool m_shuffleboard;
   Auto &m_auto;
 
+  bool m_edited;
   std::vector<std::pair<std::string, std::string>> m_positions;
 };

@@ -532,6 +532,11 @@ void Robot::DisabledPeriodic()
       end = "";
     }
     m_autoChooser.SetPosition(AutoConstants::POS_ARR_SIZE - 1, end, "");
+
+    bool res = m_autoChooser.ProcessChoosers(false);
+    if (res) {
+      m_field.GetObject("traj")->SetPoses(m_auto.GetAllPoses());
+    }
   }
 }
 

@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include <frc/geometry/Pose2d.h>
+
 #include "ShuffleboardSender/ShuffleboardSender.h"
 
 #include "Intake/Intake.h"
@@ -22,6 +24,8 @@ class Auto{
         void SetSegment(uint index, std::string path); //Drive -> Intake -> Shoot in place
         void SetDrive(uint index, std::string path);
         void Clear();
+
+        std::vector<frc::Pose2d> GetAllPoses();
 
         void AutoInit();
         void AutoPeriodic();

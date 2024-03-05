@@ -1,5 +1,6 @@
 #include "Auto/AutoChooser.h"
 
+#include <algorithm>
 #include <iostream>
 #include <frc/smartdashboard/SmartDashboard.h>
 
@@ -14,7 +15,7 @@
  * @param auton Auto object
 */
 AutoChooser::AutoChooser(bool shuffleboard, Auto &auton) :
-  m_shuffleboard{shuffleboard}, m_auto{auton} {
+  m_shuffleboard{shuffleboard}, m_auto{auton}, m_edited{true} {
   m_positions.resize(AutoConstants::POS_ARR_SIZE);
 }
 
@@ -30,6 +31,7 @@ void AutoChooser::SetPosition(int idx, std::string primary, std::string secondar
     return;
   }
 
+  m_edited = true;
   m_positions[idx] = {primary, secondary};
 }
 
@@ -37,8 +39,10 @@ void AutoChooser::SetPosition(int idx, std::string primary, std::string secondar
  * Processes choosers by interpreting positions array and inserting them into auto obj
  * 
  * @param dryRun Does not actually insert paths and prints paths instead, use for debug
+ * 
+ * @returns True if positions have changed since last process, false otherwise
 */
-void AutoChooser::ProcessChoosers(bool dryRun) {
+bool AutoChooser::ProcessChoosers(bool dryRun) {
   if (dryRun) {
     std::cout << std::endl;
   }
@@ -88,6 +92,10 @@ void AutoChooser::ProcessChoosers(bool dryRun) {
     }
     prevName = secondary;
   }
+
+  bool wasEdited = m_edited;
+  m_edited = false;
+  return m_edited;
 }
 
 /**

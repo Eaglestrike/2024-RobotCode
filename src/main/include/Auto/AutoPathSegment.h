@@ -1,6 +1,9 @@
 #pragma once
 
+#include <vector>
+
 #include <frc/controller/PIDController.h>
+#include <frc/geometry/Pose2d.h>
 
 #include "Drive/SwerveControl.h"
 #include "Util/hermite.hpp"
@@ -42,6 +45,9 @@ public:
   bool AtPosTarget() const;
   bool AtAngTarget() const;
   bool AtTarget() const;
+
+  std::vector<frc::Pose2d> GetAllPoses(std::vector<std::string> paths);
+
 private:
   double GetAbsProgress() const;
 

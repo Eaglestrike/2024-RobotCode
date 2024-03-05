@@ -132,6 +132,22 @@ void Auto::Clear(){
 }
 
 /**
+ * Gets all poses
+*/
+std::vector<frc::Pose2d> Auto::GetAllPoses() {
+    std::vector<std::string> poses;
+    for (auto path : paths_) {
+        for (auto block : path) {
+            if (block.action == DRIVE) {
+                poses.push_back(block.data);
+            }
+        }
+    }
+
+    return segments_.GetAllPoses(poses);
+}
+
+/**
  * Autonomous Init
 */
 void Auto::AutoInit(){

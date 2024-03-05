@@ -377,6 +377,47 @@ bool AutoPathSegment::AtTarget() const {
 }
 
 /**
+ * Gets a vector of all poses from given paths
+ * 
+ * @param paths Paths to get poses from
+ * 
+ * @returns All poses
+*/
+std::vector<frc::Pose2d> AutoPathSegment::GetAllPoses(std::vector<std::string> paths) {
+  std::vector<frc::Pose2d> poses;
+  if (paths.size() == 0) {
+    return poses;
+  }
+
+  int numDataPoints = AutoConstants::MAX_POSE_SIZE / poses.size();
+  for (auto path : paths) {
+    if (m_loadedSplines.find(path) == m_loadedSplines.end()) {
+      continue;
+    }
+
+    hm::Hermite<2> posSpline = m_loadedSplines[path].pos;  
+    hm::Hermite<1> angSpline = m_loadedSplines[path].ang;
+    double totalTime = posSpline.getHighestTime() - posSpline.getLowestTime();
+    double step = totalTime / numDataPoints;
+    double curTime = posSpline.getHighestTime();
+    
+    for (int i = 0; i < numDataPoints; i++) {
+      vec::Vector2D curPos = posSpline.getPos(curTime);
+      double curAng = angSpline.getPos(curTime)[0];
+      poses.push_back({{units::meter_t{curPos.x()}, units::meter_t{curPos.y()}}, {units::radian_t{curAng}}});
+
+      curTime += step;
+    }
+
+    vec::Vector2D endPos = posSpline.getPos(posSpline.getHighestTime());
+    double endAng = angSpline.getPos(angSpline.getHighestTime())[0];
+    poses.push_back({{units::meter_t{endPos.x()}, units::meter_t{endPos.y()}}, {units::radian_t{endAng}}});
+  } 
+
+  return poses;
+}
+
+/**
  * Gets absolute progress
  * 
  * Means that progress is not clamped (if after completion, will return number greater than 1)
