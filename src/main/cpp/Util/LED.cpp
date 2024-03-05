@@ -7,11 +7,15 @@ void LED::Init()
 {
     m_led.SetLength(LEDConstants::LED_STRIP_LENGTH);
     m_led.SetData(m_emptyLedBuffer);
-    m_led.Start();
+    // m_led.Start();
 }
 
 void LED::SetLEDSegment(LEDConstants::LEDSegment segment, int r, int g, int b, int blink_freq)
 {
+    if (LEDConstants::LED_SEGMENTS.find(segment) == LEDConstants::LED_SEGMENTS.end()) {
+        return;
+    }
+
     LEDSegmentState state = m_ledState[segment];
     if (state.r == r && state.g == g && state.b == b && state.blink_freq == blink_freq)
     {
