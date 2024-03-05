@@ -75,7 +75,7 @@ namespace ShooterConstants{
     const double PIVOT_GEARING = 12.0/196.0;
     
     const double PIVOT_MIN = 17.7 * M_PI/180.0;
-    const double PIVOT_MAX = 67.2 * M_PI/180.0;
+    const double PIVOT_MAX = 69.9 * M_PI/180.0;
 
     const double PIVOT_UNHOOK = PIVOT_MAX - 0.01;
    
