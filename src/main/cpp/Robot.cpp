@@ -237,6 +237,7 @@ void Robot::AutonomousInit()
 
   m_autoChooser.ProcessChoosers(false);
   m_auto.AutoInit();
+  m_shooter.Stop();
 }
 
 void Robot::AutonomousPeriodic()
@@ -256,6 +257,7 @@ void Robot::TeleopInit()
   m_autoLineup.SetPID(AutoLineupConstants::ANG_P, AutoLineupConstants::ANG_I, AutoLineupConstants::ANG_D);
   m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
   m_shooter.ZeroRelative();
+  m_shooter.Stop();
 }
 
 void Robot::TeleopPeriodic()

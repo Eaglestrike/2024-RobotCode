@@ -75,6 +75,7 @@ void Pivot::CoreTeleopPeriodic(){
     double dt = t - prevT_;
     if(dt > 0.3){
         dt = 0.0;
+        state_ = STOP;
     }
     switch(state_){
         case STOP:
@@ -116,11 +117,14 @@ void Pivot::CoreTeleopPeriodic(){
             bool finished = profile_.isFinished();
             bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
 
-            if(state_ == UNHOOK && finished && atTarget){ //Go to next target after unhooking
-                hooked_ = false;
-                SetAngle(tempTarg_);
-                //profile_.setMaxAcc(ShooterConstants::PIVOT_MAX_A);
-                //profile_.setMaxVel(ShooterConstants::PIVOT_MAX_V);
+            if(state_ == UNHOOK){ //Go to next target after unhooking
+                if(finished && atTarget){
+                    hooked_ = false;
+                    SetAngle(tempTarg_);
+                }
+                if(volts_ < 0.0){
+                    volts_ = 0.0;
+                }
             }
             else if(state_ == AIMING && finished){ //if case to deal with fallthrough
                 if(atTarget){
@@ -183,8 +187,6 @@ void Pivot::SetAngle(double angle){
             return;
         }
         angle = ShooterConstants::PIVOT_UNHOOK;
-        //profile_.setMaxAcc(7.0); //Go faster when unhooking
-        //profile_.setMaxVel(6.0);
     }
     Poses::Pose1D currTarg = profile_.getTargetPose();
     Poses::Pose1D target = {.pos = angle, .vel = 0.0, .acc = 0.0};
