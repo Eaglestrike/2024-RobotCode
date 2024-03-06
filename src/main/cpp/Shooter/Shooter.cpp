@@ -185,38 +185,38 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     
     state_ = SHOOT;
     targetPos_ = robotPos;
-    targetVel_ = {0.0, 0.0};
-    double dist = toSpeaker.magn();
-    //targetVel_ = robotVel;
+    // targetVel_ = {0.0, 0.0};
+    // double dist = toSpeaker.magn();
+    targetVel_ = robotVel;
 
     // Shooting while moving (modify speaker location)
     // https://www.desmos.com/calculator/5hd2snnrwz
 
-    // double px = toSpeaker.x();
-    // double py = toSpeaker.y();
+    double px = toSpeaker.x();
+    double py = toSpeaker.y();
 
-    // double vx = -robotVel.x();
-    // double vy = -robotVel.y();    
+    double vx = -robotVel.x();
+    double vy = -robotVel.y();    
 
-    // double posSquare = px*px + py*py;
-    // double dotPosVel = px*vx + py*vy;
-    // double velSquare = vx*vx + vy*vy;
+    double posSquare = px*px + py*py;
+    double dotPosVel = px*vx + py*vy;
+    double velSquare = vx*vx + vy*vy;
 
-    // double a = kD_*kD_ * velSquare - 1.0;
-    // double b = 2.0*kD_*(dotPosVel + cT_*velSquare);
-    // double c = posSquare + 2.0*cT_ + cT_*cT_*velSquare;
+    double a = kD_*kD_ * velSquare - 1.0;
+    double b = 2.0*kD_*(dotPosVel + cT_*velSquare);
+    double c = posSquare + 2.0*cT_ + cT_*cT_*velSquare;
 
-    // double determinant = b*b - 4*a*c;
-    // if((determinant < 0.0) || (a == 0.0)){
-    //     std::cout << "Shot not possible" << std::endl;
-    //     Stroll();
-    //     return;
-    // }
+    double determinant = b*b - 4*a*c;
+    if((determinant < 0.0) || (a == 0.0)){
+        std::cout << "Shot not possible" << std::endl;
+        Stroll();
+        return;
+    }
 
-    // double dist = (-b-std::sqrt(determinant))/(2.0*a);
-    // double t = kD_*dist + cT_;
+    double dist = (-b-std::sqrt(determinant))/(2.0*a);
+    double t = kD_*dist + cT_;
 
-    // toSpeaker -= (robotVel*t);
+    toSpeaker -= (robotVel*t);
 
     if(shuff_.isEnabled()){
         shuff_.PutNumber("Shot dist", dist, {1,1,3,3});

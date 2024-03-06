@@ -57,7 +57,7 @@ void AutoAngLineup::Recalc(double targAng) {
   // std::cout << m_targetAng << " " << targAng << std::endl;
 
   if (Utils::NearZero(targAng - m_targetAng, AutoLineupConstants::ANG_TOL)) {
-    // std::cout << "same target" << std::endl;
+    // std::cout << "same target" << std::endl; 
     return;
   }
 
