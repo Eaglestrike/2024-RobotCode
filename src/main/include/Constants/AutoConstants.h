@@ -104,5 +104,5 @@ namespace AutoConstants {
   const double SAFETY_DIST = 1.5; //Distance to stop path if it starts off
 
   // max poses size
-  const double MAX_POSE_SIZE = 85;
+  const int MAX_POSE_SIZE = 85;
 }

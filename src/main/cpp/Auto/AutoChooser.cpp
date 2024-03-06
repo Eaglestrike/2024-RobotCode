@@ -95,7 +95,7 @@ bool AutoChooser::ProcessChoosers(bool dryRun) {
 
   bool wasEdited = m_edited;
   m_edited = false;
-  return m_edited;
+  return wasEdited;
 }
 
 /**
