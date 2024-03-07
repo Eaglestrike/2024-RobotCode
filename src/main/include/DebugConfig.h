@@ -7,12 +7,12 @@ namespace DebugConfig{
 
     const bool DRIVE = false;
 
-    const bool INTAKE = false;
+    const bool INTAKE = true;
 
     const struct {
-        const bool SHOOTER = true;
+        const bool SHOOTER = false;
         const bool LEFT_FLY = false;
         const bool RIGHT_FLY = false;
-        const bool PIVOT = true;
+        const bool PIVOT = false;
     } SHOOTER;
 }
