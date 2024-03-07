@@ -108,7 +108,7 @@ namespace ShooterConstants{
     const double PIVOT_MAX_A = 3.0;
 
     const double PIVOT_POS_TOL = 0.02;
-    const double PIVOT_VEL_TOL = 1;
+    const double PIVOT_VEL_TOL = 0.1;
 
     //Shooter data
     struct ShootConfig{
@@ -150,7 +150,7 @@ namespace ShooterConstants{
 
     //Speaker center positions (x, y)
     const vec::Vector2D RED_SPEAKER = {16.54-0.30, 5.58};
-    const vec::Vector2D BLUE_SPEAKER = {0.0, 5.58};
+    const vec::Vector2D BLUE_SPEAKER = {0.0+0.15+0.225, 5.58};
 
     //Dimensions of the shootable area
     const double SPEAKER_MIN = 1.98; //height; m

@@ -83,7 +83,7 @@ void Pivot::CoreTeleopPeriodic(){
             profile_.setTarget(currPose_, currPose_);
             break;
         case UNHOOK:
-            posTol_ = 0.02;
+            posTol_ = 0.04;
             velTol_ = 10.0;
             [[fallthrough]];
         case AIMING:
@@ -275,6 +275,9 @@ bool Pivot::AtTarget(){
 void Pivot::SetTolerance(double posTol){
     posTol_ = posTol;
     velTol_ = posTol * (ShooterConstants::PIVOT_VEL_TOL / ShooterConstants::PIVOT_POS_TOL); //Scale vel tol by how pos tol scales
+    if(velTol_ < 0.05){
+        velTol_ = 0.05;
+    }
 }
 
 void Pivot::SetHooked(bool hooked){
