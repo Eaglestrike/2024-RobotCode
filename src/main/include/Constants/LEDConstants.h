@@ -15,7 +15,7 @@ namespace LEDConstants
     const int LED_PWM_PORT = 5;
     typedef std::vector<std::pair<int, int>> LEDSegmentRange;
     const std::map<LEDSegment, LEDSegmentRange> LED_SEGMENTS = {
-        {LEDSegment::VERTICAL, {{0, 11}, {15, 23}}},
+        {LEDSegment::VERTICAL, {{0, 11}, {15, 21}}},
         {LEDSegment::HORIZONTAL, {{12, 14}}}
     };
 }
