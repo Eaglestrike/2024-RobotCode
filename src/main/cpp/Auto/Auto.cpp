@@ -242,6 +242,8 @@ void Auto::AutoPeriodic(){
     ShooterPeriodic(t);
     IntakePeriodic(t);
 
+    logger_.LogNum("Auto path num", pathNum_);
+    logger_.LogNum("Auto index", index_);
     logger_.LogNum("Shooter ang lineup targ", autoLineup_.GetTargAng());
     logger_.LogNum("Shooter ang lineup exp", autoLineup_.GetExpAng());
     logger_.LogNum("Shooter ang lineup state", autoLineup_.GetState());
