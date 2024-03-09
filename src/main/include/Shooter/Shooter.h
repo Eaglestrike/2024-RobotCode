@@ -72,6 +72,7 @@ class Shooter : public Mechanism{
 
         State state_;
         bool hasPiece_;
+        bool autoStroll_;
         double timerStart_;
 
         Flywheel bflywheel_;
