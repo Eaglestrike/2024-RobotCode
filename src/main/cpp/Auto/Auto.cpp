@@ -70,10 +70,10 @@ void Auto::SetSegment(uint index, std::string to, std::string back){
     SetPath(
         index,
         {
-            {DRIVE, AFTER, to},
-            {INTAKE, AT_START}, //Can keep intake down if needed (then use stow)
+            {DRIVE, AFTER, to}, // 0.5?
+            {INTAKE, BEFORE_END}, //Can keep intake down if needed (then use stow)
             {DRIVE, AFTER, back},
-            {SHOOT, AFTER},
+            {SHOOT, BEFORE_END, ""},
         }
     );
 }
@@ -96,8 +96,8 @@ void Auto::SetSegment(uint index, std::string path){
         index,
         {
             {DRIVE, AFTER, path},
-            {INTAKE, AT_START},
-            {SHOOT, AFTER}
+            {INTAKE, BEFORE_END},
+            {SHOOT, BEFORE_END, ""}
         }
     );
 }
@@ -157,6 +157,7 @@ void Auto::AutoInit(){
         pathNum_ = 100000; //Give up
     }
 
+    shooter_.Stop();
     shootPos_ = startPos;
 
     segments_.Clear();
@@ -187,6 +188,12 @@ void Auto::AutoPeriodic(){
         return;
     }
 
+    // if (driveTiming_.hasStarted && !driveTiming_.finished) {
+    //     odometry_.SetAuto(true);
+    // } else {
+    //     odometry_.SetAuto(false);
+    // }
+
     //Code to deal with blind spot
     if(intake_.InIntake()){
         inChannel_ = true;
@@ -196,7 +203,7 @@ void Auto::AutoPeriodic(){
             channelTiming_.end = t + CHANNEL_TIME;
             channelTiming_.hasStarted = true;
         }
-        if(t > channelTiming_.end){ //Did not have piece for a bit
+        else if(t > channelTiming_.end){ //Did not have piece for a bit
             channelTiming_.hasStarted = false;
             inChannel_ = false;
         }
@@ -210,27 +217,21 @@ void Auto::AutoPeriodic(){
         NextBlock();
     }
     
-    bool useAngLineup = shooterTiming_.hasStarted && (!shooterTiming_.finished) && shooter_.UseAutoLineup()/*&& (inChannel_ || intake_.HasGamePiece())*/;
+    bool useAngLineup = pathNum_ != 0 && shooterTiming_.hasStarted && (!shooterTiming_.finished) && (intakeTiming_.finished)/*&& (inChannel_ || intake_.HasGamePiece())*/;
     if(shuff_.isEnabled()){
         shuff_.PutBoolean("ang lineup", useAngLineup, {2,2,0,1});
+        shuff_.PutNumber("targ angle", shooter_.GetTargetRobotYaw(), {2,1,0,3});
     }
 
     if(useAngLineup){
-        if(!startedLineup_){
-            shooter_.Prepare(odometry_.GetPos(), {0.0, 0.0}, SideHelper::IsBlue());
-            autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
-            autoLineup_.Start();
-            startedLineup_ = true;
-        } else{
-            //shuff_.PutNumber("ang lineup vel", autoLineup_.GetAngVel());
-            swerve_.SetAutoMode(false);
-            swerve_.SetRobotVelocity({0,0}, autoLineup_.GetAngVel(), odometry_.GetAng());
-            swerve_.SetAutoMode(true);
+        if(shooter_.UseAutoLineup()){ //Angle lineup
+            autoLineup_.Recalc(shooter_.GetTargetRobotYaw());
+            autoLineup_.Periodic();
+            segments_.Periodic(autoLineup_.GetAngVel());  
         }
-        // autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
-        // autoLineup_.Start();
-        //segments_.Periodic(autoLineup_.GetAngVel());
-       
+        else{
+            segments_.Periodic(0.0);
+        }
     }
     else{
         autoLineup_.Stop();
@@ -240,7 +241,6 @@ void Auto::AutoPeriodic(){
     DrivePeriodic(t);
     ShooterPeriodic(t);
     IntakePeriodic(t);
-    autoLineup_.Periodic();
 
     logger_.LogNum("Shooter ang lineup targ", autoLineup_.GetTargAng());
     logger_.LogNum("Shooter ang lineup exp", autoLineup_.GetExpAng());
@@ -252,6 +252,7 @@ void Auto::AutoPeriodic(){
 */
 void Auto::DrivePeriodic(double t){
     if(!driveTiming_.hasStarted && t > driveTiming_.start){
+        // std::cout<<"Drive start"<<std::endl;
         segments_.Start();
         driveTiming_.hasStarted = true;
 
@@ -260,16 +261,15 @@ void Auto::DrivePeriodic(double t){
             pathNum_ = 100000; //Give up
             segments_.Stop();
             swerve_.SetRobotVelocity({0.0, 0.0}, 0.0, odometry_.GetAng());
-            std::cout<<"Safety disabled"<<std::endl;
+            // std::cout<<"Safety disabled"<<std::endl;
             return;
         }
     }
 
-    if(segments_.AtTarget()){
-        driveTiming_.finished = true;
-    }
-
-    if(t > driveTiming_.end + DRIVE_PADDING){
+    if(segments_.AtTarget() || (t > driveTiming_.end + DRIVE_PADDING)){
+        if(!driveTiming_.finished){
+            // std::cout<<"Drive end"<<std::endl;
+        }
         driveTiming_.finished = true;
     }
 }
@@ -282,34 +282,41 @@ void Auto::DrivePeriodic(double t){
 void Auto::ShooterPeriodic(double t){
     if(!shooterTiming_.hasStarted && t > shooterTiming_.start){
         shooterTiming_.hasStarted = true;
+        hadPiece_ = false;
+        // std::cout<<"Shooter start" << std::endl;
+    }
+
+    if(inChannel_ || intake_.HasGamePiece()){
+        hadPiece_ = true;
     }
 
     if(shooterTiming_.finished){
-        shooter_.Stroll();
+
     }
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
         //Feed into shooter when can shoot
-        if(shooter_.CanShoot() || (t > shooterTiming_.end + SHOOT_PADDING)){ 
+        int posVal = pathNum_ == 0 ? 3 : 0;
+        if(shooter_.CanShoot(posVal) || (t > shooterTiming_.end + SHOOT_PADDING)){ 
             intake_.FeedIntoShooter();
         }
         
         //Finish shooting when can't see piece for a bit
-        if((!inChannel_) && (!intake_.HasGamePiece())){ 
+        if((!inChannel_) && (!intake_.HasGamePiece()) && (hadPiece_)){ 
             shooterTiming_.finished = true;
             startedLineup_ = false;
+            // std::cout<<"Shooter end" << std::endl;
         }
 
-        if((pos - shootPos_).magn() < SHOOT_POS_TOL){ //Constantly prepare to current position if within some distance to the target
-            shooter_.Prepare(pos, {0, 0}, SideHelper::IsBlue());
+        if(((pos - shootPos_).magn() < SHOOT_POS_TOL) || intake_.HasGamePiece() || inChannel_){ //Constantly prepare to current position if within some distance to the target
+            shooter_.Prepare(pos, {0, 0}, false);
         }
         else{
-            shooter_.Prepare(shootPos_, {0,0}, SideHelper::IsBlue()); //Prepare for the target shot
+            shooter_.Prepare(shootPos_, {0,0}, false); //Prepare for the target shot
         }
         
     }
     else{
-        shooter_.Stroll();
     }
 }
 
@@ -319,27 +326,26 @@ void Auto::ShooterPeriodic(double t){
 void Auto::IntakePeriodic(double t){
     //First Action
     if(!intakeTiming_.hasStarted && t > intakeTiming_.start){
-        if(intaking_){
-            intake_.Passthrough();
+        intake_.Passthrough();
+        intakeTiming_.hasStarted = true;
+        // std::cout<<"Intake Start"<<std::endl;
+    }
+    if(intakeTiming_.finished){
+    }
+    else if(intakeTiming_.hasStarted){
+        intake_.Passthrough();
+        //Check if finished
+        if(intake_.HasGamePiece()){  // End intake if has game piece
+            // std::cout<< "Intake end" << std::endl;
+            intakeTiming_.finished = true;
         }
-        else{
+        if(t > intakeTiming_.end + INTAKE_PADDING){
+            // std::cout<<"Intake expire"<<std::endl;
+            intakeTiming_.finished = true;
             intake_.Stow();
         }
-        intakeTiming_.hasStarted = true;
     }
-    //Check if finished
-    if(intaking_){
-        double maxTime = std::max(intakeTiming_.end, driveTiming_.end);
-        if( (intake_.HasGamePiece()) || // End intake if has game piece
-            (t > maxTime + INTAKE_PADDING)){ 
-            intakeTiming_.finished = true;
-        }
-    }
-    else{
-        if(t > intakeTiming_.end + STOW_PADDING){
-            intakeTiming_.finished = true;
-        }
-    }
+    
 }
 
 /**
@@ -383,9 +389,6 @@ void Auto::NextBlock(){
         case INTAKE:
             blockEnd_ = blockStart_ + INTAKE_TIME;
             break;
-        case STOW:
-            blockEnd_ = blockStart_ + STOW_TIME;
-            break;
         default:
             std::cout<<"Did not deal with auto action case NB "<< firstElement.action <<std::endl;
     }
@@ -411,6 +414,11 @@ void Auto::NextBlock(){
         }
     }
 
+    //Set intake to end of drive
+    if(!intakeTiming_.finished){
+        intakeTiming_.end = std::max(intakeTiming_.end, driveTiming_.end);
+    }
+
     if(index_ >= (int)path.size()){//Finished this path
         pathNum_++;
         index_ = 0;
@@ -431,8 +439,7 @@ void Auto::EvaluateElement(AutoConstants::AutoElement element){
         case SHOOT:
             EvaluateShootElement(element);
             return;
-        case INTAKE: [[fallthrough]];
-        case STOW:
+        case INTAKE:
             EvaluateIntakeElement(element);
             return;
         default:
@@ -489,18 +496,12 @@ void Auto::EvaluateShootElement(AutoConstants::AutoElement element){
 void Auto::EvaluateIntakeElement(AutoConstants::AutoElement element){
     intakeTiming_.hasStarted = false;
     intakeTiming_.finished = false;
-    intaking_ = (element.action == INTAKE);
     switch(element.type){
         case AT_START:
             intakeTiming_.start = blockStart_ + element.offset;
             break;
         case BEFORE_END:
-            if(intaking_){
-                intakeTiming_.start = blockEnd_ - INTAKE_TIME - element.offset;
-            }
-            else{
-                intakeTiming_.start = blockEnd_ - STOW_TIME - element.offset;
-            }
+            intakeTiming_.start = blockEnd_ - INTAKE_TIME - element.offset;
             break;
         case AFTER:
             intakeTiming_.start = blockStart_;
@@ -508,12 +509,7 @@ void Auto::EvaluateIntakeElement(AutoConstants::AutoElement element){
         default:
             std::cout<<"forgor deal with case EIE "<< element.action <<std::endl;
     }
-    if(intaking_){
-        intakeTiming_.end = intakeTiming_.start + INTAKE_TIME;
-    }
-    else{
-        intakeTiming_.end = intakeTiming_.start + STOW_TIME;
-    }
+    intakeTiming_.end = intakeTiming_.start + INTAKE_TIME;
 }
 
 /**
@@ -542,7 +538,6 @@ std::string Auto::ElementToString(const AutoElement element){
     switch(element.action){
         case DRIVE:     str += "DRIVE    "; break;
         case INTAKE:    str += "INTAKE   "; break;
-        case STOW:      str += "STOW     "; break;
         case SHOOT:     str += "SHOOTING "; break;
         default:        str += "UNKNOWN  ";
     }

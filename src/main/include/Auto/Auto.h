@@ -71,17 +71,15 @@ class Auto{
         vec::Vector2D shootPos_;
         SubsystemTiming channelTiming_; //Used to time channel loading time 
         SubsystemTiming shooterTiming_;
-        bool intaking_; //If the intake should be intaking or stowed on this block
+        bool hadPiece_;
         SubsystemTiming intakeTiming_;
 
         double CHANNEL_TIME = AutoConstants::CHANNEL_TIME;
         double SHOOT_TIME = AutoConstants::SHOOT_TIME;
         double INTAKE_TIME = AutoConstants::INTAKE_TIME;
-        double STOW_TIME = AutoConstants::STOW_TIME;
 
         double DRIVE_PADDING = AutoConstants::DRIVE_PADDING;
         double INTAKE_PADDING = AutoConstants::INTAKE_PADDING;
-        double STOW_PADDING = AutoConstants::STOW_PADDING;
         double SHOOT_PADDING = AutoConstants::SHOOT_PADDING;
 
         double SHOOT_POS_TOL = AutoConstants::SHOOT_POS_TOL;

@@ -7,6 +7,7 @@
 
 #include "Util/Mechanism.h"
 #include "Util/simplevectors.hpp"
+#include "Util/Logger.h"
 
 #if PIVOT_AUTO_TUNE
 #include "FFAutotuner/FFAutotuner.h"
@@ -27,21 +28,24 @@ class Shooter : public Mechanism{
     public:
         enum State{
             STOP,
-            LOADPIECE, //Unused state (because stroll does same thing)
             SHOOT,
+            AMP,
             STROLL, //Set to low speed
-            MANUAL_TARGET //Input angles
+            MANUAL_TARGET, //Manual input angles
+            EJECT
         };
   
         Shooter(std::string name, bool enabled, bool shuffleboard);
 
         void Stop();
         void Stroll();
-        void BringDown(); //Intake into shooter
+        void Amp();
         void ManualTarget(double target);
+        void Eject(); //Only spins flywheels
+        void ZeroRelative();
 
         void SetUp(double vel, double spin, double ang);
-        void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool blueSpeaker);
+        void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needGamePiece);
         void SetGamepiece(bool hasPiece);
 
         void Trim(vec::Vector2D trim); //Up/down left/right trim for target
@@ -49,10 +53,14 @@ class Shooter : public Mechanism{
         bool CanShoot(int posVal = 0);
         bool UseAutoLineup();
         vec::Vector2D GetTrim();
+        bool IsManual();
 
         double GetTargetRobotYaw();
 
         void SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);//Debug info passing in
+        void SetHooked(bool hooked);
+
+        void Log(FRCLogger &logger);
 
     private:
         void CoreInit() override;
@@ -64,9 +72,10 @@ class Shooter : public Mechanism{
 
         State state_;
         bool hasPiece_;
+        double timerStart_;
 
-        Flywheel lflywheel_;
-        Flywheel rflywheel_;
+        Flywheel bflywheel_;
+        Flywheel tflywheel_;
         Pivot pivot_;
         
         // rev::CANSparkMax m_kickerMotor;
@@ -74,11 +83,11 @@ class Shooter : public Mechanism{
 
         //Shooter config
         double strollSpeed_ = ShooterConstants::STROLL_SPEED;
-        double pivotIntake_ = ShooterConstants::PIVOT_INTAKE;
-        double shootTimer_ = ShooterConstants::SHOOT_TIME;
+        double shootTime_ = ShooterConstants::SHOOT_TIME;
 
         std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;
-        double kSpin_ = ShooterConstants::K_SPIN;
+        double kD_ = ShooterConstants::kD;
+        double cT_ = ShooterConstants::cT;
 
         bool hasShot_;
         ShooterConstants::ShootConfig shot_;
@@ -105,6 +114,7 @@ class Shooter : public Mechanism{
         double lineupYawPercent_ = ShooterConstants::LINEUP_YAW_PERCENT; //Percent of lineup needing area
         double pivotAngPercent_ = ShooterConstants::PIVOT_ANG_PERCENT;
         
+
 
         //Kinematic calculations (unused)
         struct FKRes{

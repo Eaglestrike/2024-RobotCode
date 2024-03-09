@@ -257,6 +257,10 @@ void SwerveControl::CoreShuffleboardInit(){
   frc::SmartDashboard::PutNumber("ang correct kI", SwerveConstants::ANG_CORRECT_I);
   frc::SmartDashboard::PutNumber("ang correct kD", SwerveConstants::ANG_CORRECT_D);
   frc::SmartDashboard::PutNumber("Speed No Ang Correct", SwerveConstants::SPEED_NO_ANG_CORRECT);
+
+  frc::SmartDashboard::PutNumber("swerve kS", SwerveConstants::kS);
+  frc::SmartDashboard::PutNumber("swerve kV", SwerveConstants::kV);
+  frc::SmartDashboard::PutNumber("swerve kA", SwerveConstants::kA);
 }
 
 void SwerveControl::CoreShuffleboardPeriodic() {
@@ -272,6 +276,12 @@ void SwerveControl::CoreShuffleboardUpdate(){
   double kD2 = frc::SmartDashboard::GetNumber("ang correct kD", SwerveConstants::ANG_CORRECT_D);
 
   SetAngleCorrectionPID(kP2, kI2, kD2);
+
+  double kS = frc::SmartDashboard::GetNumber("swerve kS", SwerveConstants::kS);
+  double kV = frc::SmartDashboard::GetNumber("swerve kV", SwerveConstants::kV);
+  double kA = frc::SmartDashboard::GetNumber("swerve kA", SwerveConstants::kA);
+
+  SetFFConstants(kS, kV, kA);
 }
 
 /**

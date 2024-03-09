@@ -17,7 +17,7 @@ namespace SwerveConstants
 {
   const double MAG_ENCODER_COUNTS_PER_REV = 4096;
   const double TALON_FX_COUNTS_PER_REV = 2048;
-  const double WHEEL_RADIUS = 0.0500; // in meters
+  const double WHEEL_RADIUS = 0.049; // in meters
   const double WHEEL_GEAR_RATIO = 6.12; // stolen from Alex, 6.12 motor spins = 1 wheel spin
 
   // meters
@@ -26,7 +26,7 @@ namespace SwerveConstants
   const std::size_t FR_DRIVE_ID = 14; // 17, 14
   const std::size_t BR_DRIVE_ID = 11; // 21, 11
   const std::size_t FL_DRIVE_ID = 21; // 11, 21
-  const std::size_t BL_DRIVE_ID = 17; // 14, 17
+  const std::size_t BL_DRIVE_ID = 34; // 14, 17
 
   const std::size_t FR_TURN_ID = 13; // 18, 13
   const std::size_t BR_TURN_ID = 12; // 15, 12
@@ -79,9 +79,9 @@ namespace SwerveConstants
   const bool NAVX_UPSIDE_DOWN = false;
 
   const double MAX_VOLTS = 12.0; 
-  const double kS = 0.1833;
-  const double kV = 1.455;
-  const double kA = 0.1410;
+  const double kS = 0.259;
+  const double kV = 2;
+  const double kA = 0.20;
 
   const double NORMAL_SWERVE_MULT = 12.0;
   const double SLOW_SWERVE_MULT = 3.0;

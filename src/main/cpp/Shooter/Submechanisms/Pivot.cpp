@@ -21,13 +21,12 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
 
     motor_{ShooterConstants::PIVOT_ID},
     motorChild_{ShooterConstants::PIVOT_CHILD_ID},
-    //follower_{ShooterConstants::PIVOT_ID, true},
-    gearing_{ShooterConstants::PIVOT_GEARING},
     volts_{0.0},
     maxVolts_{ShooterConstants::PIVOT_MAX_VOLTS},
 
     encoder_{ShooterConstants::PIVOT_ENCODER_ID, ShooterConstants::SHOOTER_CANBUS},
     offset_{ShooterConstants::PIVOT_OFFSET},
+    gearing_{ShooterConstants::PIVOT_GEARING},
 
     bounds_{
         .min = ShooterConstants::PIVOT_MIN,
@@ -41,25 +40,20 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     currPose_{0.0, 0.0, 0.0},
     shuff_{name, shuffleboard}
 {
-    // motor_.RestoreFactoryDefaults();
-    // motorChild_.RestoreFactoryDefaults();
-
-    // motor_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
-    // motorChild_.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);
-
     motor_.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
     motorChild_.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
 
     motor_.SetInverted(true);
     motorChild_.SetInverted(false);
-
-    //motorChild_.SetControl(follower_);
-
-    //motorChild_.Follow(motor_, true);
 }
 
 void Pivot::CoreInit(){
     ZeroRelative();
+
+    currPose_ = GetAbsPose();
+    profile_.setTarget({0.7, 0, 0}, {0.7, 0, 0});
+
+    hooked_ = true;
 }
 
 /**
@@ -68,7 +62,7 @@ void Pivot::CoreInit(){
 void Pivot::CorePeriodic(){
     Poses::Pose1D absPose = GetAbsPose();
     Poses::Pose1D newPose = GetRelPose(); //Use relative encoder
-    if(std::abs(newPose.pos - absPose.pos) > 0.02){
+    if(std::abs(newPose.pos - absPose.pos) > 0.20){
         ZeroRelative();
         newPose = absPose;
     }
@@ -81,37 +75,66 @@ void Pivot::CoreTeleopPeriodic(){
     double dt = t - prevT_;
     if(dt > 0.3){
         dt = 0.0;
+        state_ = STOP;
     }
     switch(state_){
         case STOP:
             volts_ = 0.0;
+            profile_.setTarget(currPose_, currPose_);
             break;
+        case UNHOOK:
+            posTol_ = 0.04;
+            velTol_ = 10.0;
+            [[fallthrough]];
         case AIMING:
-            // if(profile_.isFinished()){ //Enable if profile is good but tolerances are bad
-            //     state_ = AT_TARGET;
-            // }
             [[fallthrough]];
         case AT_TARGET:
         {
+            if(hooked_ && (state_ != UNHOOK)){
+                SetAngle(profile_.getTargetPose().pos);
+            }
+
             Poses::Pose1D target = profile_.currentPose();
-            double ff = ff_.ks*Utils::Sign(target.vel) + ff_.kv*target.vel + ff_.ka*target.acc + ff_.kg*cos(target.pos);
+            double ff = ff_.ks*Utils::Sign(target.vel) + ff_.kv*target.vel + ff_.ka*target.acc;
+            double grav = ff_.kg*cos(currPose_.pos); //Have gravity be feedback
+            
+            volts_ = ff + grav;
 
             Poses::Pose1D error = target - currPose_;
             accum_ += error.pos * dt;
             double pid = pid_.kp*error.pos + pid_.ki*accum_ + pid_.kd*error.vel;
+            volts_ += pid;
 
-            volts_ = ff + pid;
+            double absError = std::abs(error.pos);
+            if((absError < inchTol_) && (absError > ShooterConstants::PIVOT_INCH_DEADBAND)){
+                cycle_++;
+                cycle_ %= inch_.numCycles;
+                double inch = (cycle_ < inch_.onCycles) ? inch_.volts : 0.0;
+                inch *= Utils::Sign(error.pos);
+                volts_ += inch;
+            }
 
+            bool finished = profile_.isFinished();
             bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
-            if(state_ == AIMING && profile_.isFinished()){ //if case deal with fallthrough
+
+            if(state_ == UNHOOK){ //Go to next target after unhooking
+                if(finished && atTarget){
+                    hooked_ = false;
+                    SetAngle(tempTarg_);
+                }
+                if(volts_ < 0.0){
+                    volts_ = 0.0;
+                }
+            }
+            else if(state_ == AIMING && finished){ //if case to deal with fallthrough
                 if(atTarget){
                     state_ = AT_TARGET; //At target due to tolerances
                 }
                 else{
-                    profile_.regenerate(currPose_);
+                    //profile_.regenerate(currPose_);
                 }
             }
-            if (state_ == AT_TARGET){
+            else if (state_ == AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
                     profile_.regenerate(currPose_);
                     state_ = AIMING;
@@ -121,6 +144,9 @@ void Pivot::CoreTeleopPeriodic(){
             if(shuff_.isEnabled()){ //Shuff prints
                 shuff_.PutNumber("pos error", error.pos, {1,1,5,3});
                 shuff_.PutNumber("vel error", error.vel, {1,1,6,3});
+
+                shuff_.PutNumber("targ pos", target.pos, {1,1,7,3});
+                shuff_.PutNumber("cur pos", currPose_.pos, {1,1,8,3});
             }
             break;
         }
@@ -134,7 +160,7 @@ void Pivot::CoreTeleopPeriodic(){
     else if((currPose_.pos < bounds_.min) && (volts_ < ff_.kg*cos(bounds_.min))){
         volts_ = 0.0;
     }
-    motor_.SetVoltage(units::volt_t{volts_ + 0.2*Utils::Sign(volts_)}); //This motor has more weight
+    motor_.SetVoltage(units::volt_t{volts_}); //This motor has more weight
     motorChild_.SetVoltage(units::volt_t{volts_});
 
     prevT_ = t;
@@ -154,12 +180,23 @@ void Pivot::SetAngle(double angle){
     if(angle > bounds_.max || angle < bounds_.min){
         return;
     }
+
+    if(hooked_){
+        tempTarg_ = angle;
+        if(state_ == UNHOOK){ //No need to regenerate
+            return;
+        }
+        angle = ShooterConstants::PIVOT_UNHOOK;
+    }
     Poses::Pose1D currTarg = profile_.getTargetPose();
     Poses::Pose1D target = {.pos = angle, .vel = 0.0, .acc = 0.0};
 
     Poses::Pose1D error = target - currPose_;
     bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
-    if(atTarget){
+    if(hooked_){
+        state_ = UNHOOK;
+    }
+    else if(atTarget){
         state_ = AT_TARGET;
     }
     else{
@@ -192,6 +229,7 @@ void Pivot::SetVoltage(double volts){
 */
 void Pivot::Zero(){
     offset_ = 2*M_PI * encoder_.GetAbsolutePosition().GetValueAsDouble() + bounds_.min;
+    ZeroRelative();
 }
 
 /**
@@ -237,6 +275,13 @@ bool Pivot::AtTarget(){
 void Pivot::SetTolerance(double posTol){
     posTol_ = posTol;
     velTol_ = posTol * (ShooterConstants::PIVOT_VEL_TOL / ShooterConstants::PIVOT_POS_TOL); //Scale vel tol by how pos tol scales
+    if(velTol_ < 0.05){
+        velTol_ = 0.05;
+    }
+}
+
+void Pivot::SetHooked(bool hooked){
+    hooked_ = hooked;
 }
 
 /**
@@ -246,12 +291,21 @@ Poses::Pose1D Pivot::GetPose(){
     return currPose_;
 }
 
+double Pivot::GetTolerance() {
+    return posTol_;
+}
+
+std::string Pivot::GetStateStr() {
+    return StateToString(state_);
+}
+
 /**
  * State to string
 */
 std::string Pivot::StateToString(Pivot::State state){
     switch(state){
         case STOP : return "Stop";
+        case UNHOOK : return "Unhook";
         case AIMING : return "AIMING";
         case AT_TARGET : return "AT_TARGET";
         case JUST_VOLTAGE : return "Voltage";
@@ -280,9 +334,9 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("pos", &currPose_.pos, {1,1,4,1}, false);
     shuff_.add("vel", &currPose_.vel, {1,1,5,1}, false);
     shuff_.add("acc", &currPose_.acc, {1,1,6,1}, false);
-    shuff_.add("volts", &volts_, {1,1,4,2}, false);
     shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
-    shuff_.addButton("zero rel", [&](){ZeroRelative(); std::cout<<"Zeroed Rel"<<std::endl;}, {1,1,7,2});
+
+    shuff_.add("hooked", &hooked_, {1,1,7,2}, true);
 
     shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
     shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
@@ -322,6 +376,11 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("kP", &pid_.kp, {1,1,0,4}, true);
     shuff_.add("kI", &pid_.ki, {1,1,1,4}, true);
     shuff_.add("kD", &pid_.kd, {1,1,2,4}, true);
+
+    shuff_.add("inch volts", &inch_.volts, {1,1,0,5}, true);
+    shuff_.add("inch onCycles", &inch_.onCycles, {1,1,1,5}, true);
+    shuff_.add("inch numCycles", &inch_.numCycles, {1,1,2,5}, true);
+    shuff_.add("inch tol", &inchTol_, {1,1,3,5}, true);
 }
 
 void Pivot::CoreShuffleboardPeriodic(){

@@ -43,8 +43,7 @@ namespace AutoConstants {
   enum AutoAction{
     DRIVE,
     SHOOT,
-    INTAKE,
-    STOW
+    INTAKE
   };
 
   /**
@@ -58,44 +57,18 @@ namespace AutoConstants {
   };
 
   using AutoPath = std::vector<AutoElement>;
-  const AutoPath FOUR_PIECE = {
-    {SHOOT, AFTER},
-    {DRIVE, AFTER, "RightScore_to_RightIntake.csv"},
-    {INTAKE, BEFORE_END},
-    {DRIVE, AFTER, "RightIntake_to_MidScore.csv"},
-    {SHOOT, AFTER},
-    {DRIVE, AFTER, "MidScore_to_MidIntake.csv"},
-    {INTAKE, BEFORE_END},
-    {DRIVE, AFTER, "MidIntake_to_MidScore.csv"},
-    {SHOOT, AFTER},
-    {DRIVE, AFTER, "MidScore_to_LeftIntake.csv"},
-    {INTAKE, BEFORE_END},
-    {DRIVE, AFTER, "LeftIntake_to_MidScore.csv"},
-    {SHOOT, AFTER}
-  };
 
-  const AutoPath NOTHING = {
-  };
-
-  //Shuffleboard paths
-  const std::map<std::string, AutoPath> PATHS = {
-      {"Four Piece", FOUR_PIECE},
-      {"Nothing", NOTHING}
-  };
-
-  const double CHANNEL_TIME = 2.0;
-  const double SHOOT_TIME = 1.5;
-  const double INTAKE_TIME = 1.0;
-  const double STOW_TIME = 1.0;
+  const double CHANNEL_TIME = 5.0;
+  const double SHOOT_TIME = 2.0;
+  const double INTAKE_TIME = 2.0;
 
   //Time padding
-  const double DRIVE_PADDING = 0.5;
-  const double INTAKE_PADDING = 0.5;
-  const double STOW_PADDING = 0.5;
-  const double SHOOT_PADDING = 0.5; //Shoot earlier bc channel
+  const double DRIVE_PADDING = 1;
+  const double INTAKE_PADDING = 2;
+  const double SHOOT_PADDING = 4; //Shoot earlier bc channel
 
   //Pos tol for shoot aiming
-  const double SHOOT_POS_TOL = 0.1;
+  const double SHOOT_POS_TOL = 0.75;
 
   // starting positions
   const StartPose BLUE_L = {{0.666, 6.721}, 4.2309};

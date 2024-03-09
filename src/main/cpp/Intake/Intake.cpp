@@ -65,7 +65,7 @@ void Intake::EjectForward(){
 }
 
 void Intake::EjectBack(){
-    Stow();
+    HalfStow();
     m_channel.SetState(Channel::OUT);
     m_rollers.SetState(Rollers::OUTTAKE); // can change to back only later if needed
     m_actionState = NONE;
@@ -208,7 +208,7 @@ void Intake::SetState(ActionState newAction){
             m_channel.SetState(Channel::STOP);
             break;
         case HALF_STOW:
-            newWristPos = HALF_STOW;
+            newWristPos = HALF_STOWED_POS;
             break; 
         case AMP_INTAKE:
             m_wentToPassthrough = false;
@@ -251,6 +251,8 @@ void Intake::Log(FRCLogger& logger) {
     // logger.LogNum("intake state", m_actionState);
     // logger.LogBool("beambreak2", GetBeamBreak2());
     logger.LogStr("Intake State", GetStateName());
+    logger.LogBool("In intake", InIntake());
+    logger.LogBool("In channel", InChannel());
 }
 
 
@@ -362,6 +364,8 @@ std::string Intake::GetStateName() const {
             return "Amp Outtake";
         case FEED_TO_SHOOTER:
             return "Feed to Shooter";
+        case HALF_STOW:
+            return "Half Stow";
         case MANUAL_WRIST:
             return "Manual Wrist";
         case CLIMB:

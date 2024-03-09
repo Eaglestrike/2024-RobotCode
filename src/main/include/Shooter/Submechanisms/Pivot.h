@@ -2,10 +2,6 @@
 
 #include <ctre/phoenix6/CANcoder.hpp>
 #include <ctre/phoenix6/TalonFX.hpp>
-#include <ctre/phoenix6/controls/Follower.hpp>
-//#include <rev/CANSparkMax.h>
-
-#include "FFAutotuner/FFAutotuner.h"
 
 #include "ShuffleboardSender/ShuffleboardSender.h"
 
@@ -17,12 +13,12 @@
 
 using CANcoder = ctre::phoenix6::hardware::CANcoder;
 using TalonFX = ctre::phoenix6::hardware::TalonFX;
-using Follower = ctre::phoenix6::controls::Follower;
 
 class Pivot : public Mechanism{
     public:
         enum State{
             STOP,
+            UNHOOK,
             AIMING,
             AT_TARGET,
             JUST_VOLTAGE
@@ -41,7 +37,11 @@ class Pivot : public Mechanism{
         bool AtTarget();
 
         void SetTolerance(double posTol);
+        void SetHooked(bool hooked);
         Poses::Pose1D GetPose();
+        double GetTolerance();
+
+        std::string GetStateStr();
 
     private:
         Poses::Pose1D GetAbsPose();
@@ -57,9 +57,6 @@ class Pivot : public Mechanism{
 
         TalonFX motor_;
         TalonFX motorChild_;
-        //Follower follower_;
-        
-        double gearing_;
         
         double volts_;
         double maxVolts_;
@@ -67,6 +64,10 @@ class Pivot : public Mechanism{
         CANcoder encoder_;
         double offset_;
         double relOffset_;
+        double gearing_;
+
+        bool hooked_;
+        double tempTarg_; //Temporary target (to reaim after unhooking)
 
         struct Bounds{
             double min;
@@ -77,6 +78,10 @@ class Pivot : public Mechanism{
         double accum_;
         double prevT_;
         ShooterConstants::Feedforward ff_;
+        ShooterConstants::Incher inch_;
+        int cycle_;
+        double inchTol_;
+
         double posTol_;
         double velTol_;
 
