@@ -118,8 +118,8 @@ namespace ShooterConstants{
 
     const std::map<double, ShootConfig> SHOOT_DATA = {
     //distance-> ang, vel
-        {0.0,   {1.07,  15.0}}, //0 distance shot (used just for interpolation)
-        {1.32,  {1.05,  15.0}},
+        {0.0,   {1.075,  15.0}}, //0 distance shot (used just for interpolation)
+        {1.32,  {1.075,  15.0}},
         {1.51,  {0.97,  17.0}},
         {1.68,  {0.93,  17.0}},
         {1.88,  {0.87,  17.0}},

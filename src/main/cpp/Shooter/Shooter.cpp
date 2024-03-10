@@ -404,6 +404,8 @@ void Shooter::Log(FRCLogger &logger) {
     logger.LogStr("Shooter state", StateToString(state_));
     logger.LogBool("Can shoot", CanShoot());
     logger.LogNum("Pivot tol", pivot_.GetTolerance());
+    logger.LogNum("Pivot pos", pivot_.GetPose().pos);
+    logger.LogNum("Pivot vel", pivot_.GetPose().vel);
 }
 
 

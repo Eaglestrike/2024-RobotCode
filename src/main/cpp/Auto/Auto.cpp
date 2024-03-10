@@ -247,6 +247,12 @@ void Auto::AutoPeriodic(){
     logger_.LogNum("Shooter ang lineup targ", autoLineup_.GetTargAng());
     logger_.LogNum("Shooter ang lineup exp", autoLineup_.GetExpAng());
     logger_.LogNum("Shooter ang lineup state", autoLineup_.GetState());
+    logger_.LogBool("Drive Started", driveTiming_.hasStarted);
+    logger_.LogBool("Shooter Started", shooterTiming_.hasStarted);
+    logger_.LogBool("Intake Started", intakeTiming_.hasStarted);
+    logger_.LogBool("Drive Finished", driveTiming_.finished);
+    logger_.LogBool("Shooter Finished", shooterTiming_.finished);
+    logger_.LogBool("Intake Finished", intakeTiming_.finished);
 }
 
 /**

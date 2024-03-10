@@ -24,7 +24,7 @@ Robot::Robot() :
   //Controller
   m_controller{},
   //Logger
-  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Manual Pos Val", "Amp mode", "Intake State", "In intake", "In channel", "Shot Vel", "Shot Ang", "Pivot state", "Top Flywheel state", "Bottom flywheel state", "Shooter state", "Can shoot", "Pivot tol", "Trim X", "Trim Y", "Shooter ang lineup targ", "Shooter ang lineup exp", "Shooter ang lineup state", "Auto path num", "Auto index"}},
+  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Manual Pos Val", "Amp mode", "Intake State", "In intake", "In channel", "Shot Vel", "Shot Ang", "Pivot pos", "Pivot vel", "Pivot state", "Top Flywheel state", "Bottom flywheel state", "Shooter state", "Can shoot", "Pivot tol", "Trim X", "Trim Y", "Shooter ang lineup targ", "Shooter ang lineup exp", "Shooter ang lineup state", "Auto path num", "Auto index", "Drive Started", "Drive Finished", "Shooter Started", "Shooter Finished", "Intake Started", "Intake Finished"}},
   m_prevIsLogging{false},
   //Mechanisms
   m_swerveController{true, DebugConfig::DRIVE},
