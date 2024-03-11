@@ -128,7 +128,7 @@ void Pivot::CoreTeleopPeriodic(){
                 if(atTarget){
                     state_ = AT_TARGET; //At target due to tolerances
                 }
-                else if(std::abs(error.pos) < regenTol_){
+                else if(std::abs(error.pos) > regenTol_){ //Regenerate when too off
                     profile_.regenerate(currPose_);
                 }
             }
