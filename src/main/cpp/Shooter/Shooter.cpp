@@ -5,7 +5,7 @@
 
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
-    state_{STOP},
+    state_{STOP}, autoStroll_{true},
     bflywheel_{ShooterConstants::BOTTOM_FLYWHEEL, enabled, DebugConfig::SHOOTER.LEFT_FLY},
     tflywheel_{ShooterConstants::TOP_FLYWHEEL, enabled, DebugConfig::SHOOTER.RIGHT_FLY},
     pivot_{"Pivot", enabled, DebugConfig::SHOOTER.PIVOT},
@@ -277,6 +277,7 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     }
     //double spin = -angToSpeaker * kSpin_; //Spin opposite to way pointing
 
+    autoStroll_ = needGamePiece;
     SetUp(shotVel, 0.0, pivotAng);
 }
 
@@ -403,6 +404,8 @@ void Shooter::Log(FRCLogger &logger) {
     logger.LogStr("Shooter state", StateToString(state_));
     logger.LogBool("Can shoot", CanShoot());
     logger.LogNum("Pivot tol", pivot_.GetTolerance());
+    logger.LogNum("Pivot pos", pivot_.GetPose().pos);
+    logger.LogNum("Pivot vel", pivot_.GetPose().vel);
 }
 
 

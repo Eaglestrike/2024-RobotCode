@@ -18,12 +18,15 @@ void Climb::CoreTeleopPeriodic(){
     StateInfo info;
     switch (m_targ){
         case STOWED:
+            Brake();
             info = STOW_INFO;
             break;
         case EXTENDED:
+            ReleaseBrake();
             info = EXTENDED_INFO;
             break;
         case CLIMB:
+            Brake();
             info = CLIMB_INFO;
             break;
     }
@@ -44,7 +47,6 @@ void Climb::CoreTeleopPeriodic(){
             if (AtTarget(info.TARG_POS, (info.MOVE_VOLTS > 0))){
                 m_state = AT_TARGET;
             }
-            ReleaseBrake();
             break;
         case AT_TARGET:
             m_brakeOverride = false; //Default brake override for manual false

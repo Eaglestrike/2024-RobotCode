@@ -242,9 +242,17 @@ void Auto::AutoPeriodic(){
     ShooterPeriodic(t);
     IntakePeriodic(t);
 
+    logger_.LogNum("Auto path num", pathNum_);
+    logger_.LogNum("Auto index", index_);
     logger_.LogNum("Shooter ang lineup targ", autoLineup_.GetTargAng());
     logger_.LogNum("Shooter ang lineup exp", autoLineup_.GetExpAng());
     logger_.LogNum("Shooter ang lineup state", autoLineup_.GetState());
+    logger_.LogBool("Drive Started", driveTiming_.hasStarted);
+    logger_.LogBool("Shooter Started", shooterTiming_.hasStarted);
+    logger_.LogBool("Intake Started", intakeTiming_.hasStarted);
+    logger_.LogBool("Drive Finished", driveTiming_.finished);
+    logger_.LogBool("Shooter Finished", shooterTiming_.finished);
+    logger_.LogBool("Intake Finished", intakeTiming_.finished);
 }
 
 /**
@@ -297,7 +305,7 @@ void Auto::ShooterPeriodic(double t){
         vec::Vector2D pos{odometry_.GetPos()};
         //Feed into shooter when can shoot
         int posVal = pathNum_ == 0 ? 3 : 0;
-        if(shooter_.CanShoot(posVal) || (t > shooterTiming_.end + SHOOT_PADDING)){ 
+       if((pathNum_ == 0 && t > 2) || shooter_.CanShoot(posVal) || (t > shooterTiming_.end + SHOOT_PADDING)){ 
             intake_.FeedIntoShooter();
         }
         
@@ -306,6 +314,10 @@ void Auto::ShooterPeriodic(double t){
             shooterTiming_.finished = true;
             startedLineup_ = false;
             // std::cout<<"Shooter end" << std::endl;
+        }
+
+        if((t > shooterTiming_.end + SHOOT_PADDING) && (!hadPiece_)){
+            shooterTiming_.finished = true;
         }
 
         if(((pos - shootPos_).magn() < SHOOT_POS_TOL) || intake_.HasGamePiece() || inChannel_){ //Constantly prepare to current position if within some distance to the target
