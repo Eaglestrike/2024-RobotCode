@@ -27,10 +27,10 @@ Robot::Robot() :
   m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Manual Pos Val", "Amp mode", "Intake State", "In intake", "In channel", "Shot Vel", "Shot Ang", "Pivot pos", "Pivot vel", "Pivot state", "Top Flywheel state", "Bottom flywheel state", "Shooter state", "Can shoot", "Pivot tol", "Trim X", "Trim Y", "Shooter ang lineup targ", "Shooter ang lineup exp", "Shooter ang lineup state", "Auto path num", "Auto index", "Drive Started", "Drive Finished", "Shooter Started", "Shooter Finished", "Intake Started", "Intake Finished"}},
   m_prevIsLogging{false},
   //Mechanisms
-  m_swerveController{true, DebugConfig::DRIVE},
-  m_intake{true, DebugConfig::INTAKE},
-  m_climb{true, DebugConfig::CLIMB},
-  m_shooter{"Shooter", true, DebugConfig::SHOOTER.SHOOTER},
+  m_swerveController{EnableConfig::DRIVE, DebugConfig::DRIVE},
+  m_intake{EnableConfig::INTAKE, DebugConfig::INTAKE},
+  m_climb{EnableConfig::CLIMB, DebugConfig::CLIMB},
+  m_shooter{"Shooter", EnableConfig::SHOOTER, DebugConfig::SHOOTER.SHOOTER},
   //Sensors
   m_client{"10.1.14.202", 44590, 500, 5000}, // 10.1.14.202
   m_isSecondTag{false},
