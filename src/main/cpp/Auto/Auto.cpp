@@ -168,8 +168,6 @@ void Auto::AutoInit(){
     ResetTiming(driveTiming_);
 
     autoStart_ = Utils::GetCurTimeS();
-    inChannel_ = false;
-
     
     NextBlock();
     //std::cout << "End Init" <<std::endl;
@@ -292,10 +290,6 @@ void Auto::ShooterPeriodic(double t){
         // std::cout<<"Shooter start" << std::endl;
     }
 
-    if(inChannel_ || intake_.HasGamePiece()){
-        hadPiece_ = true;
-    }
-
     if(shooterTiming_.finished){
 
     }
@@ -311,10 +305,9 @@ void Auto::ShooterPeriodic(double t){
         }
         
         //Finish shooting can't see piece
-        if(isShooting_ && (hadPiece_ && !intake_.InChannel())){
+        if(isShooting_ && !intake_.InChannel()){
             shooterTiming_.finished = true;
             isShooting_ = false;
-            hadPiece_ = false;
             // std::cout<<"Shooter end" << std::endl;
         }
 
