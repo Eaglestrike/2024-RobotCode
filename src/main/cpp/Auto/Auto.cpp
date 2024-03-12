@@ -216,7 +216,7 @@ void Auto::AutoPeriodic(){
         NextBlock();
     }
     
-    bool useAngLineup = pathNum_ != 0 && shooterTiming_.hasStarted && (!shooterTiming_.finished) && (intakeTiming_.finished)/*&& (inChannel_ || intake_.HasGamePiece())*/;
+    bool useAngLineup = (pathNum_ != 0) && shooterTiming_.hasStarted && (!shooterTiming_.finished) && (intakeTiming_.finished);
     if(shuff_.isEnabled()){
         shuff_.PutBoolean("ang lineup", useAngLineup, {2,2,0,1});
         shuff_.PutNumber("targ angle", shooter_.GetTargetRobotYaw(), {2,1,0,3});
