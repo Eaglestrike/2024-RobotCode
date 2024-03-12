@@ -1,5 +1,12 @@
 #pragma once
 
+namespace EnableConfig{
+    const bool CLIMB    = true;
+    const bool DRIVE    = true;
+    const bool INTAKE   = true;
+    const bool SHOOTER  = true;
+}
+
 namespace DebugConfig{
     const bool AUTO = false;
 
