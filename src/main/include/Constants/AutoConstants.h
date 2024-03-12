@@ -58,14 +58,14 @@ namespace AutoConstants {
 
   using AutoPath = std::vector<AutoElement>;
 
-  const double CHANNEL_TIME = 5.0;
+  const double CHANNEL_TIME = 3.5; // 5
   const double SHOOT_TIME = 2.0;
   const double INTAKE_TIME = 2.0;
 
   //Time padding
   const double DRIVE_PADDING = 1;
   const double INTAKE_PADDING = 2;
-  const double SHOOT_PADDING = 4; //Shoot earlier bc channel
+  const double SHOOT_PADDING = 2; // 4 //Shoot earlier bc channel
 
   //Pos tol for shoot aiming
   const double SHOOT_POS_TOL = 0.75;

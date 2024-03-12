@@ -24,7 +24,7 @@ Robot::Robot() :
   //Controller
   m_controller{},
   //Logger
-  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Manual Pos Val", "Amp mode", "Intake State", "In intake", "In channel", "Shot Vel", "Shot Ang", "Pivot state", "Top Flywheel state", "Bottom flywheel state", "Shooter state", "Can shoot", "Pivot tol", "Trim X", "Trim Y", "Shooter ang lineup targ", "Shooter ang lineup exp", "Shooter ang lineup state"}},
+  m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Manual Pos Val", "Amp mode", "Intake State", "In intake", "In channel", "Shot Vel", "Shot Ang", "Pivot pos", "Pivot vel", "Pivot state", "Top Flywheel state", "Bottom flywheel state", "Shooter state", "Can shoot", "Pivot tol", "Trim X", "Trim Y", "Shooter ang lineup targ", "Shooter ang lineup exp", "Shooter ang lineup state", "Auto path num", "Auto index", "Drive Started", "Drive Finished", "Shooter Started", "Shooter Finished", "Intake Started", "Intake Finished"}},
   m_prevIsLogging{false},
   //Mechanisms
   m_swerveController{true, DebugConfig::DRIVE},
@@ -32,7 +32,7 @@ Robot::Robot() :
   m_climb{true, DebugConfig::CLIMB},
   m_shooter{"Shooter", true, DebugConfig::SHOOTER.SHOOTER},
   //Sensors
-  m_client{"stadlerpi.local", 5590, 500, 5000},
+  m_client{"10.1.14.202", 44590, 500, 5000}, // 10.1.14.202
   m_isSecondTag{false},
   m_odom{false},
   //Auto
@@ -180,7 +180,7 @@ void Robot::RobotPeriodic()
   if (m_shooter.IsManual()) {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 69, 0, 40);
   } else if (m_posVal != 0) {
-    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 255, 0, 0);
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 110, 199, 0);
   } else if (m_amp) {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 255, 0, 0);
   } else {
