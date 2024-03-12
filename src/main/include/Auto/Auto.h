@@ -67,11 +67,11 @@ class Auto{
 
         bool inChannel_; //Boolean to store data about the blinds spot
         SubsystemTiming driveTiming_;
-        bool startedLineup_;
         vec::Vector2D shootPos_;
         SubsystemTiming channelTiming_; //Used to time channel loading time 
         SubsystemTiming shooterTiming_;
         bool hadPiece_;
+        bool isShooting_;
         SubsystemTiming intakeTiming_;
 
         double CHANNEL_TIME = AutoConstants::CHANNEL_TIME;

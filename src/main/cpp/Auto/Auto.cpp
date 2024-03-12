@@ -170,7 +170,6 @@ void Auto::AutoInit(){
     autoStart_ = Utils::GetCurTimeS();
     inChannel_ = false;
 
-    startedLineup_ = false;
     
     NextBlock();
     //std::cout << "End Init" <<std::endl;
@@ -290,7 +289,6 @@ void Auto::DrivePeriodic(double t){
 void Auto::ShooterPeriodic(double t){
     if(!shooterTiming_.hasStarted && t > shooterTiming_.start){
         shooterTiming_.hasStarted = true;
-        hadPiece_ = false;
         // std::cout<<"Shooter start" << std::endl;
     }
 
@@ -305,19 +303,19 @@ void Auto::ShooterPeriodic(double t){
         vec::Vector2D pos{odometry_.GetPos()};
         //Feed into shooter when can shoot
         int posVal = pathNum_ == 0 ? 3 : 0;
-       if((pathNum_ == 0 && t > 2) || shooter_.CanShoot(posVal) || (t > shooterTiming_.end + SHOOT_PADDING)){ 
-            intake_.FeedIntoShooter();
+ 
+        bool forceShoot = (pathNum_ == 0 && t > 2) ||  (t > shooterTiming_.end + SHOOT_PADDING); //Exceeded time given
+        if(forceShoot || (shooter_.CanShoot(posVal) && intake_.InChannel())){ 
+            intake_.FeedIntoShooter(); 
+            isShooting_ = true;
         }
         
-        //Finish shooting when can't see piece for a bit
-        if((!inChannel_) && (!intake_.HasGamePiece()) && (hadPiece_)){ 
+        //Finish shooting can't see piece
+        if(isShooting_ && (hadPiece_ && !intake_.InChannel())){
             shooterTiming_.finished = true;
-            startedLineup_ = false;
+            isShooting_ = false;
+            hadPiece_ = false;
             // std::cout<<"Shooter end" << std::endl;
-        }
-
-        if((t > shooterTiming_.end + SHOOT_PADDING) && (!hadPiece_)){
-            shooterTiming_.finished = true;
         }
 
         if(((pos - shootPos_).magn() < SHOOT_POS_TOL) || intake_.HasGamePiece() || inChannel_){ //Constantly prepare to current position if within some distance to the target
