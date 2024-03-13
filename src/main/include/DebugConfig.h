@@ -15,4 +15,6 @@ namespace DebugConfig{
         const bool RIGHT_FLY = false;
         const bool PIVOT = false;
     } SHOOTER;
+
+    const bool AUTO_LINEUP = true;
 }

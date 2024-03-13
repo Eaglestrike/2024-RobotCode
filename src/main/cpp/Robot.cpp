@@ -36,7 +36,7 @@ Robot::Robot() :
   m_isSecondTag{false},
   m_odom{false},
   //Auto
-  m_autoLineup{false, m_odom},  
+  m_autoLineup{DebugConfig::AUTO_LINEUP, m_odom},  
   m_auto{DebugConfig::AUTO, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
   m_autoChooser{false, m_auto},
   m_led{}
