@@ -152,6 +152,9 @@ void Shooter::Eject(){
     bflywheel_.SetVoltage(strollSpeed_);
     tflywheel_.SetVoltage(strollSpeed_);
 
+    pivot_.SetAngle(ShooterConstants::PIVOT_MIN);
+    pivot_.SetTolerance(ShooterConstants::SHOOT_POS_TOL);
+
     state_ = EJECT;
 }
 
