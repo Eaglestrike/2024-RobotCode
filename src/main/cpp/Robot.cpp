@@ -310,7 +310,6 @@ void Robot::TeleopPeriodic()
   {
     m_logger.Info("Input", "Starting Angle Lineup");
     m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
-    m_autoLineup.Start();
   }
 
   // Intake
@@ -336,9 +335,9 @@ void Robot::TeleopPeriodic()
       if(m_intake.HasGamePiece()){
         if (!m_amp) {
           if (m_posVal != 3) {
-            m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
+            m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
           } else {
-            m_autoLineup.Recalc(m_odom.GetAngNorm());
+            m_autoLineup.SetTarget(m_odom.GetAngNorm());
           }
         }
         if(m_shooter.CanShoot(m_posVal)){
@@ -468,7 +467,6 @@ void Robot::TeleopPeriodic()
   }
   else
   {
-    m_autoLineup.Stop();
     m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   }
 
@@ -477,7 +475,6 @@ void Robot::TeleopPeriodic()
   m_climb.TeleopPeriodic();
   m_intake.TeleopPeriodic();
   m_swerveController.Periodic();
-  m_autoLineup.Periodic();
   m_shooter.TeleopPeriodic();
 }
 

@@ -225,8 +225,7 @@ void Auto::AutoPeriodic(){
 
     if(useAngLineup){
         if(shooter_.UseAutoLineup()){ //Angle lineup
-            autoLineup_.Recalc(shooter_.GetTargetRobotYaw());
-            autoLineup_.Periodic();
+            autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
             segments_.Periodic(autoLineup_.GetAngVel());  
         }
         else{
@@ -234,7 +233,6 @@ void Auto::AutoPeriodic(){
         }
     }
     else{
-        autoLineup_.Stop();
         segments_.Periodic();
     }
     
@@ -246,7 +244,7 @@ void Auto::AutoPeriodic(){
     logger_.LogNum("Auto index", index_);
     logger_.LogNum("Shooter ang lineup targ", autoLineup_.GetTargAng());
     logger_.LogNum("Shooter ang lineup exp", autoLineup_.GetExpAng());
-    logger_.LogNum("Shooter ang lineup state", autoLineup_.GetState());
+    logger_.LogBool("Shooter ang lineup state", autoLineup_.AtTarget());
     logger_.LogBool("Drive Started", driveTiming_.hasStarted);
     logger_.LogBool("Shooter Started", shooterTiming_.hasStarted);
     logger_.LogBool("Intake Started", intakeTiming_.hasStarted);
