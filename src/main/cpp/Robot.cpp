@@ -298,7 +298,7 @@ void Robot::TeleopPeriodic()
   }
   double vx = std::clamp(lx, -1.0, 1.0) * mult;
   double vy = std::clamp(ly, -1.0, 1.0) * mult;
-  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
+  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2.0 * 1.5;
 
   // velocity vectors
   vec::Vector2D setVel = {-vy, -vx};
