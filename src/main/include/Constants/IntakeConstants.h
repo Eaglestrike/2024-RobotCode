@@ -8,5 +8,6 @@ namespace IntakeConstants {
   const int KICKER_MOTOR = 2; 
   // const int WRIST_ENCODER_CAN_ID = 50; 
   const int BEAM_BREAK1_ID = 0;
-  const int BEAM_BREAK2_ID = 1; 
+  const int BEAM_BREAK2_ID = 1;
+  const int BEAM_BREAK3_ID = 2; 
 }

@@ -93,7 +93,7 @@ void Intake::CoreTeleopPeriodic(){
     
     switch(m_actionState){
         case FEED_TO_SHOOTER:
-            if(!InChannel()){
+            if(!InShooter()){
                 m_channel.SetState(Channel::STOP);
                 m_actionState = NONE;
             }
@@ -124,7 +124,7 @@ void Intake::CoreTeleopPeriodic(){
             }
             
             // if in channel, spit back out into intake
-            if (InChannel()) {
+            if (InShooter()) {
                 m_wentToPassthrough = true;
                 m_rollers.SetState(Rollers::OUTTAKE);
                 m_channel.SetState(Channel::OUT);
@@ -132,7 +132,7 @@ void Intake::CoreTeleopPeriodic(){
             }
 
             // if back in intake, then bring wrist up
-            if (m_wentToPassthrough && GetBeamBreak1()){
+            if (m_wentToPassthrough && InIntake()){
                 m_rollers.SetState(Rollers::STOP);
                 if (m_channel.GetState() != Channel::RETAIN){
                     m_channel.SetState(Channel::STOP);
@@ -148,7 +148,7 @@ void Intake::CoreTeleopPeriodic(){
             if (m_rollers.GetState() == Rollers::STOP && m_wrist.ProfileDone()){ 
                 m_rollers.SetState(Rollers::PASS);
             }
-            if (InChannel()){    
+            if (InShooter() && !!InChannel()){    
                 m_rollers.SetState(Rollers::STOP);
                 m_channel.SetState(Channel::RETAIN);
                 if (!m_keepIntakeDown) {
@@ -167,7 +167,7 @@ void Intake::CoreTeleopPeriodic(){
                 SetState(STOW);
             } else if (m_outTimer != -1){
                 m_outTimer += 0.02;
-            } else if (!GetBeamBreak1()){
+            } else if (m_iothread.GetBeamBreak1()){
                 m_outTimer = 0;
             }
             break;
@@ -185,7 +185,7 @@ void Intake::SetState(ActionState newAction){
         return;
     }
 
-    if (newAction == PASSTHROUGH && InChannel()) return;
+    if (newAction == PASSTHROUGH && InShooter() && (!InChannel())) return;
 
 
     if (m_actionState == AMP_INTAKE) { 
@@ -252,7 +252,7 @@ void Intake::Log(FRCLogger& logger) {
     // logger.LogBool("beambreak2", GetBeamBreak2());
     logger.LogStr("Intake State", GetStateName());
     logger.LogBool("In intake", InIntake());
-    logger.LogBool("In channel", InChannel());
+    logger.LogBool("In channel", InShooter());
 }
 
 
@@ -260,11 +260,15 @@ void Intake::Log(FRCLogger& logger) {
 
 
 bool Intake::HasGamePiece(){
-    return (InChannel()||InIntake());
+    return (InShooter() || InIntake() || InChannel());
+}
+
+bool Intake::InShooter(){
+    return m_iothread.GetBeamBreak2();
 }
 
 bool Intake::InChannel(){
-    return GetBeamBreak2();
+    return m_iothread.GetBeamBreak3();
 }
 
 bool Intake::InIntake(){
@@ -272,19 +276,9 @@ bool Intake::InIntake(){
 }
 
 
-bool Intake::GetBeamBreak1() {
-    return m_iothread.GetBeamBreak1();
-}
-
-bool Intake::GetBeamBreak2() {
-    // return false;
-    return m_iothread.GetBeamBreak2();
-}
-
-
 bool Intake::DebounceBeamBreak1(){
      if (m_dbTimer == -1){
-        m_beam1broke = GetBeamBreak1();
+        m_beam1broke = m_iothread.GetBeamBreak1();
         if (m_beam1broke){
             m_dbTimer= 0;
         }
@@ -346,7 +340,7 @@ void Intake::CoreShuffleboardPeriodic(){
     }
             
     m_shuff.PutBoolean("BeamBreak 1", m_beam1broke);
-    m_shuff.PutBoolean("BeamBreak 2", GetBeamBreak2());
+    m_shuff.PutBoolean("BeamBreak 2", m_iothread.GetBeamBreak2());
     m_shuff.PutNumber("debounce timer", m_dbTimer);
     m_shuff.PutNumber("REAL timer", m_outTimer);
     m_shuff.update(true);
