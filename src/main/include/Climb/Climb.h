@@ -21,7 +21,8 @@ class Climb : public Mechanism{
         enum Target {
             EXTENDED,
             STOWED,
-            CLIMB
+            CLIMB,
+            TMANUAL
         };
 
         enum State{
