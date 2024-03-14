@@ -338,7 +338,7 @@ void Auto::IntakePeriodic(double t){
     else if(intakeTiming_.hasStarted){
         intake_.Passthrough();
         //Check if finished
-        if(intake_.HasGamePiece()){  // End intake if has game piece
+        if(intake_.InChannel()){  // End intake if has game piece
             // std::cout<< "Intake end" << std::endl;
             intakeTiming_.finished = true;
         }
