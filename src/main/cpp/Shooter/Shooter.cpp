@@ -122,7 +122,7 @@ void Shooter::Amp(){
     if(!hasPiece_){
         return;
     }
-    pivot_.SetTolerance(0.02);
+    pivot_.SetTolerance(0.04);
     SetUp(ShooterConstants::FLYWHEEL_SPEED_AMP, ShooterConstants::FLYWHEEL_SPIN_AMP, ShooterConstants::PIVOT_AMP);
     state_ = AMP;
 }

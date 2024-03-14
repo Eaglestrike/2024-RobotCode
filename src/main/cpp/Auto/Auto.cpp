@@ -208,7 +208,7 @@ void Auto::AutoPeriodic(){
             inChannel_ = false;
         }
     }
-    if(inChannel_ && intake_.InChannel()){
+    if(inChannel_ && intake_.InShooter()){
         channelTiming_.hasStarted = false;
         inChannel_ = false;
     }
