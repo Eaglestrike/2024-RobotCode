@@ -90,7 +90,6 @@ void Intake::CoreTeleopPeriodic(){
     m_wrist.TeleopPeriodic();
     m_channel.TeleopPeriodic();
 
-    
     switch(m_actionState){
         case FEED_TO_SHOOTER:
             if(!InShooter()){
@@ -148,7 +147,7 @@ void Intake::CoreTeleopPeriodic(){
             if (m_rollers.GetState() == Rollers::STOP && m_wrist.ProfileDone()){ 
                 m_rollers.SetState(Rollers::PASS);
             }
-            if (InShooter() && !!InChannel()){    
+            if (InShooter() && (!InChannel())){    
                 m_rollers.SetState(Rollers::STOP);
                 m_channel.SetState(Channel::RETAIN);
                 if (!m_keepIntakeDown) {
@@ -171,6 +170,13 @@ void Intake::CoreTeleopPeriodic(){
                 m_outTimer = 0;
             }
             break;
+        case NONE:
+            if(InChannel()){
+                m_channel.SetState(Channel::TO_SHOOT);
+            }
+            else{
+                m_channel.SetState(Channel::STOP);
+            }
         default:
             break;
     }
@@ -186,7 +192,6 @@ void Intake::SetState(ActionState newAction){
     }
 
     if (newAction == PASSTHROUGH && InShooter() && (!InChannel())) return;
-
 
     if (m_actionState == AMP_INTAKE) { 
         m_outTimer = -1; //Restart timer on amp
