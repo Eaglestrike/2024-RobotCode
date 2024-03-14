@@ -27,10 +27,10 @@ Robot::Robot() :
   m_logger{"log", {"Cams Stale", "Cams Connected", "Tag Detected", "Pos X", "Pos Y", "Manual Pos Val", "Amp mode", "Intake State", "In intake", "In channel", "Shot Vel", "Shot Ang", "Pivot pos", "Pivot vel", "Pivot state", "Top Flywheel state", "Bottom flywheel state", "Shooter state", "Can shoot", "Pivot tol", "Trim X", "Trim Y", "Shooter ang lineup targ", "Shooter ang lineup exp", "Shooter ang lineup state", "Auto path num", "Auto index", "Drive Started", "Drive Finished", "Shooter Started", "Shooter Finished", "Intake Started", "Intake Finished"}},
   m_prevIsLogging{false},
   //Mechanisms
-  m_swerveController{true, DebugConfig::DRIVE},
-  m_intake{true, DebugConfig::INTAKE},
-  m_climb{true, DebugConfig::CLIMB},
-  m_shooter{"Shooter", true, DebugConfig::SHOOTER.SHOOTER},
+  m_swerveController{EnableConfig::DRIVE, DebugConfig::DRIVE},
+  m_intake{EnableConfig::INTAKE, DebugConfig::INTAKE},
+  m_climb{EnableConfig::CLIMB, DebugConfig::CLIMB},
+  m_shooter{"Shooter", EnableConfig::SHOOTER, DebugConfig::SHOOTER.SHOOTER},
   //Sensors
   m_client{"10.1.14.202", 44590, 500, 5000}, // 10.1.14.202
   m_isSecondTag{false},
@@ -298,7 +298,7 @@ void Robot::TeleopPeriodic()
   }
   double vx = std::clamp(lx, -1.0, 1.0) * mult;
   double vy = std::clamp(ly, -1.0, 1.0) * mult;
-  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
+  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2.0 * 1.5;
 
   // velocity vectors
   vec::Vector2D setVel = {-vy, -vx};
@@ -581,6 +581,8 @@ void Robot::TestPeriodic()
   double yVolts = m_swerveYTuner.getVoltage();
 
   m_swerveController.SetRobotVelocity({xVolts, yVolts}, 0.0, curYaw);
+#else
+  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
 #endif
 
   if (m_controller.getPressed(INTAKE))
@@ -591,8 +593,6 @@ void Robot::TestPeriodic()
   {
     m_intake.FeedIntoShooter();
   }
-
-  //m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
 
   m_swerveController.Periodic();
   m_shooter.TeleopPeriodic();
