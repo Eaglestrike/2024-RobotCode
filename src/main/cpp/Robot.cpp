@@ -291,14 +291,17 @@ void Robot::TeleopPeriodic()
   }
 
   // slow mode
-  double mult = SwerveConstants::NORMAL_SWERVE_MULT;
-  if (m_controller.getPressed(SLOW_MODE))
-  {
-    mult = SwerveConstants::SLOW_SWERVE_MULT;
+  double vx = std::clamp(lx, -1.0, 1.0) * SwerveConstants::NORMAL_SWERVE_MULT;
+  double vy = std::clamp(ly, -1.0, 1.0) * SwerveConstants::NORMAL_SWERVE_MULT;
+  double w = -std::clamp(rx, -1.0, 1.0) * SwerveConstants::NORMAL_SWERVE_MULT /2.0 * 1.5;
+  if (m_controller.getPressed(SLOW_MODE)){
+    vx *= SwerveConstants::SLOW_SWERVE_MULT;
+    vy *= SwerveConstants::SLOW_SWERVE_MULT;
+    w *= SwerveConstants::SLOW_SWERVE_MULT / 1.5;
   }
-  double vx = std::clamp(lx, -1.0, 1.0) * mult;
-  double vy = std::clamp(ly, -1.0, 1.0) * mult;
-  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2.0 * 1.5;
+  if (m_controller.getPressed(FAST_MODE)){
+    w *= 2.0;
+  }
 
   // velocity vectors
   vec::Vector2D setVel = {-vy, -vx};
