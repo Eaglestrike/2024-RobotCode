@@ -581,6 +581,8 @@ void Robot::TestPeriodic()
   double yVolts = m_swerveYTuner.getVoltage();
 
   m_swerveController.SetRobotVelocity({xVolts, yVolts}, 0.0, curYaw);
+#else
+  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
 #endif
 
   if (m_controller.getPressed(INTAKE))
@@ -591,8 +593,6 @@ void Robot::TestPeriodic()
   {
     m_intake.FeedIntoShooter();
   }
-
-  //m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
 
   m_swerveController.Periodic();
   m_shooter.TeleopPeriodic();
