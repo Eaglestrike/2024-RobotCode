@@ -298,7 +298,7 @@ void Robot::TeleopPeriodic()
   }
   double vx = std::clamp(lx, -1.0, 1.0) * mult;
   double vy = std::clamp(ly, -1.0, 1.0) * mult;
-  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2;
+  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2.0 * 1.5;
 
   // velocity vectors
   vec::Vector2D setVel = {-vy, -vx};
@@ -578,6 +578,8 @@ void Robot::TestPeriodic()
   double yVolts = m_swerveYTuner.getVoltage();
 
   m_swerveController.SetRobotVelocity({xVolts, yVolts}, 0.0, curYaw);
+#else
+  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
 #endif
 
   if (m_controller.getPressed(INTAKE))
@@ -588,8 +590,6 @@ void Robot::TestPeriodic()
   {
     m_intake.FeedIntoShooter();
   }
-
-  //m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
 
   m_swerveController.Periodic();
   m_shooter.TeleopPeriodic();
