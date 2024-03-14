@@ -313,6 +313,8 @@ void Robot::TeleopPeriodic()
   }
 
   // Intake
+  bool useAutoLineup = false;
+  
   if (!m_wristManual)
   {
     if (m_controller.getPOVDownOnce(HALF_STOW))
@@ -343,6 +345,7 @@ void Robot::TeleopPeriodic()
         if(m_shooter.CanShoot(m_posVal)){
           m_intake.FeedIntoShooter();
         }
+        useAutoLineup = m_shooter.UseAutoLineup();
       }
       else
       {
@@ -458,9 +461,7 @@ void Robot::TeleopPeriodic()
   }
 
   // auto lineup
-  if (m_controller.getPOVDown(AMP_AUTO_LINEUP) ||
-      (m_controller.getPressed(SHOOT) && !m_amp && m_shooter.UseAutoLineup()) // Angle lineup when shooting
-  )
+  if (m_controller.getPOVDown(AMP_AUTO_LINEUP) || useAutoLineup) // Angle lineup when shooting
   {
     double angVel = m_autoLineup.GetAngVel();
     m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);

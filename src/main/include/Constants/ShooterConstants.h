@@ -144,7 +144,7 @@ namespace ShooterConstants{
     const double SHOOT_VEL_TOL = 0.3;
     //const double SHOOT_YAW_TOL = 0.05;
     const double SHOOT_YAW_PERCENT = 0.5;
-    const double LINEUP_YAW_PERCENT = 0.45;
+    const double LINEUP_YAW_PERCENT = 0.37; //0.45
     const double PIVOT_ANG_PERCENT = 0.7; // 0.8
 
     //Field Data
@@ -183,8 +183,8 @@ namespace ShooterConstants{
 
     //Shooter amp : ang:1.0, vel:3.9
     //Constants for time calculation (t = kD * d + cT)
-    const double kD = 0.0489123;
-    const double cT = 0.177579;
+    const double kD = 0.0289123;
+    const double cT = 0.087579;
     const double prepareT = 0.1;
 
     // amp
