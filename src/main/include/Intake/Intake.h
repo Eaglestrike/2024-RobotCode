@@ -50,6 +50,7 @@ class Intake: public Mechanism{
         void EjectStop();
 
         bool HasGamePiece();
+        bool InShooter();
         bool InChannel();
         bool InIntake();
 
@@ -64,8 +65,6 @@ class Intake: public Mechanism{
         void CoreShuffleboardInit() override;
         void CoreShuffleboardPeriodic() override;
 
-        bool GetBeamBreak1();
-        bool GetBeamBreak2();
         bool DebounceBeamBreak1();
 
         std::string GetStateName() const;

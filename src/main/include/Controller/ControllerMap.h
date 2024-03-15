@@ -16,6 +16,7 @@ namespace Actions{
         ZERO_DRIVE_PID,
         ZERO_YAW,
         SLOW_MODE,
+        FAST_MODE,
         INTAKE,
         INTAKE_TO_AMP,
         INTAKE_TO_CHANNEL,
@@ -72,6 +73,7 @@ namespace ControllerMapData{
         {{RJOY, Y_AXIS},        NONE},
         {{RJOY, TRIGGER},       INTAKE},
         {{RJOY, B_2},           SLOW_MODE},
+        {{RJOY, B_3},           FAST_MODE},
 
         {XBOX_LJOY_X,           NONE},
         {XBOX_LJOY_Y,           MANUAL_CLIMB}, 

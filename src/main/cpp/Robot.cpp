@@ -161,12 +161,12 @@ void Robot::RobotPeriodic()
 
   m_shooter.Trim(m_controller.getValueOnce(ControllerMapData::GET_SHOOTER_TRIM, {0, 0})); // Trim shooter
   m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetYaw());
-  m_shooter.SetGamepiece(m_intake.InChannel());
+  m_shooter.SetGamepiece(m_intake.InShooter());
 
   // LED vertical
   if (m_intake.HasGamePiece() || m_eject)
   {
-    if (m_intake.InChannel()) {
+    if (m_intake.InShooter()) {
       m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 100, 0, 0);
     } else {
       m_led.SetLEDSegment(LEDConstants::LEDSegment::VERTICAL, 0, 100, 0, 40);
@@ -251,13 +251,19 @@ void Robot::AutonomousPeriodic()
 void Robot::TeleopInit()
 {
   m_odom.SetAuto(false);
+
   m_swerveController.SetAngCorrection(true);
   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
   m_swerveController.SetAutoMode(false);
+
   m_autoLineup.SetPID(AutoLineupConstants::ANG_P, AutoLineupConstants::ANG_I, AutoLineupConstants::ANG_D);
   m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
+
   m_shooter.ZeroRelative();
   m_shooter.Stop();
+
+  m_posVal = 0;
+  m_controller.stopBuffer();
 }
 
 void Robot::TeleopPeriodic()
@@ -291,14 +297,17 @@ void Robot::TeleopPeriodic()
   }
 
   // slow mode
-  double mult = SwerveConstants::NORMAL_SWERVE_MULT;
-  if (m_controller.getPressed(SLOW_MODE))
-  {
-    mult = SwerveConstants::SLOW_SWERVE_MULT;
+  double vx = std::clamp(lx, -1.0, 1.0) * SwerveConstants::NORMAL_SWERVE_MULT;
+  double vy = std::clamp(ly, -1.0, 1.0) * SwerveConstants::NORMAL_SWERVE_MULT;
+  double w = -std::clamp(rx, -1.0, 1.0) * SwerveConstants::NORMAL_SWERVE_MULT /2.0;
+  if (m_controller.getPressed(SLOW_MODE)){
+    vx *= SwerveConstants::SLOW_SWERVE_MULT;
+    vy *= SwerveConstants::SLOW_SWERVE_MULT;
+    w *= SwerveConstants::SLOW_SWERVE_MULT;
   }
-  double vx = std::clamp(lx, -1.0, 1.0) * mult;
-  double vy = std::clamp(ly, -1.0, 1.0) * mult;
-  double w = -std::clamp(rx, -1.0, 1.0) * mult / 2.0 * 1.5;
+  if (m_controller.getPressed(FAST_MODE)){
+    w *= 3.0;
+  }
 
   // velocity vectors
   vec::Vector2D setVel = {-vy, -vx};
