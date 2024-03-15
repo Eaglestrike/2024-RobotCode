@@ -251,13 +251,19 @@ void Robot::AutonomousPeriodic()
 void Robot::TeleopInit()
 {
   m_odom.SetAuto(false);
+
   m_swerveController.SetAngCorrection(true);
   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
   m_swerveController.SetAutoMode(false);
+
   m_autoLineup.SetPID(AutoLineupConstants::ANG_P, AutoLineupConstants::ANG_I, AutoLineupConstants::ANG_D);
   m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
+
   m_shooter.ZeroRelative();
   m_shooter.Stop();
+
+  m_posVal = 0;
+  m_controller.stopBuffer();
 }
 
 void Robot::TeleopPeriodic()
