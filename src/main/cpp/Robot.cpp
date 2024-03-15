@@ -344,11 +344,11 @@ void Robot::TeleopPeriodic()
           } else {
             m_autoLineup.SetTarget(m_odom.GetAngNorm());
           }
+          useAutoLineup = m_shooter.UseAutoLineup();
         }
         if(m_shooter.CanShoot(m_posVal)){
           m_intake.FeedIntoShooter();
         }
-        useAutoLineup = m_shooter.UseAutoLineup();
       }
       else
       {
