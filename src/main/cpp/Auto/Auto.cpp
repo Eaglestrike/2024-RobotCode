@@ -299,13 +299,13 @@ void Auto::ShooterPeriodic(double t){
         int posVal = pathNum_ == 0 ? 3 : 0;
  
         bool forceShoot = (pathNum_ == 0 && t > 2) ||  (t > shooterTiming_.end + SHOOT_PADDING); //Exceeded time given
-        if(forceShoot || (shooter_.CanShoot(posVal) && intake_.InChannel())){ 
-            intake_.FeedIntoShooter(); 
+        if(forceShoot || (shooter_.CanShoot(posVal) && intake_.InShooter())){ 
+            intake_.FeedIntoShooter();
             isShooting_ = true;
         }
         
         //Finish shooting can't see piece
-        if(isShooting_ && !intake_.InChannel()){
+        if(isShooting_ && (!intake_.InShooter())){
             shooterTiming_.finished = true;
             isShooting_ = false;
             // std::cout<<"Shooter end" << std::endl;
@@ -345,7 +345,7 @@ void Auto::IntakePeriodic(double t){
         if(t > intakeTiming_.end + INTAKE_PADDING){
             // std::cout<<"Intake expire"<<std::endl;
             intakeTiming_.finished = true;
-            intake_.Stow();
+            //intake_.Stow();
         }
     }
     
