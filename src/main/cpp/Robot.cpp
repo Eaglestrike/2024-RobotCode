@@ -331,6 +331,9 @@ void Robot::TeleopPeriodic()
     }
     if (m_controller.getPressedOnce(INTAKE_TO_AMP))
     {
+      if (m_amp == false && m_intake.GetState() == Intake::PASSTHROUGH){
+        m_intake.Passthrough(true);
+      }
       m_amp = true;
     }
     if (m_controller.getPressedOnce(INTAKE_TO_CHANNEL))
@@ -361,7 +364,7 @@ void Robot::TeleopPeriodic()
     }
     else if (m_controller.getPressed(INTAKE))
     {
-      m_intake.Passthrough();
+      m_intake.Passthrough(m_amp);
       m_shooter.Stroll();
     }
     else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece())
@@ -596,7 +599,7 @@ void Robot::TestPeriodic()
 
   if (m_controller.getPressed(INTAKE))
   {
-    m_intake.Passthrough();
+    m_intake.Passthrough(m_amp);
   }
   if (m_controller.getPressed(SHOOT))
   {
