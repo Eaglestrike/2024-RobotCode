@@ -102,6 +102,15 @@ vec::Vector2D Odometry::GetVel() const {
 }
 
 /**
+ * Gets drivebase velocity
+ * 
+ * @returns Drivebase velocity
+*/
+vec::Vector2D Odometry::GetDBVel() const {
+  return m_prevVel;
+}
+
+/**
  * Gets ang vel
  * 
  * @returns angular velocity
