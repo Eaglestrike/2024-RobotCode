@@ -84,6 +84,10 @@ Robot::Robot() :
       long long uniqueId = static_cast<long long>(camData[6]);
 
       if (tagId != 0 && m_isSecondTag) {
+        // for(int i = 0; i < 7; i++){
+        //   std::cout<<camData[i]<<",";
+        // }
+        // std::cout<<std::endl;
         frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
         frc::SmartDashboard::PutNumber("Cams x dist", x);
         frc::SmartDashboard::PutNumber("Cams z dist", y);
