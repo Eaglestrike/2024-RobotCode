@@ -83,11 +83,16 @@ Robot::Robot() :
       long long age = static_cast<long long>(camData[5]);
       long long uniqueId = static_cast<long long>(camData[6]);
 
+      //Print Stream
+      // std::string data = "";
+      // for(int i = 0; i < 7; i++){
+      //   std::stringstream stream;
+      //   stream << std::fixed << std::setprecision(4) << camData[i];
+      //   data += stream.str() + ",";
+      // }
+      // frc::SmartDashboard::PutString("Cam Data", data);
+
       if (tagId != 0 && m_isSecondTag) {
-        // for(int i = 0; i < 7; i++){
-        //   std::cout<<camData[i]<<",";
-        // }
-        // std::cout<<std::endl;
         frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
         frc::SmartDashboard::PutNumber("Cams x dist", x);
         frc::SmartDashboard::PutNumber("Cams z dist", y);
