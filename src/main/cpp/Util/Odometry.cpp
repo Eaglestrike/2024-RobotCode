@@ -19,7 +19,7 @@ Odometry::Odometry(const bool &shuffleboard) :
   m_prevDriveTime{Utils::GetCurTimeS()}, m_estimator{OdometryConstants::SYS_STD_DEV_AUTO},
   m_uniqueId{-1000}, m_timeOffset{OdometryConstants::CAM_TIME_OFFSET}, m_prevCamTime{-1000},
   m_camStdDevCoef{OdometryConstants::CAM_STD_DEV_COEF_AUTO}, m_turnStdDevCoef{OdometryConstants::CAM_TURN_STD_DEV_COEF},
-  m_trustCamsMore{false} {}
+  m_trustCamsMore{false}, m_first{false}, m_startCamTime{0} {}
 
 /**
  * Sets starting configuration, then resets position.
@@ -264,20 +264,30 @@ std::pair<bool, double> Odometry::GetInterpolAng(const double &camTime) {
  * @param age Age of cameras, ms
 */
 void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age) {
-  double curTime = Utils::GetCurTimeS();
-  double camTime = curTime - age / 1000.0 - m_timeOffset;
-
-  if (curTime - camTime >= PoseEstimator::MAX_HISTORY_TIME) {
-    // std::cout << "too old" << std::endl;
-    return;
-  }
-
   // filter out repeats
   if (uniqueId == m_uniqueId) {
     // std::cout << "not unique" << std::endl;
     return;
   }
   m_uniqueId = uniqueId;
+
+  if (!m_first) {
+    m_first = true;
+
+    if (m_shuffleboard) {
+      frc::SmartDashboard::PutBoolean("Cams synced", true);
+    }
+
+    m_startCamTime = Utils::GetCurTimeS() - age / 1000.0 - m_timeOffset;
+  }
+
+  double curTime = Utils::GetCurTimeS();
+  double camTime = age / 1000.0 + m_startCamTime;
+
+  if (curTime - camTime >= PoseEstimator::MAX_HISTORY_TIME) {
+    // std::cout << "too old" << std::endl;
+    return;
+  }
 
   // rotate relative cam pos to absolute
   // using angle from when camera data was read
@@ -352,6 +362,7 @@ void Odometry::ShuffleboardInit() {
   frc::SmartDashboard::PutNumber("Cam stddev", m_camStdDevCoef);
   frc::SmartDashboard::PutNumber("Time offset", m_timeOffset);
   frc::SmartDashboard::PutNumber("Cam turn stddev", m_turnStdDevCoef);
+  frc::SmartDashboard::PutBoolean("Cams synced", false);
 }
 
 /**
@@ -367,6 +378,7 @@ void Odometry::ShuffleboardPeriodic() {
   m_camStdDevCoef = frc::SmartDashboard::GetNumber("Cam stddev", m_camStdDevCoef);
   m_turnStdDevCoef = frc::SmartDashboard::GetNumber("Cam turn stddev", m_turnStdDevCoef);
   m_timeOffset = frc::SmartDashboard::GetNumber("Time offset", m_timeOffset);
+  m_first = frc::SmartDashboard::GetBoolean("Cams synced", m_first);
   m_estimator.SetQ({stdDev, stdDev});
 
   vec::Vector2D pos = GetPos();

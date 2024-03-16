@@ -69,6 +69,8 @@ private:
   std::map<double, double> m_angHistory;
 
   bool m_trustCamsMore;
+  bool m_first;
+  double m_startCamTime;
 
   // debug stuff
   vec::Vector2D m_camPos; // only used for shuffleboard prints for now
