@@ -251,13 +251,19 @@ void Robot::AutonomousPeriodic()
 void Robot::TeleopInit()
 {
   m_odom.SetAuto(false);
+
   m_swerveController.SetAngCorrection(true);
   m_swerveController.ResetAngleCorrection(m_odom.GetAng());
   m_swerveController.SetAutoMode(false);
+
   m_autoLineup.SetPID(AutoLineupConstants::ANG_P, AutoLineupConstants::ANG_I, AutoLineupConstants::ANG_D);
   m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
+
   m_shooter.ZeroRelative();
   m_shooter.Stop();
+
+  m_posVal = 0;
+  m_controller.stopBuffer();
 }
 
 void Robot::TeleopPeriodic()
@@ -293,14 +299,14 @@ void Robot::TeleopPeriodic()
   // slow mode
   double vx = std::clamp(lx, -1.0, 1.0) * SwerveConstants::NORMAL_SWERVE_MULT;
   double vy = std::clamp(ly, -1.0, 1.0) * SwerveConstants::NORMAL_SWERVE_MULT;
-  double w = -std::clamp(rx, -1.0, 1.0) * SwerveConstants::NORMAL_SWERVE_MULT /2.0 * 1.5;
+  double w = -std::clamp(rx, -1.0, 1.0) * SwerveConstants::NORMAL_SWERVE_MULT /2.0;
   if (m_controller.getPressed(SLOW_MODE)){
     vx *= SwerveConstants::SLOW_SWERVE_MULT;
     vy *= SwerveConstants::SLOW_SWERVE_MULT;
-    w *= SwerveConstants::SLOW_SWERVE_MULT / 1.5;
+    w *= SwerveConstants::SLOW_SWERVE_MULT;
   }
   if (m_controller.getPressed(FAST_MODE)){
-    w *= 2.0;
+    w *= 3.0;
   }
 
   // velocity vectors

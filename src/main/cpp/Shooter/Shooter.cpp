@@ -44,7 +44,7 @@ void Shooter::CoreTeleopPeriodic(){
         case STOP:
             break;
         case SHOOT:
-            if((!hasPiece_) && (Utils::GetCurTimeS() - timerStart_ > shootTime_)){
+            if(autoStroll_ && (!hasPiece_) && (Utils::GetCurTimeS() - timerStart_ > shootTime_)){
                 hasShot_ = false;
                 Stroll(); //Stroll after shooting (not seeing piece for some time)
             }

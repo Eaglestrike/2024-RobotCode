@@ -171,12 +171,12 @@ void Intake::CoreTeleopPeriodic(){
             }
             break;
         case NONE:
-            if(InChannel()){
-                m_channel.SetState(Channel::TO_SHOOT);
-            }
-            else{
-                m_channel.SetState(Channel::STOP);
-            }
+            // if(InChannel()){
+            //     m_channel.SetState(Channel::TO_SHOOT);
+            // }
+            // else{
+            //     m_channel.SetState(Channel::STOP);
+            // }
         default:
             break;
     }

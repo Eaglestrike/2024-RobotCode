@@ -168,9 +168,6 @@ void Auto::AutoInit(){
     ResetTiming(driveTiming_);
 
     autoStart_ = Utils::GetCurTimeS();
-    inChannel_ = false;
-
-    startedLineup_ = false;
     
     NextBlock();
     //std::cout << "End Init" <<std::endl;
@@ -217,7 +214,7 @@ void Auto::AutoPeriodic(){
         NextBlock();
     }
     
-    bool useAngLineup = pathNum_ != 0 && shooterTiming_.hasStarted && (!shooterTiming_.finished) && (intakeTiming_.finished)/*&& (inChannel_ || intake_.HasGamePiece())*/;
+    bool useAngLineup = (pathNum_ != 0) && shooterTiming_.hasStarted && (!shooterTiming_.finished) && (intakeTiming_.finished);
     if(shuff_.isEnabled()){
         shuff_.PutBoolean("ang lineup", useAngLineup, {2,2,0,1});
         shuff_.PutNumber("targ angle", shooter_.GetTargetRobotYaw(), {2,1,0,3});
@@ -288,12 +285,7 @@ void Auto::DrivePeriodic(double t){
 void Auto::ShooterPeriodic(double t){
     if(!shooterTiming_.hasStarted && t > shooterTiming_.start){
         shooterTiming_.hasStarted = true;
-        hadPiece_ = false;
         // std::cout<<"Shooter start" << std::endl;
-    }
-
-    if(inChannel_ || intake_.HasGamePiece()){
-        hadPiece_ = true;
     }
 
     if(shooterTiming_.finished){
@@ -303,19 +295,18 @@ void Auto::ShooterPeriodic(double t){
         vec::Vector2D pos{odometry_.GetPos()};
         //Feed into shooter when can shoot
         int posVal = pathNum_ == 0 ? 3 : 0;
-       if((pathNum_ == 0 && t > 2) || shooter_.CanShoot(posVal) || (t > shooterTiming_.end + SHOOT_PADDING)){ 
+ 
+        bool forceShoot = (pathNum_ == 0 && t > 2) ||  (t > shooterTiming_.end + SHOOT_PADDING); //Exceeded time given
+        if(forceShoot || (shooter_.CanShoot(posVal) && intake_.InShooter())){ 
             intake_.FeedIntoShooter();
+            isShooting_ = true;
         }
         
-        //Finish shooting when can't see piece for a bit
-        if((!inChannel_) && (!intake_.HasGamePiece()) && (hadPiece_)){ 
+        //Finish shooting can't see piece
+        if(isShooting_ && (!intake_.InShooter())){
             shooterTiming_.finished = true;
-            startedLineup_ = false;
+            isShooting_ = false;
             // std::cout<<"Shooter end" << std::endl;
-        }
-
-        if((t > shooterTiming_.end + SHOOT_PADDING) && (!hadPiece_)){
-            shooterTiming_.finished = true;
         }
 
         if(((pos - shootPos_).magn() < SHOOT_POS_TOL) || intake_.HasGamePiece() || inChannel_){ //Constantly prepare to current position if within some distance to the target
@@ -345,14 +336,14 @@ void Auto::IntakePeriodic(double t){
     else if(intakeTiming_.hasStarted){
         intake_.Passthrough();
         //Check if finished
-        if(intake_.HasGamePiece()){  // End intake if has game piece
+        if(intake_.InChannel()){  // End intake if has game piece
             // std::cout<< "Intake end" << std::endl;
             intakeTiming_.finished = true;
         }
         if(t > intakeTiming_.end + INTAKE_PADDING){
             // std::cout<<"Intake expire"<<std::endl;
             intakeTiming_.finished = true;
-            intake_.Stow();
+            //intake_.Stow();
         }
     }
     

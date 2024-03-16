@@ -54,7 +54,7 @@ namespace ShooterConstants{
 
     const PID FLYWHEEL_PID = {
         .kp = 0.0,
-        .ki = 0.1,
+        .ki = 0.07,
         .kd = 0.0
     };
 

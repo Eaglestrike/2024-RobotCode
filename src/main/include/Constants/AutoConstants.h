@@ -64,11 +64,11 @@ namespace AutoConstants {
 
   //Time padding
   const double DRIVE_PADDING = 1;
-  const double INTAKE_PADDING = 2;
+  const double INTAKE_PADDING = 1;
   const double SHOOT_PADDING = 2; // 4 //Shoot earlier bc channel
 
   //Pos tol for shoot aiming
-  const double SHOOT_POS_TOL = 0.75;
+  const double SHOOT_POS_TOL = 0.1;
 
   // starting positions
   const StartPose BLUE_L = {{0.666, 6.721}, 4.2309};
