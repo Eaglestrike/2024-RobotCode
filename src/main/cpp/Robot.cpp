@@ -434,15 +434,22 @@ void Robot::TeleopPeriodic()
   // eject
   if (m_controller.getPressed(MANUAL_EJECT_IN) || m_controller.getPressed(MANUAL_EJECT_OUT))
   {
+    if (!m_eject) {
+      m_ejectStartTimer = Utils::GetCurTimeS();
+    }
     m_eject = true;
+    m_shooter.EjectPrep();
     m_shooter.Eject();
+
     if (m_controller.getPressed(MANUAL_EJECT_IN) && m_controller.getPressed(MANUAL_EJECT_OUT))
     {
       m_intake.EjectSplit();
     }
     else if (m_controller.getPressed(MANUAL_EJECT_IN))
     {
-      m_intake.EjectForward();
+      if (Utils::GetCurTimeS() - m_ejectStartTimer > ShooterConstants::EJECT_TIME_DELAY) {
+        m_intake.EjectForward();
+      }
     }
     else
     {

@@ -42,6 +42,7 @@ class Shooter : public Mechanism{
         void Amp();
         void ManualTarget(double target);
         void Eject(); //Only spins flywheels
+        void EjectPrep();
         void ZeroRelative();
 
         void SetUp(double vel, double spin, double ang);
@@ -84,6 +85,7 @@ class Shooter : public Mechanism{
 
         //Shooter config
         double strollSpeed_ = ShooterConstants::STROLL_SPEED;
+        double ejectSpeed_ = ShooterConstants::EJECT_SPEED;
         double shootTime_ = ShooterConstants::SHOOT_TIME;
 
         std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;

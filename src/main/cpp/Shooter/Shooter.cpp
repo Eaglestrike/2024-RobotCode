@@ -1,5 +1,6 @@
 #include "Shooter/Shooter.h"
 #include "Util/SideHelper.h"
+#include "Util/Utils.h"
 
 #include "DebugConfig.h"
 
@@ -149,13 +150,18 @@ void Shooter::ManualTarget(double target){
  * only controls the flywheels
 */
 void Shooter::Eject(){
-    bflywheel_.SetVoltage(strollSpeed_);
-    tflywheel_.SetVoltage(strollSpeed_);
-
-    pivot_.SetAngle(ShooterConstants::PIVOT_MIN);
-    pivot_.SetTolerance(ShooterConstants::SHOOT_POS_TOL);
+    bflywheel_.SetVoltage(ejectSpeed_);
+    tflywheel_.SetVoltage(ejectSpeed_);
 
     state_ = EJECT;
+}
+
+/**
+ * eject preperation
+*/
+void Shooter::EjectPrep() {
+    pivot_.SetAngle(ShooterConstants::PIVOT_MIN);
+    pivot_.SetTolerance(ShooterConstants::SHOOT_POS_TOL);
 }
 
 /**
@@ -480,6 +486,7 @@ std::string Shooter::StateToString(State state){
 void Shooter::CoreShuffleboardInit(){
     //Strolling (row 0)
     shuff_.add("Stroll Speed", &strollSpeed_, {1,1,0,0}, true);
+    shuff_.add("Eject Speed", &ejectSpeed_, {1,2,0,0}, true);
     shuff_.addButton("Stroll",
         [&](){
             Stroll();
