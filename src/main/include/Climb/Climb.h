@@ -83,7 +83,7 @@ class Climb : public Mechanism{
         double  MANUAL_VOLTS = 7.0,
                 MAX_VOLTS = 10.0, 
                 MIN_POS= 0.0, 
-                MAX_POS= 110.0, 
+                MAX_POS= 130.0, 
                 POS_TOLERANCE= 0.0;
 
         bool BREAK = true;
@@ -93,6 +93,6 @@ class Climb : public Mechanism{
                                 -8.0}; 
         StateInfo STOW_INFO =    {MIN_POS, 
                                 -8.0}; // retain volts
-        StateInfo EXTENDED_INFO = {MAX_POS-10,
+        StateInfo EXTENDED_INFO = {MAX_POS-5.0,
                                     8.0}; // prob 0
 };
