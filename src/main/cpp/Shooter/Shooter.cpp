@@ -4,6 +4,8 @@
 
 #include "DebugConfig.h"
 
+#define SHOOT_WHILE_MOVE false
+
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
     state_{STOP}, autoStroll_{true},
@@ -59,6 +61,8 @@ void Shooter::CoreTeleopPeriodic(){
             break;
         case EJECT:
             break;
+        case SHOOT_TO_AMP:
+            break;
         default:
             break;
     }
@@ -104,7 +108,9 @@ void Shooter::Stroll(){
 
     double dist = toSpeaker.magn();
 
-    pivot_.SetAngle(0.7);
+    pivot_.SetAngle(ShooterConstants::PIVOT_MIN);
+    pivot_.SetTolerance(0.02);
+
     if(dist < 6.0 && hasPiece_){
         bflywheel_.SetTarget(15.0);
         tflywheel_.SetTarget(15.0);
@@ -117,7 +123,7 @@ void Shooter::Stroll(){
 }
 
 void Shooter::Amp(){
-    if(state_ == MANUAL_TARGET){ //Don't exit manual when called
+    if((state_ == MANUAL_TARGET) || (state_ == SHOOT_TO_AMP)){ //Don't exit manual when called
         return;
     }
     if(!hasPiece_){
@@ -165,6 +171,25 @@ void Shooter::EjectPrep() {
 }
 
 /**
+ * preps towards amp
+*/
+void Shooter::PrepTowardsAmp() {
+    pivot_.SetAngle(ShooterConstants::PIVOT_MIN);
+    pivot_.SetTolerance(ShooterConstants::FERRY_POS_TOL);
+
+    bflywheel_.SetVoltage(shootAmpSpeed_);
+    tflywheel_.SetVoltage(shootAmpSpeed_);
+    state_ = SHOOT_TO_AMP;
+}
+
+/**
+ * pivot at target
+*/
+bool Shooter::PivotAtTarget() {
+    return pivot_.AtTarget();
+}
+
+/**
  * zero rel to abs
 */
 void Shooter::ZeroRelative() {
@@ -177,7 +202,7 @@ void Shooter::ZeroRelative() {
  * @param toSpeaker field-oriented vector to the speaker 
 */
 void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needGamePiece){
-    if(state_ == MANUAL_TARGET){ //Don't exit manual when called
+    if((state_ == MANUAL_TARGET) || (state_ == SHOOT_TO_AMP)){ //Don't exit manual when called
         return;
     }
     if((!hasPiece_) && needGamePiece){
@@ -194,13 +219,18 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     
     state_ = SHOOT;
     targetPos_ = robotPos;
-    // targetVel_ = {0.0, 0.0};
-    // double dist = toSpeaker.magn();
+    double dist = toSpeaker.magn();
+
+#if SHOOT_WHILE_MOVE
     targetVel_ = robotVel;
+#else
+    targetVel_ = {0.0, 0.0};
+#endif
 
     // Shooting while moving (modify speaker location)
     // https://www.desmos.com/calculator/5hd2snnrwz
 
+#if SHOOT_WHILE_MOVE
     double px = toSpeaker.x();
     double py = toSpeaker.y();
 
@@ -226,6 +256,7 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     double t = kD_*dist + cT_;
 
     toSpeaker -= (robotVel*t);
+#endif
 
     if(shuff_.isEnabled()){
         shuff_.PutNumber("Shot dist", dist, {1,1,3,3});
@@ -345,6 +376,10 @@ bool Shooter::CanShoot(int posVal){
 
         bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
         canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
+
+        if (posVal == 3) {
+            canShoot = true;
+        }
 
         if(shuff_.isEnabled()){
             shuff_.PutNumber("Pos Error", posError, {1,1,8,2});

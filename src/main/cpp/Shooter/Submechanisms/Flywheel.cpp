@@ -70,9 +70,9 @@ void Flywheel::CoreTeleopPeriodic(){
             }
             if (state_ == State::AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
-                    profile_.Regenerate(currPose_);
-                    state_ = State::RAMPING;
-                    accum_ = 0.0;
+                    // profile_.Regenerate(currPose_);
+                    // state_ = State::RAMPING;
+                    // accum_ = 0.0;
                 }
             }
 
@@ -114,8 +114,13 @@ void Flywheel::SetTarget(double vel){
         }
     }
     else{
+        if(std::abs(vel - targVel_) < 0.05){
+            return;
+        }
+        targVel_ = vel;
         startPose = profile_.GetPose();
     }
+    
     profile_.SetTarget(vel, startPose);
 
     if(atTarget){

@@ -38,4 +38,8 @@ namespace FieldConstants {
 
   const std::set<int> BLUE_TAGS = {6, 7, 8, 9, 10, 14, 15, 16};
   const std::set<int> RED_TAGS = {1, 2, 3, 4, 5, 11, 12, 13};
+
+  // amp location
+  const vec::Vector2D BLUE_AMP = {1.815, 7.888};
+  const vec::Vector2D RED_AMP = {14.743, 7.888};
 }

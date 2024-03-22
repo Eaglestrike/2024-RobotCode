@@ -89,6 +89,12 @@ namespace ShooterConstants{
         .kd = 0.2
     };
 
+    const PID PIVOT_AMP_PID = {
+        .kp = 5.0,
+        .ki = 0.4,
+        .kd = 0.2
+    };
+
     const Feedforward PIVOT_FF = {
         .ks = 0.01,
         .kv = 0.366,
@@ -136,13 +142,15 @@ namespace ShooterConstants{
     //const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
     const double STROLL_SPEED = 0.7; //Voltage of strolling
-    const double EJECT_SPEED = 2;
+    const double EJECT_SPEED = 4;
+    const double SHOOT_AMP_SPEED = 7;
     const double EJECT_TIME_DELAY = 0.7;
 
     const double SHOOT_TIME = 0.5; //Time for piece to exit shooter
  
     //Tolerances
     const double SHOOT_POS_TOL = 0.3;
+    const double FERRY_POS_TOL = 0.1;
     const double SHOOT_VEL_TOL = 0.3;
     //const double SHOOT_YAW_TOL = 0.05;
     const double SHOOT_YAW_PERCENT = 0.5;
@@ -152,7 +160,7 @@ namespace ShooterConstants{
     //Field Data
 
     //Speaker center positions (x, y)
-    const vec::Vector2D RED_SPEAKER = {16.54-0.30-0.075, 5.58};
+    const vec::Vector2D RED_SPEAKER = {16.54-0.30-0.075-0.075, 5.58};
     const vec::Vector2D BLUE_SPEAKER = {0.0+0.15+0.225, 5.58};
 
     //Dimensions of the shootable area

@@ -296,9 +296,9 @@ void Auto::ShooterPeriodic(double t){
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
         //Feed into shooter when can shoot
-        int posVal = pathNum_ == 0 ? 3 : 0;
- 
-        bool forceShoot = (pathNum_ == 0 && t > 2) ||  (t > shooterTiming_.end + SHOOT_PADDING); //Exceeded time given
+        int posVal = pathNum_ == 1 ? 3 : 0;
+
+        bool forceShoot = (pathNum_ == 1 && t > 2) ||  (t > shooterTiming_.end + SHOOT_PADDING); //Exceeded time given
         if(forceShoot || (shooter_.CanShoot(posVal) && intake_.InShooter())){ 
             intake_.FeedIntoShooter();
             isShooting_ = true;

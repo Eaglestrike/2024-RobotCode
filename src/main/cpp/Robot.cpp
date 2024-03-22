@@ -14,6 +14,7 @@
 
 #include "Constants/AutoConstants.h"
 #include "Constants/AutoLineupConstants.h"
+#include "Constants/FieldConstants.h"
 #include "Controller/ControllerMap.h"
 #include "DebugConfig.h"
 #include "Util/SideHelper.h"
@@ -315,12 +316,14 @@ void Robot::TeleopPeriodic()
   double curJoystickAng = m_odom.GetJoystickAng();
 
   // auto lineup to amp
-  if (m_controller.getPOVDownOnce(AMP_AUTO_LINEUP))
-  {
-    m_logger.Info("Input", "Starting Angle Lineup");
-    m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
-    m_autoLineup.Start();
-  }
+  // if (m_controller.getPOVDownOnce(AMP_FERRY))
+  // {
+  //   m_logger.Info("Input", "Starting Angle Lineup");
+  //   vec::Vector2D ampPos = SideHelper::IsBlue() ? FieldConstants::BLUE_AMP : FieldConstants::RED_AMP;
+  //   vec::Vector2D vecToAmp = ampPos - m_odom.GetPos();
+  //   m_autoLineup.SetTarget(angle(vecToAmp));
+  //   m_autoLineup.Start();
+  // }
 
   // Intake
   if (!m_wristManual)
@@ -344,6 +347,11 @@ void Robot::TeleopPeriodic()
     //Shooting
     if (m_controller.getPressed(FORCE_SHOOT)) {
       m_intake.FeedIntoShooter();
+    } else if (m_controller.getPOVDown(AMP_FERRY)) {
+      m_shooter.PrepTowardsAmp();
+      if (m_shooter.PivotAtTarget()) {
+        m_intake.FeedIntoShooter();
+      }
     } else if (m_controller.getPressed(SHOOT)){
       if(m_intake.HasGamePiece()){
         if (!m_amp) {
@@ -356,6 +364,7 @@ void Robot::TeleopPeriodic()
         if(m_shooter.CanShoot(m_posVal)){
           m_intake.FeedIntoShooter();
         }
+        m_shooter.Stop();
       }
       else
       {
@@ -447,7 +456,7 @@ void Robot::TeleopPeriodic()
     }
     else if (m_controller.getPressed(MANUAL_EJECT_IN))
     {
-      if (Utils::GetCurTimeS() - m_ejectStartTimer > ShooterConstants::EJECT_TIME_DELAY) {
+      if (m_shooter.PivotAtTarget() || Utils::GetCurTimeS() - m_ejectStartTimer > ShooterConstants::EJECT_TIME_DELAY) {
         m_intake.EjectForward();
       }
     }
@@ -478,7 +487,7 @@ void Robot::TeleopPeriodic()
   }
 
   // auto lineup
-  if (m_controller.getPOVDown(AMP_AUTO_LINEUP) ||
+  if (m_controller.getPOVDown(AMP_FERRY) ||
       (m_controller.getPressed(SHOOT) && !m_amp && m_shooter.UseAutoLineup()) // Angle lineup when shooting
   )
   {

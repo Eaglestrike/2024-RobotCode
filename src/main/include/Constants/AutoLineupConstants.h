@@ -18,7 +18,7 @@ namespace AutoLineupConstants {
 
   // const double ANG_VEL_MULT = 4;
 
-  const double ANG_TOL = Utils::DegToRad(3);
+  const double ANG_TOL = Utils::DegToRad(10);
 
   const double MAX_SPEED = 7;
   const double MAX_ACCEL = 20;
