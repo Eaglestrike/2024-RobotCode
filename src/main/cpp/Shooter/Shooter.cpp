@@ -283,6 +283,10 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     posYawTol_ = std::clamp(posYawTol_, 0.01, M_PI/2.0); //Tol cannot be greater than 90 degrees
     negYawTol_ = std::clamp(negYawTol_, -M_PI/2.0, -0.01);
 
+    // targetYaw_ = (2 * targetYaw_ + posYawTol_ + negYawTol_) / 2;
+    // posYawTol_ = (posYawTol_ - negYawTol_) / 2;
+    // negYawTol_ = -posYawTol_;
+
     auto shot = shootData_.lower_bound(dist);
     if((shot == shootData_.begin()) || (shot == shootData_.end())){ //No shot in data (too far or too close)
         //Check functionality (maybe idle at some distance)
