@@ -104,7 +104,7 @@ void Pivot::CoreTeleopPeriodic(){
             volts_ += pid;
 
             double absError = std::abs(error.pos);
-            if((absError < inchTol_) && (absError > ShooterConstants::PIVOT_INCH_DEADBAND)){
+            if((absError < inchTol_) && (absError > ShooterConstants::PIVOT_INCH_DEADBAND)){ //Inch within a tolerance
                 cycle_++;
                 cycle_ %= inch_.numCycles;
                 double inch = (cycle_ < inch_.onCycles) ? inch_.volts : 0.0;

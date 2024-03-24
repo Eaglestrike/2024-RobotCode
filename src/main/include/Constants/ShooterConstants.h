@@ -95,6 +95,7 @@ namespace ShooterConstants{
         .ka = 0.0152,
         .kg = 0.475
     };
+    double PIVOT_FRCTN = 0.0;
 
     const Incher PIVOT_INCH = {
         .volts = 0.7,
