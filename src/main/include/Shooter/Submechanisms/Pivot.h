@@ -81,6 +81,7 @@ class Pivot : public Mechanism{
         ShooterConstants::Incher inch_;
         int cycle_;
         double inchTol_;
+        double frctn_; //Increase voltage as friction increases with sin(angle)
 
         double posTol_;
         double velTol_;
