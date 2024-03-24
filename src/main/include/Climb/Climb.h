@@ -72,6 +72,9 @@ class Climb : public Mechanism{
         double WAIT_TIME_S = 0.1;
         double UNRACHET_VOLTS = -3.0; 
 
+        double m_startTimeDown = -1;
+        double UNRATCHET_WAIT = 0.3;
+
         bool m_zeroed = false;
 
         struct StateInfo {
