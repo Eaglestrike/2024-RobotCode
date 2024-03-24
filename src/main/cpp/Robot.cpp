@@ -52,6 +52,8 @@ Robot::Robot() :
     std::cerr << e.what() << std::endl;
   }
 
+  m_shooter.SetNavX(m_navx);
+
   // logger
   m_logger.SetLogToConsole(false);
   m_logger.SetLevel(LogLevels::INFO);

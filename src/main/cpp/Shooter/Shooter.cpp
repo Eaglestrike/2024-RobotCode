@@ -398,6 +398,10 @@ void Shooter::SetHooked(bool hooked){
     pivot_.SetHooked(hooked);
 }
 
+void Shooter::SetNavX(AHRS* navx){
+    pivot_.SetNavX(navx);
+}
+
 void Shooter::Log(FRCLogger &logger) {
     logger.LogNum("Shot Vel", shot_.vel);
     logger.LogNum("Shot Ang", shot_.ang);

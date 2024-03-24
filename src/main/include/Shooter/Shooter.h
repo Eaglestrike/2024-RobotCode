@@ -21,6 +21,7 @@
 #include "Constants/ShooterConstants.h"
 
 #include <rev/CANSparkMax.h>
+#include <AHRS.h>
 
 namespace vec = svector;
 
@@ -57,7 +58,8 @@ class Shooter : public Mechanism{
 
         double GetTargetRobotYaw();
 
-        void SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);//Debug info passing in
+        void SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);//odom info passing in
+        void SetNavX(AHRS* navx);
         void SetHooked(bool hooked);
 
         void Log(FRCLogger &logger);

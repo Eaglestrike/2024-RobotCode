@@ -105,6 +105,8 @@ namespace ShooterConstants{
     const double PIVOT_INCH_TOL = 0.01;
     const double PIVOT_INCH_DEADBAND = 0.007;
 
+    const double PIVOT_ACCELERATION_DAMPENER = 0.0;
+
     const double PIVOT_MAX_V = 5.5;
     const double PIVOT_MAX_A = 5.0;
 

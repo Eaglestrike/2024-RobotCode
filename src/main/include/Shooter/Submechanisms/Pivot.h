@@ -2,6 +2,7 @@
 
 #include <ctre/phoenix6/CANcoder.hpp>
 #include <ctre/phoenix6/TalonFX.hpp>
+#include <AHRS.h>
 
 #include "ShuffleboardSender/ShuffleboardSender.h"
 
@@ -38,11 +39,11 @@ class Pivot : public Mechanism{
 
         void SetTolerance(double posTol);
         void SetHooked(bool hooked);
+        void SetNavX(AHRS* navx);
         Poses::Pose1D GetPose();
         double GetTolerance();
 
         std::string GetStateStr();
-
     private:
         Poses::Pose1D GetAbsPose();
         Poses::Pose1D GetRelPose();
@@ -57,6 +58,7 @@ class Pivot : public Mechanism{
 
         TalonFX motor_;
         TalonFX motorChild_;
+        AHRS* navX_;
         
         double volts_;
         double maxVolts_ = ShooterConstants::PIVOT_MAX_VOLTS;
@@ -82,11 +84,12 @@ class Pivot : public Mechanism{
         int cycle_;
         double inchTol_ = ShooterConstants::PIVOT_INCH_TOL;
         double frctn_ = ShooterConstants::PIVOT_FRCTN; //Increase voltage as friction increases with sin(angle)
+        double accDampener_ = ShooterConstants::PIVOT_ACCELERATION_DAMPENER;
 
         double posTol_;
         double velTol_;
         double regenTol_ = ShooterConstants::PIVOT_REGEN_TOL;
-        
+
         double maxV_;
         double maxA_;
         TrapezoidalProfile profile_;

@@ -111,6 +111,7 @@ void Pivot::CoreTeleopPeriodic(){
                 inch *= Utils::Sign(error.pos);
                 volts_ += inch;
             }
+            double accDamp = accDampener_ * navX_->GetRawAccelX() * sin(currPose_.pos);
 
             double direction = Utils::Sign(volts_);
             volts_ += (ff_.ks + frctn_*sin(currPose_.pos)) * direction; //Friction will be partially feedback
@@ -143,11 +144,11 @@ void Pivot::CoreTeleopPeriodic(){
             }
 
             if(shuff_.isEnabled()){ //Shuff prints
-                shuff_.PutNumber("pos error", error.pos, {1,1,5,3});
-                shuff_.PutNumber("vel error", error.vel, {1,1,6,3});
+                shuff_.PutNumber("pos error", error.pos, {1,1,7,3});
+                shuff_.PutNumber("vel error", error.vel, {1,1,8,3});
 
-                shuff_.PutNumber("targ pos", target.pos, {1,1,7,3});
-                shuff_.PutNumber("cur pos", currPose_.pos, {1,1,8,3});
+                shuff_.PutNumber("targ pos", target.pos, {1,1,7,4});
+                shuff_.PutNumber("cur pos", currPose_.pos, {1,1,8,4});
             }
             break;
         }
@@ -285,6 +286,10 @@ void Pivot::SetHooked(bool hooked){
     hooked_ = hooked;
 }
 
+void Pivot::SetNavX(AHRS* navX){
+    navX_ = navX;
+}
+
 /**
  * Get Pose
 */
@@ -375,6 +380,7 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("kA", &ff_.ka, {1,1,2,3}, true);
     shuff_.add("kG", &ff_.kg, {1,1,3,3}, true);
     shuff_.add("frctn", &frctn_, {1,1,4,3}, true);
+    shuff_.add("acc damp", &accDampener_, {1,1,5,3});
 
     shuff_.add("kP", &pid_.kp, {1,1,0,4}, true);
     shuff_.add("kI", &pid_.ki, {1,1,1,4}, true);
@@ -395,6 +401,10 @@ void Pivot::CoreShuffleboardPeriodic(){
     // shuff_.PutNumber("relVel", relPose.vel);
     // shuff_.PutNumber("absPos", absPose.pos);
     // shuff_.PutNumber("absVel", absPose.vel);
+
+    shuff_.PutNumber("navx X", navX_->GetRawAccelX(),{1,1,9,0});
+    shuff_.PutNumber("navx Y", navX_->GetRawAccelY(),{1,1,9,1});
+    shuff_.PutNumber("navx Z", navX_->GetRawAccelZ(),{1,1,9,2});
 
     shuff_.update(true);
 
