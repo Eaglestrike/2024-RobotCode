@@ -27,7 +27,24 @@ Flywheel::Flywheel(ShooterConstants::FlywheelConfig config, bool enabled, bool s
 //Core Functions
 void Flywheel::CorePeriodic(){
     double pos = ShooterConstants::FLYWHEEL_GEARING * 2*M_PI * motor_.GetPosition().GetValueAsDouble() * ShooterConstants::FLYWHEEL_R;
-    double vel = ShooterConstants::FLYWHEEL_GEARING * 2*M_PI * motor_.GetVelocity().GetValueAsDouble() * ShooterConstants::FLYWHEEL_R;
+    double encoderVel = ShooterConstants::FLYWHEEL_GEARING * 2*M_PI * motor_.GetVelocity().GetValueAsDouble() * ShooterConstants::FLYWHEEL_R;
+
+    filter_.push(encoderVel);
+    filterSum_ += encoderVel;
+    uint numVals = filter_.size();
+    while(numVals > filterSize_){
+        filterSum_ -= filter_.front();
+        filter_.pop();
+        numVals--;
+    }
+    double vel;
+    if(numVals != 0){
+        vel = filterSum_/(double)numVals;
+    }
+    else{
+        vel = 0.0;
+    }
+
     double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
     currPose_ = {pos, vel, acc};
 };
