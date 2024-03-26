@@ -78,14 +78,15 @@ class Pivot : public Mechanism{
         double accum_;
         double prevT_;
         ShooterConstants::Feedforward ff_ = ShooterConstants::PIVOT_FF;
-        ShooterConstants::Incher inch_;
+        ShooterConstants::Incher inch_ = ShooterConstants::PIVOT_INCH;
         int cycle_;
-        double inchTol_;
+        double inchTol_ = ShooterConstants::PIVOT_INCH_TOL;
+        double frctn_ = ShooterConstants::PIVOT_FRCTN; //Increase voltage as friction increases with sin(angle)
 
         double posTol_;
         double velTol_;
         double regenTol_ = ShooterConstants::PIVOT_REGEN_TOL;
-
+        
         double maxV_;
         double maxA_;
         TrapezoidalProfile profile_;

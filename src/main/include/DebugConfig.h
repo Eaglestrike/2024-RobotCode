@@ -18,9 +18,9 @@ namespace DebugConfig{
 
     const struct {
         const bool SHOOTER      = false;
-        const bool LEFT_FLY     = true;
-        const bool RIGHT_FLY    = true;
-        const bool PIVOT        = false;
+        const bool LEFT_FLY     = false;
+        const bool RIGHT_FLY    = false;
+        const bool PIVOT        = true;
     } SHOOTER;
 
     const bool AUTO_LINEUP = false;
