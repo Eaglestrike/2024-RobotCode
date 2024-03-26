@@ -385,10 +385,10 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("kI", &pid_.ki, {1,1,1,4}, true);
     shuff_.add("kD", &pid_.kd, {1,1,2,4}, true);
 
-    shuff_.add("inch volts", &inch_.volts, {1,1,0,5}, true);
-    shuff_.add("inch onCycles", &inch_.onCycles, {1,1,1,5}, true);
-    shuff_.add("inch numCycles", &inch_.numCycles, {1,1,2,5}, true);
-    shuff_.add("inch tol", &inchTol_, {1,1,3,5}, true);
+    shuff_.add("inch volts", &inch_.volts, {1,1,4,4}, true);
+    shuff_.add("inch onCycles", &inch_.onCycles, {1,1,5,4}, true);
+    shuff_.add("inch numCycles", &inch_.numCycles, {1,1,6,4}, true);
+    shuff_.add("inch tol", &inchTol_, {1,1,7,4}, true);
 }
 
 void Pivot::CoreShuffleboardPeriodic(){
@@ -401,9 +401,10 @@ void Pivot::CoreShuffleboardPeriodic(){
     // shuff_.PutNumber("absPos", absPose.pos);
     // shuff_.PutNumber("absVel", absPose.vel);
 
-    shuff_.PutNumber("navx X", navX_->GetRawAccelX(),{1,1,9,0});
-    shuff_.PutNumber("navx Y", navX_->GetRawAccelY(),{1,1,9,1});
-    shuff_.PutNumber("navx Z", navX_->GetRawAccelZ(),{1,1,9,2});
+    shuff_.PutNumber("navx X", (double)navX_->GetWorldLinearAccelX(),{1,1,9,0});
+    shuff_.PutNumber("navx Y", (double)navX_->GetWorldLinearAccelY(),{1,1,9,1});
+    shuff_.PutNumber("navx Z", (double)navX_->GetWorldLinearAccelZ(),{1,1,9,2});
+    shuff_.PutNumber("navx yaw", (double)navX_->GetYaw(),{1,1,9,3});
 
     shuff_.update(true);
 
