@@ -16,6 +16,7 @@ namespace Actions{
         ZERO_DRIVE_PID,
         ZERO_YAW,
         SLOW_MODE,
+        FAST_MODE,
         INTAKE,
         INTAKE_TO_AMP,
         INTAKE_TO_CHANNEL,
@@ -42,7 +43,7 @@ namespace Actions{
         NO_POV_ACTION = -1,
         TEMP,
         CLIMB,
-        AMP_AUTO_LINEUP,
+        AMP_FERRY,
         HALF_STOW,
         EXTEND,
         ACTION_COUNT_POV //Just the number of actions, as it is at the end of a enum
@@ -72,6 +73,7 @@ namespace ControllerMapData{
         {{RJOY, Y_AXIS},        NONE},
         {{RJOY, TRIGGER},       INTAKE},
         {{RJOY, B_2},           SLOW_MODE},
+        {{RJOY, B_3},           FAST_MODE},
 
         {XBOX_LJOY_X,           NONE},
         {XBOX_LJOY_Y,           MANUAL_CLIMB}, 
@@ -151,6 +153,6 @@ namespace ControllerMapData{
         {XBOX_POV, POV_UP, EXTEND},
         {XBOX_POV, POV_DOWN, CLIMB},
         {XBOX_POV, POV_LEFT, HALF_STOW},
-        {XBOX_POV, POV_RIGHT, AMP_AUTO_LINEUP},
+        {XBOX_POV, POV_RIGHT, AMP_FERRY},
     };
 };

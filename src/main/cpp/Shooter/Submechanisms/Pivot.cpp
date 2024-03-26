@@ -22,18 +22,16 @@ Pivot::Pivot(std::string name, bool enabled, bool shuffleboard):
     motor_{ShooterConstants::PIVOT_ID},
     motorChild_{ShooterConstants::PIVOT_CHILD_ID},
     volts_{0.0},
-    maxVolts_{ShooterConstants::PIVOT_MAX_VOLTS},
 
     encoder_{ShooterConstants::PIVOT_ENCODER_ID, ShooterConstants::SHOOTER_CANBUS},
     offset_{ShooterConstants::PIVOT_OFFSET},
-    gearing_{ShooterConstants::PIVOT_GEARING},
 
     bounds_{
         .min = ShooterConstants::PIVOT_MIN,
         .max = ShooterConstants::PIVOT_MAX
     },
-    pid_{ShooterConstants::PIVOT_PID}, accum_{0.0},
-    ff_{ShooterConstants::PIVOT_FF},
+    
+    accum_{0.0},
     posTol_{ShooterConstants::PIVOT_POS_TOL},
     velTol_{ShooterConstants::PIVOT_VEL_TOL},
     profile_{ShooterConstants::PIVOT_MAX_V, ShooterConstants::PIVOT_MAX_A},
@@ -73,7 +71,7 @@ void Pivot::CorePeriodic(){
 void Pivot::CoreTeleopPeriodic(){
     double t = Utils::GetCurTimeS();
     double dt = t - prevT_;
-    if(dt > 0.3){
+    if(dt > 0.04){
         dt = 0.0;
         state_ = STOP;
     }
@@ -130,13 +128,15 @@ void Pivot::CoreTeleopPeriodic(){
                 if(atTarget){
                     state_ = AT_TARGET; //At target due to tolerances
                 }
-                else{
-                    //profile_.regenerate(currPose_);
+                else if(std::abs(error.pos) > regenTol_){ //Regenerate when too off
+                    profile_.regenerate(currPose_);
+                    accum_ = 0.0;
                 }
             }
             else if (state_ == AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
                     profile_.regenerate(currPose_);
+                    accum_ = 0.0;
                     state_ = AIMING;
                 }
             }
@@ -267,6 +267,10 @@ bool Pivot::AtTarget(){
     return (state_ == AT_TARGET);
 }
 
+void Pivot::SetPID(ShooterConstants::PID pid){
+    pid_ = pid;
+}
+
 /**
  * Sets positon tolerance
  * 
@@ -338,15 +342,15 @@ void Pivot::CoreShuffleboardInit(){
 
     shuff_.add("hooked", &hooked_, {1,1,7,2}, true);
 
-    shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
-    shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
-    shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
-    shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
+    // shuff_.PutNumber("relPos", 0.0, {1,1,8,1});
+    // shuff_.PutNumber("relVel", 0.0, {1,1,9,1});
+    // shuff_.PutNumber("absPos", 0.0, {1,1,8,2});
+    // shuff_.PutNumber("absVel", 0.0, {1,1,9,2});
 
-    //Bounds (middle-bottom)
-    shuff_.add("min", &bounds_.min, {1,1,4,4}, true);
-    shuff_.add("max", &bounds_.max, {1,1,5,4}, true);
-    shuff_.add("offset", &offset_, {1,1,6,4}, true);
+    // Bounds (middle-bottom)
+    // shuff_.add("min", &bounds_.min, {1,1,4,4}, true);
+    // shuff_.add("max", &bounds_.max, {1,1,5,4}, true);
+    // shuff_.add("offset", &offset_, {1,1,6,4}, true);
 
     //Velocity Control (row 2 and 3)
     shuff_.PutNumber("Angle Targ", 0.0, {1,1,0,2});
@@ -367,6 +371,7 @@ void Pivot::CoreShuffleboardInit(){
                     );
     shuff_.add("pos tol", &posTol_, {1,1,4,2});
     shuff_.add("vel tol", &velTol_, {1,1,5,2});
+    shuff_.add("regen tol", &regenTol_, {1,1,6,2});
 
     shuff_.add("kS", &ff_.ks, {1,1,0,3}, true);
     shuff_.add("kV", &ff_.kv, {1,1,1,3}, true);
@@ -386,12 +391,12 @@ void Pivot::CoreShuffleboardInit(){
 void Pivot::CoreShuffleboardPeriodic(){
     shuff_.PutString("State", StateToString(state_));
 
-    Poses::Pose1D relPose = GetRelPose();
-    Poses::Pose1D absPose = GetAbsPose();
-    shuff_.PutNumber("relPos", relPose.pos);
-    shuff_.PutNumber("relVel", relPose.vel);
-    shuff_.PutNumber("absPos", absPose.pos);
-    shuff_.PutNumber("absVel", absPose.vel);
+    // Poses::Pose1D relPose = GetRelPose();
+    // Poses::Pose1D absPose = GetAbsPose();
+    // shuff_.PutNumber("relPos", relPose.pos);
+    // shuff_.PutNumber("relVel", relPose.vel);
+    // shuff_.PutNumber("absPos", absPose.pos);
+    // shuff_.PutNumber("absVel", absPose.vel);
 
     shuff_.update(true);
 

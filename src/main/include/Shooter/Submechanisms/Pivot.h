@@ -36,6 +36,7 @@ class Pivot : public Mechanism{
 
         bool AtTarget();
 
+        void SetPID(ShooterConstants::PID pid);
         void SetTolerance(double posTol);
         void SetHooked(bool hooked);
         Poses::Pose1D GetPose();
@@ -59,12 +60,12 @@ class Pivot : public Mechanism{
         TalonFX motorChild_;
         
         double volts_;
-        double maxVolts_;
+        double maxVolts_ = ShooterConstants::PIVOT_MAX_VOLTS;
 
         CANcoder encoder_;
         double offset_;
         double relOffset_;
-        double gearing_;
+        double gearing_ = ShooterConstants::PIVOT_GEARING;
 
         bool hooked_;
         double tempTarg_; //Temporary target (to reaim after unhooking)
@@ -74,16 +75,17 @@ class Pivot : public Mechanism{
             double max;
         } bounds_;
 
-        ShooterConstants::PID pid_;
+        ShooterConstants::PID pid_ = ShooterConstants::PIVOT_PID;
         double accum_;
         double prevT_;
-        ShooterConstants::Feedforward ff_;
+        ShooterConstants::Feedforward ff_ = ShooterConstants::PIVOT_FF;
         ShooterConstants::Incher inch_;
         int cycle_;
         double inchTol_;
 
         double posTol_;
         double velTol_;
+        double regenTol_ = ShooterConstants::PIVOT_REGEN_TOL;
 
         double maxV_;
         double maxA_;

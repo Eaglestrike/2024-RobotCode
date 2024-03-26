@@ -34,7 +34,7 @@ class Intake: public Mechanism{
         void Stow();
         void Climb();
         void HalfStow();
-        void Passthrough();
+        void Passthrough(bool amp);
         void AmpOuttake();
         void AmpIntake();
         void FeedIntoShooter();
@@ -44,12 +44,14 @@ class Intake: public Mechanism{
         void SetManual(bool manual);
         void SetManualInput(double manualInput);
 
+        void EjectTimerStart();
         void EjectForward();
         void EjectBack();
         void EjectSplit();
         void EjectStop();
 
         bool HasGamePiece();
+        bool InShooter();
         bool InChannel();
         bool InIntake();
 
@@ -64,8 +66,6 @@ class Intake: public Mechanism{
         void CoreShuffleboardInit() override;
         void CoreShuffleboardPeriodic() override;
 
-        bool GetBeamBreak1();
-        bool GetBeamBreak2();
         bool DebounceBeamBreak1();
 
         std::string GetStateName() const;
@@ -85,6 +85,8 @@ class Intake: public Mechanism{
 
         double m_outTimer = -1;
         double m_dbTimer = -1;
+        
+        bool m_ampPass;
 
         double STOWED_POS = M_PI / 2,
         HALF_STOWED_POS = 1.0,
@@ -97,7 +99,6 @@ class Intake: public Mechanism{
         double OUTTAKE_WAIT_s = 0.5;
         double BACK_PROPAGATE_WAIT_s = 0.2; //Wait time from passthrough to amp
         double DEBOUNCE_WAIT_s = 1.0;
-
 
         double m_manualVolts = 0;
 

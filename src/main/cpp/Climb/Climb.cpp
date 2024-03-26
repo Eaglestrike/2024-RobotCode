@@ -1,5 +1,7 @@
 #include "Climb/Climb.h"
 
+#include "Util/Utils.h"
+
 Climb::Climb(bool enabled, bool dbg): 
     m_shuff{"Climb", dbg},
     Mechanism{"climb", enabled, dbg}
@@ -18,16 +20,24 @@ void Climb::CoreTeleopPeriodic(){
     StateInfo info;
     switch (m_targ){
         case STOWED:
-            Brake();
+            if (m_state != MANUAL) {
+                Brake();
+            }
             info = STOW_INFO;
             break;
         case EXTENDED:
-            ReleaseBrake();
+            if (m_state != MANUAL && m_state != AT_TARGET) {
+                ReleaseBrake();
+            }
             info = EXTENDED_INFO;
             break;
         case CLIMB:
-            Brake();
-            info = CLIMB_INFO;
+            if (m_state != MANUAL) {
+                Brake();
+            }
+            if (Utils::GetCurTimeS() - m_startTimeDown > UNRATCHET_WAIT) {
+                info = CLIMB_INFO;
+            }
             break;
     }
 
@@ -50,7 +60,12 @@ void Climb::CoreTeleopPeriodic(){
             break;
         case AT_TARGET:
             m_brakeOverride = false; //Default brake override for manual false
-            Brake();    
+
+            if (m_targ != TMANUAL && !AtTarget(info.TARG_POS, (info.MOVE_VOLTS > 0))){
+                m_state = MOVING;
+            }
+
+            Brake();
             break;
         case MANUAL:
             if (m_pos <= MIN_POS-1 && m_manualVolts < 0) {
@@ -128,6 +143,7 @@ void Climb::Stow(){
 }
 
 void Climb::PullUp(){
+    m_startTimeDown = Utils::GetCurTimeS();
     SetTarget(CLIMB);
 }
 
@@ -154,6 +170,7 @@ void Climb::SetManualInput(double ctrlr){
         m_timer =0;
     }
     m_manualVolts = ctrlr;
+    m_targ = TMANUAL;
     m_state = MANUAL;
 }
 

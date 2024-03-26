@@ -30,6 +30,15 @@ bool IOThread::GetBeamBreak2() {
 }
 
 /**
+ * Gets third beam break
+ * 
+ * @returns If second beam break is tripped
+*/
+bool IOThread::GetBeamBreak3() {
+  return m_beamBreak3.load();
+}
+
+/**
  * Loops IO Thread
 */
 void IOThread::Loop() {
@@ -38,5 +47,7 @@ void IOThread::Loop() {
     m_beamBreak1.store(bb1);
     bool bb2 = !m_bb2.Get();
     m_beamBreak2.store(bb2);
+    bool bb3 = !m_bb3.Get();
+    m_beamBreak3.store(bb3);
   }
 }

@@ -1,7 +1,10 @@
 #include "Shooter/Shooter.h"
 #include "Util/SideHelper.h"
+#include "Util/Utils.h"
 
 #include "DebugConfig.h"
+
+#define SHOOT_WHILE_MOVE false
 
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
@@ -44,7 +47,7 @@ void Shooter::CoreTeleopPeriodic(){
         case STOP:
             break;
         case SHOOT:
-            if((!hasPiece_) && (Utils::GetCurTimeS() - timerStart_ > shootTime_)){
+            if(autoStroll_ && (!hasPiece_) && (Utils::GetCurTimeS() - timerStart_ > shootTime_)){
                 hasShot_ = false;
                 Stroll(); //Stroll after shooting (not seeing piece for some time)
             }
@@ -57,6 +60,8 @@ void Shooter::CoreTeleopPeriodic(){
         case MANUAL_TARGET:
             break;
         case EJECT:
+            break;
+        case SHOOT_TO_AMP:
             break;
         default:
             break;
@@ -103,7 +108,9 @@ void Shooter::Stroll(){
 
     double dist = toSpeaker.magn();
 
-    pivot_.SetAngle(0.7);
+    pivot_.SetAngle(ShooterConstants::PIVOT_MIN);
+    pivot_.SetTolerance(0.02);
+
     if(dist < 6.0 && hasPiece_){
         bflywheel_.SetTarget(15.0);
         tflywheel_.SetTarget(15.0);
@@ -116,13 +123,13 @@ void Shooter::Stroll(){
 }
 
 void Shooter::Amp(){
-    if(state_ == MANUAL_TARGET){ //Don't exit manual when called
+    if((state_ == MANUAL_TARGET) || (state_ == SHOOT_TO_AMP)){ //Don't exit manual when called
         return;
     }
     if(!hasPiece_){
         return;
     }
-    pivot_.SetTolerance(0.02);
+    pivot_.SetTolerance(0.04);
     SetUp(ShooterConstants::FLYWHEEL_SPEED_AMP, ShooterConstants::FLYWHEEL_SPIN_AMP, ShooterConstants::PIVOT_AMP);
     state_ = AMP;
 }
@@ -149,10 +156,37 @@ void Shooter::ManualTarget(double target){
  * only controls the flywheels
 */
 void Shooter::Eject(){
-    bflywheel_.SetVoltage(strollSpeed_);
-    tflywheel_.SetVoltage(strollSpeed_);
+    bflywheel_.SetVoltage(ejectSpeed_);
+    tflywheel_.SetVoltage(ejectSpeed_);
 
     state_ = EJECT;
+}
+
+/**
+ * eject preperation
+*/
+void Shooter::EjectPrep() {
+    pivot_.SetAngle(ShooterConstants::PIVOT_MIN);
+    pivot_.SetTolerance(ShooterConstants::SHOOT_POS_TOL);
+}
+
+/**
+ * preps towards amp
+*/
+void Shooter::PrepTowardsAmp() {
+    pivot_.SetAngle(ShooterConstants::PIVOT_MIN);
+    pivot_.SetTolerance(ShooterConstants::FERRY_POS_TOL);
+
+    bflywheel_.SetVoltage(shootAmpSpeed_);
+    tflywheel_.SetVoltage(shootAmpSpeed_);
+    state_ = SHOOT_TO_AMP;
+}
+
+/**
+ * pivot at target
+*/
+bool Shooter::PivotAtTarget() {
+    return pivot_.AtTarget();
 }
 
 /**
@@ -168,7 +202,7 @@ void Shooter::ZeroRelative() {
  * @param toSpeaker field-oriented vector to the speaker 
 */
 void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needGamePiece){
-    if(state_ == MANUAL_TARGET){ //Don't exit manual when called
+    if((state_ == MANUAL_TARGET) || (state_ == SHOOT_TO_AMP)){ //Don't exit manual when called
         return;
     }
     if((!hasPiece_) && needGamePiece){
@@ -185,13 +219,18 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     
     state_ = SHOOT;
     targetPos_ = robotPos;
-    // targetVel_ = {0.0, 0.0};
-    // double dist = toSpeaker.magn();
+    double dist = toSpeaker.magn();
+
+#if SHOOT_WHILE_MOVE
     targetVel_ = robotVel;
+#else
+    targetVel_ = {0.0, 0.0};
+#endif
 
     // Shooting while moving (modify speaker location)
     // https://www.desmos.com/calculator/5hd2snnrwz
 
+#if SHOOT_WHILE_MOVE
     double px = toSpeaker.x();
     double py = toSpeaker.y();
 
@@ -217,6 +256,7 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     double t = kD_*dist + cT_;
 
     toSpeaker -= (robotVel*t);
+#endif
 
     if(shuff_.isEnabled()){
         shuff_.PutNumber("Shot dist", dist, {1,1,3,3});
@@ -242,6 +282,10 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     //Multiply by tolerance percent
     posYawTol_ = std::clamp(posYawTol_, 0.01, M_PI/2.0); //Tol cannot be greater than 90 degrees
     negYawTol_ = std::clamp(negYawTol_, -M_PI/2.0, -0.01);
+
+    // targetYaw_ = (2 * targetYaw_ + posYawTol_ + negYawTol_) / 2;
+    // posYawTol_ = (posYawTol_ - negYawTol_) / 2;
+    // negYawTol_ = -posYawTol_;
 
     auto shot = shootData_.lower_bound(dist);
     if((shot == shootData_.begin()) || (shot == shootData_.end())){ //No shot in data (too far or too close)
@@ -336,6 +380,10 @@ bool Shooter::CanShoot(int posVal){
 
         bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
         canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
+
+        if (posVal == 3) {
+            canShoot = true;
+        }
 
         if(shuff_.isEnabled()){
             shuff_.PutNumber("Pos Error", posError, {1,1,8,2});
@@ -477,6 +525,7 @@ std::string Shooter::StateToString(State state){
 void Shooter::CoreShuffleboardInit(){
     //Strolling (row 0)
     shuff_.add("Stroll Speed", &strollSpeed_, {1,1,0,0}, true);
+    shuff_.add("Eject Speed", &ejectSpeed_, {1,2,0,0}, true);
     shuff_.addButton("Stroll",
         [&](){
             Stroll();

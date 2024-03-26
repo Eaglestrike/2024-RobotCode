@@ -57,6 +57,7 @@ class Flywheel : public Mechanism{
         //Logic
         State state_;
         VelocityProfile profile_;
+        double targVel_;
         ShooterConstants::Feedforward feedforward_;
         ShooterConstants::PID pid_;
         double accum_;

@@ -45,6 +45,10 @@ bool TrapezoidalProfile::setTarget(Poses::Pose1D currPose, Poses::Pose1D finalPo
     //https://www.desmos.com/calculator/yy6g6utcwy <- refer to "Math" folder
     timer_.Reset();
     timer_.Start();
+
+    currPose.vel = std::clamp(currPose.vel, -maxVel_, maxVel_);
+    finalPose.vel = std::clamp(finalPose.vel, -maxVel_, maxVel_);
+
     startPose_ = currPose;
     if((maxAcc_ == 0) || (maxVel_ == 0) || /*(std::abs(currPose.vel) > maxVel_) || */(std::abs(finalPose.vel) > maxVel_)){
         Zero(currPose); //Should stop if profile is bad
