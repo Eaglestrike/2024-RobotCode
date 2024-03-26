@@ -144,11 +144,10 @@ void Pivot::CoreTeleopPeriodic(){
             }
 
             if(shuff_.isEnabled()){ //Shuff prints
-                shuff_.PutNumber("pos error", error.pos, {1,1,7,3});
-                shuff_.PutNumber("vel error", error.vel, {1,1,8,3});
+                shuff_.PutNumber("pos error", error.pos, {1,1,6,3});
+                shuff_.PutNumber("vel error", error.vel, {1,1,7,3});
 
-                shuff_.PutNumber("targ pos", target.pos, {1,1,7,4});
-                shuff_.PutNumber("cur pos", currPose_.pos, {1,1,8,4});
+                shuff_.PutNumber("targ pos", target.pos, {1,1,8,3});
             }
             break;
         }

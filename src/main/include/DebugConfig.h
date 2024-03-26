@@ -23,5 +23,5 @@ namespace DebugConfig{
         const bool PIVOT        = true;
     } SHOOTER;
 
-    const bool AUTO_LINEUP = true;
+    const bool AUTO_LINEUP = false;
 }

@@ -27,7 +27,24 @@ Flywheel::Flywheel(ShooterConstants::FlywheelConfig config, bool enabled, bool s
 //Core Functions
 void Flywheel::CorePeriodic(){
     double pos = ShooterConstants::FLYWHEEL_GEARING * 2*M_PI * motor_.GetPosition().GetValueAsDouble() * ShooterConstants::FLYWHEEL_R;
-    double vel = ShooterConstants::FLYWHEEL_GEARING * 2*M_PI * motor_.GetVelocity().GetValueAsDouble() * ShooterConstants::FLYWHEEL_R;
+    double encoderVel = ShooterConstants::FLYWHEEL_GEARING * 2*M_PI * motor_.GetVelocity().GetValueAsDouble() * ShooterConstants::FLYWHEEL_R;
+
+    filter_.push(encoderVel);
+    filterSum_ += encoderVel;
+    uint numVals = filter_.size();
+    while((numVals > filterSize_) && (numVals > 0)){
+        filterSum_ -= filter_.front();
+        filter_.pop();
+        numVals--;
+    }
+    double vel;
+    if(numVals != 0){
+        vel = filterSum_/(double)numVals;
+    }
+    else{
+        vel = 0.0;
+    }
+
     double acc = (vel - currPose_.vel)/0.02; //Sorry imma assume
     currPose_ = {pos, vel, acc};
 };
@@ -65,14 +82,14 @@ void Flywheel::CoreTeleopPeriodic(){
                 }
                 else{
                     profile_.Regenerate(currPose_);
-                    accum_ = 0.0;
+                    // accum_ = 0.0;
                 }
             }
             if (state_ == State::AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
                     profile_.Regenerate(currPose_);
                     state_ = State::RAMPING;
-                    accum_ = 0.0;
+                    // accum_ = 0.0;
                 }
             }
 
@@ -109,9 +126,9 @@ void Flywheel::SetTarget(double vel){
     Poses::Pose1D startPose;
     if(profile_.isFinished()){
         startPose = currPose_;
-        if(!atTarget){
-            accum_ = 0.0;
-        }
+        // if(!atTarget){
+        //     accum_ = 0.0;
+        // }
     }
     else{
         startPose = profile_.GetPose();
@@ -185,7 +202,8 @@ void Flywheel::CoreShuffleboardInit(){
     shuff_.add("pos", &currPose_.pos, {1,1,4,1}, false);
     shuff_.add("vel", &currPose_.vel, {1,1,5,1}, false);
     shuff_.add("acc", &currPose_.acc, {1,1,6,1}, false);
-    shuff_.add("volts", &volts_, {1,1,4,2}, false);
+    shuff_.add("filter size", &filterSize_, {1,1,7,1}, true);
+    shuff_.add("filter sum", &filterSum_, {1,1,8,1}, false);
 
     //Velocity Control (row 2 and 3)
     shuff_.PutNumber("Vel Targ", 0.0, {1,1,0,2});
