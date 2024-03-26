@@ -66,7 +66,7 @@ class Flywheel : public Mechanism{
 
         std::queue<double> filter_;
         double filterSum_;
-        uint filterSize_ = ShooterConstants::FLYWHEEL_FILTER_SIZE;
+        int filterSize_ = ShooterConstants::FLYWHEEL_FILTER_SIZE;
 
         double velTol_;
 

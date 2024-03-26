@@ -66,7 +66,7 @@ namespace ShooterConstants{
 
     const double FLYWHEEL_VEL_TOL = 0.5;
 
-    const uint FLYWHEEL_FILTER_SIZE = 1;
+    const uint FLYWHEEL_FILTER_SIZE = 10;
 
     //Pivot Constants
     const int PIVOT_ID = 37;

@@ -17,11 +17,11 @@ namespace DebugConfig{
     const bool INTAKE   = false;
 
     const struct {
-        const bool SHOOTER      = true;
-        const bool LEFT_FLY     = false;
-        const bool RIGHT_FLY    = false;
+        const bool SHOOTER      = false;
+        const bool LEFT_FLY     = true;
+        const bool RIGHT_FLY    = true;
         const bool PIVOT        = false;
     } SHOOTER;
 
-    const bool AUTO_LINEUP = true;
+    const bool AUTO_LINEUP = false;
 }
