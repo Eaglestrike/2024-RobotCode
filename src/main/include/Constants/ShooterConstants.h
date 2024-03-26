@@ -98,11 +98,11 @@ namespace ShooterConstants{
     const double PIVOT_FRCTN = 0.01;
 
     const Incher PIVOT_INCH = {
-        .volts = 0.4,
+        .volts = 0.2,
         .onCycles = 2,
         .numCycles = 20
     };
-    const double PIVOT_INCH_TOL = 0.01;
+    const double PIVOT_INCH_TOL = 0.02;
     const double PIVOT_INCH_DEADBAND = 0.007;
 
     const double PIVOT_MAX_V = 5.5;
