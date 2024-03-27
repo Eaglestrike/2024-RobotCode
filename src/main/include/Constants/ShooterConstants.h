@@ -198,7 +198,7 @@ namespace ShooterConstants{
     const double prepareT = 0.1;
 
     // amp
-    const double PIVOT_AMP = 1.15; //1.1
+    const double PIVOT_AMP = 1.1; //1.15
     const double FLYWHEEL_SPEED_AMP = 3.3; //4.25
     const double FLYWHEEL_SPIN_AMP = 0.0; //-0.25
 }
