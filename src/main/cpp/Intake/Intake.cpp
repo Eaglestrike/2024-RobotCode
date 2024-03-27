@@ -52,7 +52,7 @@ void Intake::SetManual(bool manual) {
 */
 void Intake::SetManualInput(double manualInput) {
     manualInput = std::clamp(manualInput, -1.0, 1.0);
-    manualInput *= m_wrist.GetMaxVolts() / 2.0;
+    manualInput *= m_wrist.GetManualVolts() / 2.0;
     m_manualVolts = manualInput;
 }
 
