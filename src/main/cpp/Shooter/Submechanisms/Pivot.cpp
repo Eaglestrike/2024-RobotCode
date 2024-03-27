@@ -71,7 +71,7 @@ void Pivot::CorePeriodic(){
 void Pivot::CoreTeleopPeriodic(){
     double t = Utils::GetCurTimeS();
     double dt = t - prevT_;
-    if(dt > 0.3){
+    if(dt > 0.04){
         dt = 0.0;
         state_ = STOP;
     }
@@ -133,11 +133,13 @@ void Pivot::CoreTeleopPeriodic(){
                 }
                 else if(std::abs(error.pos) > regenTol_){ //Regenerate when too off
                     profile_.regenerate(currPose_);
+                    accum_ = 0.0;
                 }
             }
             else if (state_ == AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
                     profile_.regenerate(currPose_);
+                    accum_ = 0.0;
                     state_ = AIMING;
                 }
             }
@@ -265,6 +267,10 @@ Poses::Pose1D Pivot::GetRelPose(){
 bool Pivot::AtTarget(){
     //std::cout<<"Pivot: "<<StateToString(state_)<<std::endl;
     return (state_ == AT_TARGET);
+}
+
+void Pivot::SetPID(ShooterConstants::PID pid){
+    pid_ = pid;
 }
 
 /**

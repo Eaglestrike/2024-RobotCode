@@ -32,7 +32,8 @@ class Shooter : public Mechanism{
             AMP,
             STROLL, //Set to low speed
             MANUAL_TARGET, //Manual input angles
-            EJECT
+            EJECT,
+            SHOOT_TO_AMP
         };
   
         Shooter(std::string name, bool enabled, bool shuffleboard);
@@ -42,6 +43,8 @@ class Shooter : public Mechanism{
         void Amp();
         void ManualTarget(double target);
         void Eject(); //Only spins flywheels
+        void EjectPrep();
+        void PrepTowardsAmp();
         void ZeroRelative();
 
         void SetUp(double vel, double spin, double ang);
@@ -54,6 +57,7 @@ class Shooter : public Mechanism{
         bool UseAutoLineup();
         vec::Vector2D GetTrim();
         bool IsManual();
+        bool PivotAtTarget();
 
         double GetTargetRobotYaw();
 
@@ -84,6 +88,8 @@ class Shooter : public Mechanism{
 
         //Shooter config
         double strollSpeed_ = ShooterConstants::STROLL_SPEED;
+        double ejectSpeed_ = ShooterConstants::EJECT_SPEED;
+        double shootAmpSpeed_ = ShooterConstants::SHOOT_AMP_SPEED;
         double shootTime_ = ShooterConstants::SHOOT_TIME;
 
         std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;

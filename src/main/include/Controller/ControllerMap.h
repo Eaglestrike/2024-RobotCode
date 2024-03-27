@@ -43,7 +43,7 @@ namespace Actions{
         NO_POV_ACTION = -1,
         TEMP,
         CLIMB,
-        AMP_AUTO_LINEUP,
+        AMP_FERRY,
         HALF_STOW,
         EXTEND,
         ACTION_COUNT_POV //Just the number of actions, as it is at the end of a enum
@@ -153,6 +153,6 @@ namespace ControllerMapData{
         {XBOX_POV, POV_UP, EXTEND},
         {XBOX_POV, POV_DOWN, CLIMB},
         {XBOX_POV, POV_LEFT, HALF_STOW},
-        {XBOX_POV, POV_RIGHT, AMP_AUTO_LINEUP},
+        {XBOX_POV, POV_RIGHT, AMP_FERRY},
     };
 };

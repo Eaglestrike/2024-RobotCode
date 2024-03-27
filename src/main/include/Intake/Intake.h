@@ -44,6 +44,7 @@ class Intake: public Mechanism{
         void SetManual(bool manual);
         void SetManualInput(double manualInput);
 
+        void EjectTimerStart();
         void EjectForward();
         void EjectBack();
         void EjectSplit();
