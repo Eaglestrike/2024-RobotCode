@@ -107,6 +107,7 @@ namespace ShooterConstants{
         .onCycles = 2,
         .numCycles = 20
     };
+    
     const double PIVOT_INCH_TOL = 0.01;
     const double PIVOT_INCH_DEADBAND = 0.007;
 
@@ -124,6 +125,22 @@ namespace ShooterConstants{
     };
 
     const std::map<double, ShootConfig> SHOOT_DATA = {
+    //distance-> ang, vel
+        {0.0,   {1.085,  15.0}}, //0 distance shot (used just for interpolation)
+        {1.32,  {1.085,  15.0}},
+        {1.51,  {0.97,  17.0}},
+        {1.68,  {0.93,  17.0}},
+        {1.88,  {0.87,  17.0}},
+        {2.10,  {0.81,  17.0}},
+        {2.37,  {0.74,  17.0}},
+        {2.64,  {0.69,  17.0}},
+        {3.08,  {0.625, 18.0}},
+        {3.46,  {0.585, 18.0}},
+        {3.89,  {0.54,  18.0}},
+        {4.37,  {0.51,  18.0}}
+    };
+
+    const std::map<double, ShootConfig> FERRY_DATA = {
     //distance-> ang, vel
         {0.0,   {1.085,  15.0}}, //0 distance shot (used just for interpolation)
         {1.32,  {1.085,  15.0}},
@@ -162,6 +179,10 @@ namespace ShooterConstants{
     //Speaker center positions (x, y)
     const vec::Vector2D RED_SPEAKER = {16.54-0.30-0.075-0.075, 5.58};
     const vec::Vector2D BLUE_SPEAKER = {0.0+0.15+0.225, 5.58};
+
+    const vec::Vector2D RED_CORNER = {15.362, 7.357};
+    const vec::Vector2D BLUE_CORNER = {0.932, 7.357};
+    const double FERRY_R = 0.4;
 
     //Dimensions of the shootable area
     const double SPEAKER_MIN = 1.98; //height; m

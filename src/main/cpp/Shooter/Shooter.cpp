@@ -47,6 +47,8 @@ void Shooter::CoreTeleopPeriodic(){
         case STOP:
             break;
         case SHOOT:
+            [[fallthrough]]
+        case FERRY:
             if(autoStroll_ && (!hasPiece_) && (Utils::GetCurTimeS() - timerStart_ > shootTime_)){
                 hasShot_ = false;
                 Stroll(); //Stroll after shooting (not seeing piece for some time)
@@ -61,7 +63,7 @@ void Shooter::CoreTeleopPeriodic(){
             break;
         case EJECT:
             break;
-        case SHOOT_TO_AMP:
+        case THROW:
             break;
         default:
             break;
@@ -123,7 +125,7 @@ void Shooter::Stroll(){
 }
 
 void Shooter::Amp(){
-    if((state_ == MANUAL_TARGET) || (state_ == SHOOT_TO_AMP)){ //Don't exit manual when called
+    if(state_ == MANUAL_TARGET){ //Don't exit manual when called
         return;
     }
     if(!hasPiece_){
@@ -156,6 +158,9 @@ void Shooter::ManualTarget(double target){
  * only controls the flywheels
 */
 void Shooter::Eject(){
+    pivot_.SetAngle(ShooterConstants::PIVOT_MIN);
+    pivot_.SetTolerance(ShooterConstants::SHOOT_POS_TOL);
+
     bflywheel_.SetVoltage(ejectSpeed_);
     tflywheel_.SetVoltage(ejectSpeed_);
 
@@ -163,23 +168,15 @@ void Shooter::Eject(){
 }
 
 /**
- * eject preperation
+ * Shoots low
 */
-void Shooter::EjectPrep() {
-    pivot_.SetAngle(ShooterConstants::PIVOT_MIN);
-    pivot_.SetTolerance(ShooterConstants::SHOOT_POS_TOL);
-}
-
-/**
- * preps towards amp
-*/
-void Shooter::PrepTowardsAmp() {
+void Shooter::Throw() {
     pivot_.SetAngle(ShooterConstants::PIVOT_MIN);
     pivot_.SetTolerance(ShooterConstants::FERRY_POS_TOL);
 
     bflywheel_.SetVoltage(shootAmpSpeed_);
     tflywheel_.SetVoltage(shootAmpSpeed_);
-    state_ = SHOOT_TO_AMP;
+    state_ = THROW;
 }
 
 /**
@@ -202,12 +199,15 @@ void Shooter::ZeroRelative() {
  * @param toSpeaker field-oriented vector to the speaker 
 */
 void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needGamePiece){
-    if((state_ == MANUAL_TARGET) || (state_ == SHOOT_TO_AMP)){ //Don't exit manual when called
+    if(state_ == MANUAL_TARGET){ //Don't exit manual when called
         return;
     }
     if((!hasPiece_) && needGamePiece){
         return;
     }
+
+    state_ = SHOOT;
+    targetPos_ = robotPos;
 
     //Speaker targetting
     bool blueSpeaker = SideHelper::IsBlue();
@@ -215,22 +215,10 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     vec::Vector2D trim{trim_.y(), trim_.x()};
     trim *= (blueSpeaker? 1.0: -1.0);
 
-    vec::Vector2D toSpeaker = speaker - targetPos_ + trim;
-    
-    state_ = SHOOT;
-    targetPos_ = robotPos;
-    double dist = toSpeaker.magn();
-
-#if SHOOT_WHILE_MOVE
-    targetVel_ = robotVel;
-#else
-    targetVel_ = {0.0, 0.0};
-#endif
-
+    #if SHOOT_WHILE_MOVE
     // Shooting while moving (modify speaker location)
     // https://www.desmos.com/calculator/5hd2snnrwz
-
-#if SHOOT_WHILE_MOVE
+    targetVel_ = robotVel;
     double px = toSpeaker.x();
     double py = toSpeaker.y();
 
@@ -247,7 +235,6 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
 
     double determinant = b*b - 4*a*c;
     if((determinant < 0.0) || (a == 0.0)){
-        std::cout << "Shot not possible" << std::endl;
         Stroll();
         return;
     }
@@ -256,11 +243,17 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     double t = kD_*dist + cT_;
 
     toSpeaker -= (robotVel*t);
-#endif
+    #else
+    vec::Vector2D toSpeaker = speaker - targetPos_ + trim;
+    double dist = toSpeaker.magn();
+
+    targetVel_ = {0.0, 0.0};
+    #endif
 
     if(shuff_.isEnabled()){
         shuff_.PutNumber("Shot dist", dist, {1,1,3,3});
     }
+
     targetYaw_ = toSpeaker.angle();
 
     const std::vector<vec::Vector2D>& speakerBox = blueSpeaker? ShooterConstants::BLUE_SPEAKER_BOX : ShooterConstants::RED_SPEAKER_BOX;
@@ -325,6 +318,78 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     SetUp(shotVel, 0.0, pivotAng);
 }
 
+void Shooter::Ferry(vec::Vector2D robotPos, vec::Vector2D robotVel){
+    if(state_ == MANUAL_TARGET){ //Don't exit manual when called
+        return;
+    }
+    if(!hasPiece_){
+        return;
+    }
+
+    //Speaker targetting
+    bool blueSpeaker = SideHelper::IsBlue();
+    vec::Vector2D corner = blueSpeaker? ShooterConstants::BLUE_CORNER : ShooterConstants::RED_CORNER;
+    vec::Vector2D trim{trim_.y(), trim_.x()};
+    trim *= (blueSpeaker? 1.0: -1.0);
+    
+    state_ = SHOOT;
+    targetPos_ = robotPos;
+
+    vec::Vector2D toSpeaker = corner - targetPos_ + trim;
+    double dist = toSpeaker.magn();
+
+    targetVel_ = {0.0, 0.0};
+
+    if(shuff_.isEnabled()){
+        shuff_.PutNumber("Shot dist", dist, {1,1,3,3});
+    }
+
+    targetYaw_ = toSpeaker.angle();
+
+    double angTol = std::atan2(dist, ferryR_);
+    posYawTol_ = angTol;
+    negYawTol_ = -angTol;
+
+    auto shot = ferryData_.lower_bound(dist);
+    if((shot == ferryData_.begin()) || (shot == ferryData_.end())){ //No shot in data (too far or too close)
+        //Check functionality (maybe idle at some distance)
+        Stroll();
+        return;
+    }
+
+    //Interpolate between nearby data points
+    double upperDist = shot->first;
+    ShooterConstants::ShootConfig upperShot = shot->second;
+    shot--;
+    double lowerDist = shot->first;
+    ShooterConstants::ShootConfig lowerShot = shot->second;
+
+    double upperPercent = (dist - lowerDist) / (upperDist - lowerDist);
+    double lowerPercent = 1.0 - upperPercent;
+
+    double pivotAng = lowerPercent*lowerShot.ang + upperPercent*upperShot.ang;
+    double shotVel = lowerPercent*lowerShot.vel + upperPercent*upperShot.vel;
+
+    //Pivot set tolerance (max - min)/2.0
+    double pivotTol = (std::atan(dist/ShooterConstants::SPEAKER_MIN) - std::atan((dist-ShooterConstants::SPEAKER_DEPTH)/ShooterConstants::SPEAKER_MIN))/2.0;
+    pivot_.SetTolerance(pivotTol * pivotAngPercent_);
+
+    //Add spin
+    double angToSpeaker = targetYaw_;
+    if(angToSpeaker > M_PI/2.0){
+        angToSpeaker -= M_PI;
+    }
+    if(angToSpeaker < -M_PI/2.0){
+        angToSpeaker += M_PI;
+    }
+    //double spin = -angToSpeaker * kSpin_; //Spin opposite to way pointing
+
+    autoStroll_ = true;
+    SetUp(shotVel, 0.0, pivotAng);
+
+    state_ = FERRY;
+}
+
 /**
  * Sets if there is a game piece loaded into the shooter (beambreak)
 */
@@ -365,42 +430,59 @@ void Shooter::Trim(vec::Vector2D trim){
 */
 bool Shooter::CanShoot(int posVal){
     bool canShoot = false;
-    if(state_ == SHOOT){ //Can only shoot within target
-        double posError = (targetPos_ - robotPos_).magn();
-        double velError = (targetVel_ - robotVel_).magn();
-        double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
+    switch(state_){
+        case SHOOT:
+            [[falllthrough]];
+        case FERRY:
+        {
+            double posError = (targetPos_ - robotPos_).magn();
+            double velError = (targetVel_ - robotVel_).magn();
+            double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
 
-        if ((posVal != 0)) {
-            posError = 0;
-            velError = 0;
-            if ((posVal == 3)) {
-                yawError = 0;
+            if ((posVal != 0)) {
+                posError = 0;
+                velError = 0;
+                if ((posVal == 3)) {
+                    yawError = 0;
+                }
             }
-        }
 
-        bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
-        canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
+            bool yawGood = (yawError < posYawTol_*shootYawPercent_) && (yawError > negYawTol_ * shootYawPercent_);
+            canShoot = (posError < posTol_) && (velError < velTol_) && yawGood;
 
-        if (posVal == 3) {
-            canShoot = true;
-        }
+            if (posVal == 3) {
+                canShoot = true;
+            }
 
-        if(shuff_.isEnabled()){
-            shuff_.PutNumber("Pos Error", posError, {1,1,8,2});
-            shuff_.PutNumber("Vel Error", velError, {1,1,9,2});
-            shuff_.PutNumber("Yaw Error", yawError, {1,1,10,2});
-            
-            shuff_.PutBoolean("lfly at targ", bflywheel_.AtTarget(), {1,1,8,3});
-            shuff_.PutBoolean("rfly at targ", tflywheel_.AtTarget(), {1,1,9,3});
-            shuff_.PutBoolean("pivot at targ", pivot_.AtTarget(), {1,1,10,3});
+            if(shuff_.isEnabled()){
+                shuff_.PutNumber("Pos Error", posError, {1,1,8,2});
+                shuff_.PutNumber("Vel Error", velError, {1,1,9,2});
+                shuff_.PutNumber("Yaw Error", yawError, {1,1,10,2});
+                
+                shuff_.PutBoolean("lfly at targ", bflywheel_.AtTarget(), {1,1,8,3});
+                shuff_.PutBoolean("rfly at targ", tflywheel_.AtTarget(), {1,1,9,3});
+                shuff_.PutBoolean("pivot at targ", pivot_.AtTarget(), {1,1,10,3});
+            }
+            canShoot = canShoot && bflywheel_.AtTarget() && tflywheel_.AtTarget() && pivot_.AtTarget();
+            break;
         }
-    }
-    else if (state_ == AMP) {
-        canShoot = true;
+        case AMP:
+        {
+            canShoot = bflywheel_.AtTarget() && tflywheel_.AtTarget() && pivot_.AtTarget();
+            break;
+        }
+        case EJECT:
+        {
+            canShoot = pivot_.AtTarget();
+        }
+        case THROW:
+        {
+            canShoot = pivot_.AtTarget();
+        }
     }
 
     //Return if everything's prepared
-    return canShoot && bflywheel_.AtTarget() && tflywheel_.AtTarget() && pivot_.AtTarget();
+    return canShoot;
 }
 
 bool Shooter::UseAutoLineup(){

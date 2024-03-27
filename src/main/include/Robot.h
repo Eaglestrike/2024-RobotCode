@@ -33,6 +33,8 @@
 
 #include "Shooter/Shooter.h"
 
+#include "RobotState.h"
+
 class Robot : public frc::TimedRobot {
   public:
     Robot();
@@ -52,6 +54,8 @@ class Robot : public frc::TimedRobot {
   private: 
     void ShuffleboardInit();
     void ShuffleboardPeriodic();
+
+    RobotState::State m_state;
 
     // Controller
     Controller m_controller;
@@ -104,10 +108,9 @@ class Robot : public frc::TimedRobot {
     frc::SendableChooser<std::string> m_autoEndChooser;
 
     // current buttonboard states
-    bool m_amp = true;
+    bool m_eject = false;
     bool m_wristManual = false;
     bool m_climbManual = false;
-    bool m_eject = false;
     int m_posVal = 0;
 
     // zerored states

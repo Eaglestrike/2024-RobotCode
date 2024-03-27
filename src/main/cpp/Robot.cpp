@@ -182,7 +182,7 @@ void Robot::RobotPeriodic()
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 69, 0, 40);
   } else if (m_posVal != 0) {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 110, 199, 0);
-  } else if (m_amp) {
+  } else if (m_state == RobotState::AMP) {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 255, 0, 0);
   } else {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 0, 255, 0);
@@ -332,39 +332,50 @@ void Robot::TeleopPeriodic()
     {
       m_intake.HalfStow();
     }
-    if (m_controller.getPressedOnce(INTAKE_TO_AMP))
+    if (m_controller.getPressedOnce(AMP_STATE))
     {
-      if (m_amp == false && m_intake.GetState() == Intake::PASSTHROUGH){
+      if ((m_state == RobotState::SHOOT) && m_intake.GetState() == Intake::PASSTHROUGH){
         m_intake.Passthrough(true);
       }
-      m_amp = true;
+      m_state == RobotState::AMP;
     }
-    if (m_controller.getPressedOnce(INTAKE_TO_CHANNEL))
+    if (m_controller.getPressedOnce(SHOOT_STATE))
     {
-      m_amp = false;
+      m_state == RobotState::SHOOT;
+    }
+    if (m_controller.getPressedOnce(FERRY_STATE))
+    {
+      m_state == RobotState::FERRY;
     }
 
     //Shooting
     if (m_controller.getPressed(FORCE_SHOOT)) {
       m_intake.FeedIntoShooter();
-    } else if (m_controller.getPOVDown(AMP_FERRY)) {
-      m_shooter.PrepTowardsAmp();
-      if (m_shooter.PivotAtTarget()) {
+    }
+    else if (m_controller.getPOVDown(THROW)) {
+      m_shooter.Throw();
+      if (m_shooter.CanShoot()) {
         m_intake.FeedIntoShooter();
       }
-    } else if (m_controller.getPressed(SHOOT)){
+    }
+    else if (m_controller.getPressed(SHOOT)){
       if(m_intake.HasGamePiece()){
-        if (!m_amp) {
-          if (m_posVal != 3) {
-            m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
-          } else {
-            m_autoLineup.Recalc(m_odom.GetAngNorm());
-          }
+        switch(m_state){
+          case RobotState::SHOOT:
+            if (m_posVal != 3) {
+              m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
+            } else {
+              m_autoLineup.Recalc(m_odom.GetAngNorm());
+            }
+            [[fallthrough]];
+          case RobotState::FERRY:
+            [[fallthrough]];
+          case RobotState::AMP:
+            if(m_shooter.CanShoot(m_posVal)){
+              m_intake.FeedIntoShooter();
+            }
         }
-        if(m_shooter.CanShoot(m_posVal)){
-          m_intake.FeedIntoShooter();
-        }
-        m_shooter.Stop();
+        m_shooter.Stop(); //Exit state
       }
       else
       {
@@ -373,7 +384,7 @@ void Robot::TeleopPeriodic()
     }
     else if (m_controller.getPressed(INTAKE))
     {
-      m_intake.Passthrough(m_amp);
+      m_intake.Passthrough(m_state == RobotState::AMP);
       m_shooter.Stroll();
     }
     else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece())
@@ -383,17 +394,22 @@ void Robot::TeleopPeriodic()
   }
 
   //Shooter config
-  if(m_amp){
-    m_shooter.Amp();
-  }
-  else{
-    if(m_posVal == 0){
-      m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), true);  //Shoot into speaker
-    }
-    else{
-      vec::Vector2D manualLineupPos = SideHelper::GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[m_posVal - 1]); //Manual positions
-      m_shooter.Prepare(manualLineupPos, {0, 0}, true);
-    }
+  switch(m_state){
+    case RobotState::SHOOT:
+      if(m_posVal == 0){
+        m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), true);  //Shoot into speaker
+      }
+      else{
+        vec::Vector2D manualLineupPos = SideHelper::GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[m_posVal - 1]); //Manual positions
+        m_shooter.Prepare(manualLineupPos, {0, 0}, true);
+      }
+      break;
+    case RobotState::FERRY:
+      m_shooter.Ferry(m_odom.GetPos(), m_odom.GetVel());
+      break;
+    case RobotState::AMP:
+      m_shooter.Amp();
+      break;
   }
 
   // Manual
@@ -440,14 +456,13 @@ void Robot::TeleopPeriodic()
     m_shooter.ManualTarget(shooterManualPos);
   }
 
-  // eject
+  // Eject
   if (m_controller.getPressed(MANUAL_EJECT_IN) || m_controller.getPressed(MANUAL_EJECT_OUT))
   {
     if (!m_eject) {
       m_ejectStartTimer = Utils::GetCurTimeS();
     }
     m_eject = true;
-    m_shooter.EjectPrep();
     m_shooter.Eject();
 
     if (m_controller.getPressed(MANUAL_EJECT_IN) && m_controller.getPressed(MANUAL_EJECT_OUT))
@@ -487,8 +502,7 @@ void Robot::TeleopPeriodic()
   }
 
   // auto lineup
-  if (m_controller.getPOVDown(AMP_FERRY) ||
-      (m_controller.getPressed(SHOOT) && !m_amp && m_shooter.UseAutoLineup()) // Angle lineup when shooting
+  if ((m_controller.getPressed(SHOOT) && (m_state == RobotState::SHOOT || m_state == RobotState::FERRY) && m_shooter.UseAutoLineup()) // Angle lineup when shooting
   )
   {
     double angVel = m_autoLineup.GetAngVel();
@@ -615,7 +629,7 @@ void Robot::TestPeriodic()
 
   if (m_controller.getPressed(INTAKE))
   {
-    m_intake.Passthrough(m_amp);
+    m_intake.Passthrough(m_state == RobotState::AMP);
   }
   if (m_controller.getPressed(SHOOT))
   {
@@ -719,7 +733,7 @@ void Robot::ShuffleboardPeriodic()
     m_intake.Log(m_logger);
     m_shooter.Log(m_logger);
     m_logger.LogNum("Manual Pos Val", m_posVal);
-    m_logger.LogBool("Amp mode", m_amp);
+    m_logger.LogBool("Amp mode", m_state == RobotState::AMP);
   }
 
   // ODOMETRY
