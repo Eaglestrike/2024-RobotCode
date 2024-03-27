@@ -337,15 +337,15 @@ void Robot::TeleopPeriodic()
       if ((m_state == RobotState::SHOOT) && m_intake.GetState() == Intake::PASSTHROUGH){
         m_intake.Passthrough(true);
       }
-      m_state == RobotState::AMP;
+      m_state = RobotState::AMP;
     }
     if (m_controller.getPressedOnce(SHOOT_STATE))
     {
-      m_state == RobotState::SHOOT;
+      m_state = RobotState::SHOOT;
     }
     if (m_controller.getPressedOnce(FERRY_STATE))
     {
-      m_state == RobotState::FERRY;
+      m_state = RobotState::FERRY;
     }
 
     //Shooting
@@ -367,13 +367,15 @@ void Robot::TeleopPeriodic()
             } else {
               m_autoLineup.Recalc(m_odom.GetAngNorm());
             }
-            [[fallthrough]];
+            break;
           case RobotState::FERRY:
-            [[fallthrough]];
+            m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
+            break;
           case RobotState::AMP:
-            if(m_shooter.CanShoot(m_posVal)){
-              m_intake.FeedIntoShooter();
-            }
+            break;
+        }
+        if(m_shooter.CanShoot(m_posVal)){
+          m_intake.FeedIntoShooter();
         }
         m_shooter.Stop(); //Exit state
       }

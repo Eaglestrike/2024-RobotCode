@@ -4,7 +4,7 @@
 
 #include "DebugConfig.h"
 
-#define SHOOT_WHILE_MOVE false
+#define SHOOT_WHILE_MOVE true
 
 Shooter::Shooter(std::string name, bool enabled, bool shuffleboard):
     Mechanism{name, enabled, shuffleboard},
@@ -214,6 +214,8 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     vec::Vector2D speaker = blueSpeaker? ShooterConstants::BLUE_SPEAKER : ShooterConstants::RED_SPEAKER;
     vec::Vector2D trim{trim_.y(), trim_.x()};
     trim *= (blueSpeaker? 1.0: -1.0);
+    
+    vec::Vector2D toSpeaker = speaker - targetPos_ + trim;
 
     #if SHOOT_WHILE_MOVE
     // Shooting while moving (modify speaker location)
@@ -244,7 +246,6 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
 
     toSpeaker -= (robotVel*t);
     #else
-    vec::Vector2D toSpeaker = speaker - targetPos_ + trim;
     double dist = toSpeaker.magn();
 
     targetVel_ = {0.0, 0.0};
