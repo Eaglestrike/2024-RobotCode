@@ -39,7 +39,7 @@ public:
   bool GetTagDetected() const;
 
   void UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs, const double &navXYaw, const double &swerveAngVel);
-  void UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age);
+  void UpdateCams(const vec::Vector2D &relPos, const double &angZ, const int &tagId, const long long &uniqueId, const long long &age);
 
   void ShuffleboardInit();
   void ShuffleboardPeriodic();

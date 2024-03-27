@@ -35,7 +35,7 @@ Robot::Robot() :
   //Sensors
   m_client{"10.1.14.202", 44590, 500, 5000}, // 10.1.14.202
   m_isSecondTag{false},
-  m_odom{false},
+  m_odom{true},
   //Auto
   m_autoLineup{false, m_odom},  
   m_auto{DebugConfig::AUTO, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
@@ -80,7 +80,7 @@ Robot::Robot() :
       int tagId = static_cast<int>(camData[1]);
       double x = camData[2];
       double y = camData[3];
-      // double angZ = camData[4];
+      double angZ = camData[4];
       long long age = static_cast<long long>(camData[5]);
       long long uniqueId = static_cast<long long>(camData[6]);
 
@@ -88,7 +88,7 @@ Robot::Robot() :
         frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
         frc::SmartDashboard::PutNumber("Cams x dist", x);
         frc::SmartDashboard::PutNumber("Cams z dist", y);
-        m_odom.UpdateCams({x, y}, tagId, uniqueId, age);
+        m_odom.UpdateCams({x, y}, angZ, tagId, uniqueId, age);
       }
 
       m_isSecondTag = true;

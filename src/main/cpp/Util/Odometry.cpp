@@ -259,11 +259,12 @@ std::pair<bool, double> Odometry::GetInterpolAng(const double &camTime) {
  * Updates cams for apriltags
  * 
  * @param relPos position of tags relative to bobot
+ * @param angZ camera angle
  * @param tagId Tag ID
  * @param uniqueId Unique ID to prevent repeat measurements
  * @param age Age of cameras, ms
 */
-void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age) {
+void Odometry::UpdateCams(const vec::Vector2D &relPos, const double &angZ, const int &tagId, const long long &uniqueId, const long long &age) {
   double curTime = Utils::GetCurTimeS();
   double camTime = curTime - age / 1000.0 - m_timeOffset;
 
@@ -279,22 +280,27 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   }
   m_uniqueId = uniqueId;
 
-  // rotate relative cam pos to absolute
-  // using angle from when camera data was read
-  std::pair<bool, double> histAng = GetInterpolAng(camTime);
-  double angNavX = histAng.second;
-  if (!histAng.first) {
-    angNavX = GetAng();
-  }
-  const vec::Vector2D axisRelPos = {relPos.y(), -relPos.x()};
-  vec::Vector2D vecRot = rotate(axisRelPos, angNavX);
-  vec::Vector2D tagPos;
-
   // filter out bad IDs
   if (tagId < 1 || tagId > 16) {
     // std::cout << "bad ID" << std::endl;
     return;
   }
+
+  // rotate relative cam pos to absolute
+  // using angle from when camera data was read
+  // std::pair<bool, double> histAng = GetInterpolAng(camTime);
+  // double angAbs = histAng.second;
+  // if (!histAng.first) {
+  //   angAbs = GetAng();
+  // }
+  // pi - angTag + angZ
+  double angAbs = M_PI - Utils::DegToRad(FieldConstants::TAGS[tagId - 1].second) - angZ;
+  if (m_shuffleboard) {
+    frc::SmartDashboard::PutNumber("odom ang abs", angAbs);
+  }
+  const vec::Vector2D axisRelPos = {relPos.y(), -relPos.x()};
+  vec::Vector2D vecRot = rotate(axisRelPos, angAbs);
+  vec::Vector2D tagPos;
 
   // filter out IDs on the other side of the field
   if ((SideHelper::IsBlue() && FieldConstants::BLUE_TAGS.find(tagId) == FieldConstants::BLUE_TAGS.end()) || (!SideHelper::IsBlue() && FieldConstants::RED_TAGS.find(tagId) == FieldConstants::RED_TAGS.end())) {
@@ -303,7 +309,7 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   }
 
   // add tag position to get absolute robot position
-  tagPos = FieldConstants::TAGS[tagId - 1];
+  tagPos = FieldConstants::TAGS[tagId - 1].first;
   tagPos = Utils::InToM(tagPos);
   vec::Vector2D robotPosCams = tagPos - vecRot;
 
@@ -327,7 +333,7 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   if (m_shuffleboard) {
     frc::SmartDashboard::PutString("Raw Cam Pos", relPos.toString());
     frc::SmartDashboard::PutString("Robot To Tag", vecRot.toString());
-    frc::SmartDashboard::PutNumber("Hist Ang Nav X", angNavX);
+    frc::SmartDashboard::PutNumber("Hist Ang Nav X", angAbs);
   }
 
   // update cams in pose estimator
