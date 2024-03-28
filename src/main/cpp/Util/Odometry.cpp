@@ -260,10 +260,9 @@ std::pair<bool, double> Odometry::GetInterpolAng(const double &camTime) {
  * 
  * @param relPos position of tags relative to bobot
  * @param tagId Tag ID
- * @param uniqueId Unique ID to prevent repeat measurements
  * @param age Age of cameras, ms
 */
-void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age) {
+void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const double &age) {
   double curTime = Utils::GetCurTimeS();
   double camTime = curTime - age / 1000.0 - m_timeOffset;
 
@@ -271,13 +270,6 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
     // std::cout << "too old" << std::endl;
     return;
   }
-
-  // filter out repeats
-  if (uniqueId == m_uniqueId) {
-    // std::cout << "not unique" << std::endl;
-    return;
-  }
-  m_uniqueId = uniqueId;
 
   // rotate relative cam pos to absolute
   // using angle from when camera data was read

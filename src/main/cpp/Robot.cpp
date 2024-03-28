@@ -11,6 +11,8 @@
 
 #include <fmt/core.h>
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <photon/PhotonUtils.h>
+#include <frc/apriltag/AprilTagFieldLayout.h>
 
 #include "Constants/AutoConstants.h"
 #include "Constants/AutoLineupConstants.h"
@@ -73,28 +75,17 @@ Robot::Robot() :
     double angVel = m_swerveController.GetRobotAngularVel();
     m_odom.UpdateEncoder(vel, angNavX, yawNavX, angVel);
 
-    // update camera odometry
-    std::vector<double> camData = m_client.GetData();
-    if (m_client.HasConn() && !m_client.IsStale()) {
-      // int camId = static_cast<int>(camData[0]);
-      int tagId = static_cast<int>(camData[1]);
-      double x = camData[2];
-      double y = camData[3];
-      // double angZ = camData[4];
-      long long age = static_cast<long long>(camData[5]);
-      long long uniqueId = static_cast<long long>(camData[6]);
+    // cams from photon
+    ph::PhotonPipelineResult res = m_camera.GetLatestResult();
+    m_tagDetected = res.HasTargets();
+    if (m_tagDetected) {
+      ph::PhotonTrackedTarget targ = res.GetBestTarget();
+      frc::Transform3d camToTarg = targ.GetBestCameraToTarget();
+      frc::AprilTagFieldLayout fieldLayout = frc::LoadAprilTagLayoutField(frc::AprilTagField::k2024Crescendo);
+      frc::SmartDashboard::PutNumber("Last Tag ID", targ.GetFiducialId()); 
 
-      if (tagId != 0 && m_isSecondTag) {
-        frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
-        frc::SmartDashboard::PutNumber("Cams x dist", x);
-        frc::SmartDashboard::PutNumber("Cams z dist", y);
-        m_odom.UpdateCams({x, y}, tagId, uniqueId, age);
-      }
-
-      m_isSecondTag = true;
-    } else {
-      m_isSecondTag = false;
-    } },
+    }
+    },
               5_ms, 2_ms);
 }
 
@@ -729,7 +720,7 @@ void Robot::ShuffleboardPeriodic()
 
     frc::SmartDashboard::PutBoolean("Cams Connected", m_client.HasConn());
     frc::SmartDashboard::PutBoolean("Cams Stale", m_client.IsStale());
-    frc::SmartDashboard::PutBoolean("Tag Detected", m_odom.GetTagDetected());
+    frc::SmartDashboard::PutBoolean("Tag Detected", m_tagDetected);
 
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
