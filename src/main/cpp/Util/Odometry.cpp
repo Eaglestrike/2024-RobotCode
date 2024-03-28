@@ -340,7 +340,7 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   }
 
   // update cams in pose estimator
-  double stdDev = m_camStdDevCoef /* * magn(vecRot) * magn(vecRot) */ + m_turnStdDevCoef * GetAngVel();
+  double stdDev = m_camStdDevCoef /* * magn(vecRot) * magn(vecRot) + m_turnStdDevCoef * GetAngVel()*/;
   if (magn(odomPos - robotPosCams) > OdometryConstants::TRUST_CAMS_MORE_THRESH && m_trustCamsMore) {
     stdDev = 0;
   }

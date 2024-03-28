@@ -118,4 +118,6 @@ class Robot : public frc::TimedRobot {
     // LED
     LED m_led;
 
+    // eject timer
+    double m_ejectStartTimer = -1;
 };
