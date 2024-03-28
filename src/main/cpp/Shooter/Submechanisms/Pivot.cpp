@@ -208,7 +208,7 @@ void Pivot::SetAngle(double angle){
         state_ = AIMING;
     }
 
-    if(std::abs(currTarg.pos - angle) > 0.001){ //Basically the same target
+    if(std::abs(currTarg.pos - angle) > 0.0001){ //Basically the same target
         Poses::Pose1D startPose;
         if(profile_.isFinished()){
             startPose = currPose_;
