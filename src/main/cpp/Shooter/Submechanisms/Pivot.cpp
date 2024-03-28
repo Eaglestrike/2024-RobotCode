@@ -73,7 +73,9 @@ void Pivot::CoreTeleopPeriodic(){
     double dt = t - prevT_;
     if(dt > 0.04){
         dt = 0.0;
-        state_ = STOP;
+        if(state_ != STOP && state_ != JUST_VOLTAGE){
+            SetAngle(tempTarg_);
+        }
     }
     switch(state_){
         case STOP:
@@ -182,9 +184,10 @@ void Pivot::SetAngle(double angle){
     if(angle > bounds_.max || angle < bounds_.min){
         return;
     }
+    
+    tempTarg_ = angle;
 
     if(hooked_){
-        tempTarg_ = angle;
         if(state_ == UNHOOK){ //No need to regenerate
             return;
         }
