@@ -328,26 +328,22 @@ void Shooter::Ferry(vec::Vector2D robotPos, vec::Vector2D robotVel){
     }
 
     //Speaker targetting
-    bool blueSpeaker = SideHelper::IsBlue();
-    vec::Vector2D corner = blueSpeaker? ShooterConstants::BLUE_CORNER : ShooterConstants::RED_CORNER;
-    vec::Vector2D trim{trim_.y(), trim_.x()};
-    trim *= (blueSpeaker? 1.0: -1.0);
+    bool blue = SideHelper::IsBlue();
+    vec::Vector2D corner = blue? ShooterConstants::BLUE_CORNER : ShooterConstants::RED_CORNER;
     
-    state_ = SHOOT;
     targetPos_ = robotPos;
-
-    vec::Vector2D toSpeaker = corner - targetPos_ + trim;
-    double dist = toSpeaker.magn();
-
     targetVel_ = {0.0, 0.0};
+
+    vec::Vector2D toAmp = corner - targetPos_;
+    double dist = toAmp.magn();
 
     if(shuff_.isEnabled()){
         shuff_.PutNumber("Shot dist", dist, {1,1,3,3});
     }
 
-    targetYaw_ = toSpeaker.angle();
+    targetYaw_ = toAmp.angle();
 
-    double angTol = std::atan2(dist, ferryR_);
+    double angTol = std::atan2(ferryR_, dist);
     posYawTol_ = angTol;
     negYawTol_ = -angTol;
 
@@ -371,9 +367,7 @@ void Shooter::Ferry(vec::Vector2D robotPos, vec::Vector2D robotVel){
     double pivotAng = lowerPercent*lowerShot.ang + upperPercent*upperShot.ang;
     double shotVel = lowerPercent*lowerShot.vel + upperPercent*upperShot.vel;
 
-    //Pivot set tolerance (max - min)/2.0
-    double pivotTol = (std::atan(dist/ShooterConstants::SPEAKER_MIN) - std::atan((dist-ShooterConstants::SPEAKER_DEPTH)/ShooterConstants::SPEAKER_MIN))/2.0;
-    pivot_.SetTolerance(pivotTol * pivotAngPercent_);
+    pivot_.SetTolerance(ShooterConstants::PIVOT_POS_TOL);
 
     //Add spin
     double angToSpeaker = targetYaw_;
@@ -594,6 +588,7 @@ std::string Shooter::StateToString(State state){
     switch(state){
         case STOP: return "Stop";
         case SHOOT: return "Shoot";
+        case FERRY: return "Ferry";
         case AMP: return "Amp";
         case STROLL: return "Stroll";
         default: return "Unknown";
