@@ -21,6 +21,7 @@
 #include "Auto/AutoChooser.h"
 #include "Controller/Controller.h"
 #include "Drive/AutoAngLineup.h"
+#include "Drive/AutoHmLineup.h"
 #include "Drive/SwerveControl.h"
 #include "Climb/Climb.h"
 #include "Intake/Intake.h"
@@ -93,6 +94,7 @@ class Robot : public frc::TimedRobot {
 
     // auto lineup
     AutoAngLineup m_autoLineup;
+    AutoHmLineup m_autoHmLineup;
 
     //Auto 
     Auto m_auto;

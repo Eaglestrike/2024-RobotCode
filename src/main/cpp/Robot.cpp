@@ -37,7 +37,8 @@ Robot::Robot() :
   m_isSecondTag{false},
   m_odom{false},
   //Auto
-  m_autoLineup{false, m_odom},  
+  m_autoLineup{false, m_odom},
+  m_autoHmLineup{DebugConfig::AUTO_LINEUP, m_odom},
   m_auto{DebugConfig::AUTO, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
   m_autoChooser{false, m_auto},
   m_led{}
@@ -105,6 +106,7 @@ void Robot::RobotInit()
   m_auto.ShuffleboardInit();
   m_odom.ShuffleboardInit();
   m_autoLineup.ShuffleboardInit();
+  m_autoHmLineup.ShuffleboardInit();
 
   m_navx->Reset();
   m_navx->ZeroYaw();
@@ -133,6 +135,7 @@ void Robot::RobotPeriodic()
   m_auto.ShuffleboardPeriodic();
   m_odom.ShuffleboardPeriodic();
   m_autoLineup.ShuffleboardPeriodic();
+  m_autoHmLineup.ShuffleboardPeriodic();
 
   // ZERO DRIVEBASE
   if (m_controller.getPressedOnce(ZERO_YAW))
@@ -354,6 +357,7 @@ void Robot::TeleopPeriodic()
       }
     } else if (m_controller.getPressed(SHOOT)){
       if(m_intake.HasGamePiece()){
+        bool canShoot = m_shooter.CanShoot(m_posVal);
         if (!m_amp) {
           if (m_posVal != 3) {
             m_autoLineup.Recalc(m_shooter.GetTargetRobotYaw());
@@ -361,7 +365,16 @@ void Robot::TeleopPeriodic()
             m_autoLineup.Recalc(m_odom.GetAngNorm());
           }
         }
-        if(m_shooter.CanShoot(m_posVal)){
+        else{
+          if(!m_autoHmLineup.HasStarted()){
+            vec::Vector2D target = SideHelper::IsBlue() ? FieldConstants::BLUE_AMP : FieldConstants::RED_AMP;
+            m_autoHmLineup.SetTarget(target, M_PI/2.0);
+            m_autoHmLineup.Start();
+          }
+          m_autoHmLineup.Periodic();
+          canShoot &= m_autoHmLineup.AtTarget();
+        }
+        if(canShoot){
           m_intake.FeedIntoShooter();
         }
         m_shooter.Stop();
@@ -379,6 +392,10 @@ void Robot::TeleopPeriodic()
     else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece())
     {
       m_intake.Stow();
+      m_autoHmLineup.Stop();
+    }
+    else{
+      m_autoHmLineup.Stop();
     }
   }
 
@@ -487,7 +504,10 @@ void Robot::TeleopPeriodic()
   }
 
   // auto lineup
-  if (m_controller.getPOVDown(AMP_FERRY) ||
+  if(m_controller.getPressed(SHOOT) && m_intake.HasGamePiece() && m_amp){
+    m_swerveController.SetRobotVelocity(m_autoHmLineup.GetExpVel(), m_autoHmLineup.GetExpAngVel(), curYaw);
+  }
+  else if (m_controller.getPOVDown(AMP_FERRY) ||
       (m_controller.getPressed(SHOOT) && !m_amp && m_shooter.UseAutoLineup()) // Angle lineup when shooting
   )
   {
@@ -609,8 +629,6 @@ void Robot::TestPeriodic()
   double yVolts = m_swerveYTuner.getVoltage();
 
   m_swerveController.SetRobotVelocity({xVolts, yVolts}, 0.0, curYaw);
-#else
-  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
 #endif
 
   if (m_controller.getPressed(INTAKE))
@@ -619,7 +637,22 @@ void Robot::TestPeriodic()
   }
   if (m_controller.getPressed(SHOOT))
   {
-    m_intake.FeedIntoShooter();
+    if(m_amp){
+      if(!m_autoHmLineup.HasStarted()){
+        m_autoHmLineup.Start();
+      }
+      m_autoHmLineup.Periodic();
+    }
+    else{
+      m_intake.FeedIntoShooter();
+    }
+  }
+
+  if(m_controller.getPressed(SHOOT) && m_amp){
+    m_swerveController.SetRobotVelocity(m_autoHmLineup.GetExpVel(), m_autoHmLineup.GetExpAngVel(), curYaw);
+  }
+  else{
+    m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   }
 
   m_swerveController.Periodic();

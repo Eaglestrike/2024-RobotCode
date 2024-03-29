@@ -363,6 +363,35 @@ void AutoHmLineup::ShuffleboardInit() {
   if (!m_shuff.isEnabled()) {
     return;
   }
+
+  m_shuff.add("k time", &m_kTime, {1,1,0,0}, true);
+  
+  m_shuff.PutNumber("targ x", 0.0, {1,1,0,1});
+  m_shuff.PutNumber("targ y", 0.0, {1,1,1,1});
+  m_shuff.PutNumber("targ ang", 0.0, {1,1,2,1});
+  m_shuff.addButton("Set Target",
+    [&]{
+      SetTarget({m_shuff.GetNumber("targ x", 0.0), m_shuff.GetNumber("targ y", 0.0)}, m_shuff.GetNumber("targ ang", 0.0));
+      Stop();
+      std::cout<<"Set AutoHm Target"<<std::endl;
+    },
+    {1,1,3,1}
+  );
+
+  m_shuff.PutNumber("p", m_posCorrectX.GetPID().kp, {1,1,0,2});
+  m_shuff.PutNumber("i", m_posCorrectX.GetPID().ki, {1,1,1,2});
+  m_shuff.PutNumber("d", m_posCorrectX.GetPID().kd, {1,1,2,2});
+  m_shuff.addButton("Set PID",
+    [&]{
+      double p = m_shuff.GetNumber("p", 0.0);
+      double i = m_shuff.GetNumber("i", 0.0);
+      double d = m_shuff.GetNumber("d", 0.0);
+      m_posCorrectX.SetPID({p, i, d});
+      m_posCorrectY.SetPID({p, i, d});
+      std::cout<<"Set AutoHm PID"<<std::endl;
+    },
+    {1,1,3,2}
+  );
 }
 
 /**
@@ -374,4 +403,6 @@ void AutoHmLineup::ShuffleboardPeriodic() {
   }
  
   m_shuff.PutBoolean("At Target", AtTarget(), {3,3,5,0});
+
+  m_shuff.update(true);
 }

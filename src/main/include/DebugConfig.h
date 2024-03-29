@@ -13,6 +13,7 @@ namespace DebugConfig{
     const bool CLIMB    = false;
 
     const bool DRIVE    = false;
+    const bool AUTO_LINEUP = false;
 
     const bool INTAKE   = false;
 
