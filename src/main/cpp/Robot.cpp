@@ -37,7 +37,7 @@ Robot::Robot() :
   //Sensors
   m_client{"10.1.14.202", 44590, 500, 5000}, // 10.1.14.202
   m_isSecondTag{false},
-  m_odom{false},
+  m_odom{true},
   //Auto
   m_autoLineup{false, m_odom},  
   m_auto{DebugConfig::AUTO, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
@@ -80,10 +80,9 @@ Robot::Robot() :
     m_tagDetected = res.HasTargets();
     if (m_tagDetected) {
       ph::PhotonTrackedTarget targ = res.GetBestTarget();
-      frc::Transform3d camToTarg = targ.GetBestCameraToTarget();
-      frc::AprilTagFieldLayout fieldLayout = frc::LoadAprilTagLayoutField(frc::AprilTagField::k2024Crescendo);
+      double latency = res.GetLatency().value();
+      m_odom.UpdateCams(targ, latency);
       frc::SmartDashboard::PutNumber("Last Tag ID", targ.GetFiducialId()); 
-
     }
     },
               5_ms, 2_ms);
@@ -718,8 +717,8 @@ void Robot::ShuffleboardPeriodic()
     double ang = m_odom.GetAng();
     vec::Vector2D pos = m_odom.GetPos();
 
-    frc::SmartDashboard::PutBoolean("Cams Connected", m_client.HasConn());
-    frc::SmartDashboard::PutBoolean("Cams Stale", m_client.IsStale());
+    // frc::SmartDashboard::PutBoolean("Cams Connected", m_client.HasConn());
+    // frc::SmartDashboard::PutBoolean("Cams Stale", m_client.IsStale());
     frc::SmartDashboard::PutBoolean("Tag Detected", m_tagDetected);
 
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
@@ -729,9 +728,9 @@ void Robot::ShuffleboardPeriodic()
     frc::SmartDashboard::PutData("Robot Field", &m_field);
 
     // logger
-    m_logger.LogBool("Cams Stale", m_client.IsStale());
-    m_logger.LogBool("Cams Connected", m_client.HasConn());
-    m_logger.LogBool("Tag Detected", m_odom.GetTagDetected());
+    // m_logger.LogBool("Cams Stale", m_client.IsStale());
+    // m_logger.LogBool("Cams Connected", m_client.HasConn());
+    m_logger.LogBool("Tag Detected", m_tagDetected);
     m_logger.LogNum("Pos X", pos.x());
     m_logger.LogNum("Pos Y", pos.y());
     m_logger.LogNum("Ang", ang);

@@ -87,7 +87,7 @@ class Robot : public frc::TimedRobot {
     // Vision
     SocketClient m_client;
     bool m_isSecondTag;
-    ph::PhotonCamera m_camera{"photonvision"};
+    ph::PhotonCamera m_camera{"USB_webcam"};
     bool m_tagDetected = false;
     
     // Odometry

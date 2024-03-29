@@ -7,6 +7,8 @@
 #include "Util/simplevectors.hpp"
 #include "Util/Utils.h"
 
+#include <frc/geometry/Transform3d.h>
+
 namespace vec = svector;
 
 namespace OdometryConstants {
@@ -58,4 +60,13 @@ namespace OdometryConstants {
 
   // offset from caams, in s
   const double CAM_TIME_OFFSET = 0.133;
+
+  // camera to robot, in m
+  const units::meter_t X_OFFSET = units::meter_t{0.083};
+  const units::meter_t Y_OFFSET = units::meter_t{0};
+  const units::meter_t Z_OFFSET = units::meter_t{0.6604};
+  const units::radian_t PITCH_OFFSET = units::radian_t{0.509};
+  const units::radian_t ROLL_OFFSET = units::radian_t{0};
+  const units::radian_t YAW_OFFSET = units::radian_t{0};
+  const frc::Transform3d ROBOT_CAM_TRANSFORM{X_OFFSET, Y_OFFSET, Z_OFFSET, frc::Rotation3d{PITCH_OFFSET, ROLL_OFFSET, YAW_OFFSET}};
 }
