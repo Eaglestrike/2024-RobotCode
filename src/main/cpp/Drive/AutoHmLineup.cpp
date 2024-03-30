@@ -28,9 +28,9 @@ AutoHmLineup::AutoHmLineup(bool shuffleboard, Odometry &odom):
   m_isDonePos{false},
   m_isDoneAng{false}
 {
-  m_posCorrectX.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
-  m_posCorrectY.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
-  m_angCorrect.SetTolerance(AutoConstants::ANG_TOL, std::numeric_limits<double>::infinity());
+  m_posCorrectX.SetTolerance(AutoConstants::AMP_POS_TOL, std::numeric_limits<double>::infinity());
+  m_posCorrectY.SetTolerance(AutoConstants::AMP_POS_TOL, std::numeric_limits<double>::infinity());
+  m_angCorrect.SetTolerance(AutoConstants::AMP_ANG_TOL, std::numeric_limits<double>::infinity());
 }
 
 /**
