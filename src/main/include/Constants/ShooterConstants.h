@@ -142,7 +142,7 @@ namespace ShooterConstants{
 
     const std::map<double, ShootConfig> FERRY_DATA = {
         {0.0, {0.31, 1.5}},
-        {5.0, {0.31, 10.5}},
+        {5.0, {0.31, 8.5}},
         {6.6, {1.0, 12.5}},
         {7.6, {0.9, 13.5}},
         {9.3, {0.9, 16}}
