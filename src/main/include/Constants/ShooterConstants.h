@@ -136,6 +136,14 @@ namespace ShooterConstants{
         {4.37,  {0.51,  18.0}}
     };
 
+    const std::map<double, ShootConfig> FERRY_DATA = {
+        {0.0, {0.31, 1.5}},
+        {5.0, {0.31, 8.5}},
+        {6.6, {1.0, 12.5}},
+        {7.6, {0.9, 13.5}},
+        {9.3, {0.9, 16}}
+    };
+
     //const double K_SPIN = 0.0; //Constant of how much the robot spins the note
 
     const double STROLL_SPEED = 0.7; //Voltage of strolling
@@ -159,6 +167,10 @@ namespace ShooterConstants{
     //Speaker center positions (x, y)
     const vec::Vector2D RED_SPEAKER = {16.54-0.30-0.075-0.075, 5.58};
     const vec::Vector2D BLUE_SPEAKER = {0.0+0.15+0.225, 5.58};
+
+    const vec::Vector2D RED_CORNER = {15.362, 6.357};
+    const vec::Vector2D BLUE_CORNER = {0.932, 6.357};
+    const double FERRY_R = 0.4;
 
     //Dimensions of the shootable area
     const double SPEAKER_MIN = 1.98; //height; m
@@ -193,7 +205,7 @@ namespace ShooterConstants{
     const double prepareT = 0.1;
 
     // amp
-    const double PIVOT_AMP = 1.15; //1.1
+    const double PIVOT_AMP = 1.1; //1.15
     const double FLYWHEEL_SPEED_AMP = 3.3; //4.25
     const double FLYWHEEL_SPIN_AMP = 0.0; //-0.25
 }

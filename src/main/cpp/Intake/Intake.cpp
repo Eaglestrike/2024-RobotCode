@@ -52,7 +52,7 @@ void Intake::SetManual(bool manual) {
 */
 void Intake::SetManualInput(double manualInput) {
     manualInput = std::clamp(manualInput, -1.0, 1.0);
-    manualInput *= m_wrist.GetMaxVolts() / 2.0;
+    manualInput *= m_wrist.GetManualVolts() / 2.0;
     m_manualVolts = manualInput;
 }
 
@@ -171,12 +171,12 @@ void Intake::CoreTeleopPeriodic(){
             }
             break;
         case NONE:
-            // if(InChannel()){
-            //     m_channel.SetState(Channel::TO_SHOOT);
-            // }
-            // else{
-            //     m_channel.SetState(Channel::STOP);
-            // }
+            if(m_ampPass && InChannel()){
+                m_channel.SetState(Channel::IN);
+            }
+            else{
+                m_channel.SetState(Channel::STOP);
+            }
         default:
             break;
     }
@@ -398,8 +398,7 @@ void Intake::HalfStow(){
     SetState(HALF_STOW);
 }
 
-void Intake::Passthrough(bool amp){
-    m_ampPass = amp;
+void Intake::Passthrough(){
     SetState(PASSTHROUGH);
 }
 
@@ -417,4 +416,8 @@ void Intake::FeedIntoShooter(){
 
 void Intake::KeepIntakeDown(bool keepIntakeDown){
     m_keepIntakeDown = keepIntakeDown;
+}
+
+void Intake::SetAmp(bool amp){
+    m_ampPass = amp;
 }

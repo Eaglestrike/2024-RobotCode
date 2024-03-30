@@ -34,7 +34,7 @@ class Intake: public Mechanism{
         void Stow();
         void Climb();
         void HalfStow();
-        void Passthrough(bool amp);
+        void Passthrough();
         void AmpOuttake();
         void AmpIntake();
         void FeedIntoShooter();
@@ -43,6 +43,7 @@ class Intake: public Mechanism{
         void Zero();
         void SetManual(bool manual);
         void SetManualInput(double manualInput);
+        void SetAmp(bool amp);
 
         void EjectTimerStart();
         void EjectForward();
