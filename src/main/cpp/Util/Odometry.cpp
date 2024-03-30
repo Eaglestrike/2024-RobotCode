@@ -358,6 +358,8 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
 void Odometry::UpdateCams(const ph::PhotonTrackedTarget &target, const double &latency) {
   using namespace OdometryConstants;
 
+  double camTime = Utils::GetCurTimeS() - latency / 1000.0;
+
   // tag position
   std::optional<frc::Pose3d> tagPoseRes = m_fieldLayout.GetTagPose(target.GetFiducialId()); 
   // bad tag ID
@@ -369,15 +371,14 @@ void Odometry::UpdateCams(const ph::PhotonTrackedTarget &target, const double &l
   frc::Transform3d camToTarg = target.GetBestCameraToTarget();
   frc::Pose3d camToTargPose = {camToTarg.Translation(), camToTarg.Rotation()};
   camToTargPose = camToTargPose.RotateBy(frc::Rotation3d{-ROLL_OFFSET, -PITCH_OFFSET, units::radian_t{0}});
-  camToTarg = {camToTargPose.Translation(), camToTarg.Rotation()};
+
 
   // find robot pos from cameras
   frc::Pose3d tagPose = tagPoseRes.value();
-  frc::Transform2d robotToCam2d = {ROBOT_CAM_TRANSFORM.X(), ROBOT_CAM_TRANSFORM.Y(), ROBOT_CAM_TRANSFORM.Rotation().Z()};
-  frc::Transform2d camToTarg2d = {camToTarg.X(), camToTarg.Y(), camToTarg.Rotation().Z()};
-  frc::Pose2d robotPose = ph::PhotonUtils::EstimateFieldToRobot(camToTarg2d, tagPose.ToPose2d(), robotToCam2d);
-  vec::Vector2D robotPosCams = {robotPose.X().value(), robotPose.Y().value()};
+  frc::Pose3d fieldToRobot = tagPose + camToTarg.Inverse() + ROBOT_CAM_TRANSFORM;
+  frc::Transform2d camToTarg2d = {camToTargPose.X(), camToTargPose.Y(), camToTargPose.Rotation().Z()};
   vec::Vector2D camToTargVec = {camToTarg2d.X().value(), camToTarg2d.Y().value()};
+  vec::Vector2D robotPosCams = {fieldToRobot.X().value(), fieldToRobot.Y().value()};
 
   // reject if apriltag pos is too far away
   vec::Vector2D odomPos = GetPos();
@@ -408,7 +409,6 @@ void Odometry::UpdateCams(const ph::PhotonTrackedTarget &target, const double &l
     stdDev = 0;
   }
 
-  double camTime = Utils::GetCurTimeS() - latency / 1000.0;
   m_estimator.UpdateCams(camTime, robotPosCams, {stdDev, stdDev});
   m_camPos = robotPosCams;
 }
