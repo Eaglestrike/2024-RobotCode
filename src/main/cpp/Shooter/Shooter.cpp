@@ -96,7 +96,7 @@ void Shooter::Stop(){
 /**
  * Exits the current state (STOP)
 */
-void Shooter::Stop(){
+void Shooter::ExitState(){
     state_ = STOP;
 }
 

@@ -82,7 +82,7 @@ void Flywheel::CoreTeleopPeriodic(){
                 }
                 else{
                     // profile_.Regenerate(currPose_);
-                    // accum_ = 0.0;
+                    accum_ = 0.0;
                 }
             }
             if (state_ == State::AT_TARGET){
