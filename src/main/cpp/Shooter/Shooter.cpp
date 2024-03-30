@@ -94,6 +94,13 @@ void Shooter::Stop(){
 }
 
 /**
+ * Exits the current state (STOP)
+*/
+void Shooter::Stop(){
+    state_ = STOP;
+}
+
+/**
  * Sets to low speed/voltage to constantly spin
 */
 void Shooter::Stroll(){
@@ -253,7 +260,7 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     #endif
 
     if(shuff_.isEnabled()){
-        shuff_.PutNumber("Shot dist", dist, {1,1,3,3});
+        shuff_.PutNumber("Shot dist", dist, {1,1,2,3});
     }
 
     targetYaw_ = toSpeaker.angle();
@@ -277,6 +284,8 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     //Multiply by tolerance percent
     posYawTol_ = std::clamp(posYawTol_, 0.01, M_PI/2.0); //Tol cannot be greater than 90 degrees
     negYawTol_ = std::clamp(negYawTol_, -M_PI/2.0, -0.01);
+
+    targetYaw_ += shootYawOffset_;
 
     // targetYaw_ = (2 * targetYaw_ + posYawTol_ + negYawTol_) / 2;
     // posYawTol_ = (posYawTol_ - negYawTol_) / 2;
@@ -339,10 +348,10 @@ void Shooter::Ferry(vec::Vector2D robotPos, vec::Vector2D robotVel){
     double dist = toAmp.magn();
 
     if(shuff_.isEnabled()){
-        shuff_.PutNumber("Shot dist", dist, {1,1,3,3});
+        shuff_.PutNumber("Shot dist", dist, {1,1,2,3});
     }
 
-    targetYaw_ = toAmp.angle();
+    targetYaw_ = toAmp.angle() + shootYawOffset_;
 
     double angTol = std::atan2(ferryR_, dist);
     posYawTol_ = angTol;
@@ -470,10 +479,12 @@ bool Shooter::CanShoot(int posVal){
         case EJECT:
         {
             canShoot = pivot_.AtTarget();
+            break;
         }
         case THROW:
         {
             canShoot = pivot_.AtTarget();
+            break;
         }
     }
 
@@ -647,14 +658,15 @@ void Shooter::CoreShuffleboardInit(){
     //         shootData_.insert_or_assign({distance, {vel, pivot}});
     //         std::cout<<"Added distance:"<<distance<<" vel:"<<vel<<" pivot:"<<pivot<<std::endl;
     //     }, {1,1,4,2});
-    shuff_.add("Shoot time", &shootTime_, {1,1,5,2}, true);
+    // shuff_.add("Shoot time", &shootTime_, {1,1,5,2}, true);
 
     //Shot data (row 3)
     //shuff_.add("kSpin", &kSpin_, {1,1,0,3}, true);
-    shuff_.add("Shot Vel", &shot_.vel, {1,1,1,3});
-    shuff_.add("Shot Ang", &shot_.ang, {1,1,2,3});
-    shuff_.add("kD", &kD_, {1,1,4,3});
-    shuff_.add("cT", &cT_, {1,1,5,3});
+    shuff_.add("Shot Vel", &shot_.vel, {1,1,0,3});
+    shuff_.add("Shot Ang", &shot_.ang, {1,1,1,3});
+    shuff_.add("kD", &kD_, {1,1,4,3}, true);
+    shuff_.add("cT", &cT_, {1,1,5,3}, true);
+    shuff_.add("Yaw Offset", &shootYawOffset_, {1,1,6,3}, true);
     
     //Tolerance (row 4)
     shuff_.add("pos tol", &posTol_, {1,1,0,4}, true);

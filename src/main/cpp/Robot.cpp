@@ -402,7 +402,7 @@ void Robot::TeleopPeriodic()
         if(canShoot){
           m_intake.FeedIntoShooter();
         }
-        m_shooter.Stop(); //Exit state
+        m_shooter.ExitState(); //Exit state
       }
       else
       {

@@ -40,6 +40,7 @@ class Shooter : public Mechanism{
         Shooter(std::string name, bool enabled, bool shuffleboard);
 
         void Stop();
+        void ExitState();
         void Stroll();
         void Amp();
         void ManualTarget(double target);
@@ -98,6 +99,7 @@ class Shooter : public Mechanism{
         double kD_ = ShooterConstants::kD;
         double cT_ = ShooterConstants::cT;
         double ferryR_ = ShooterConstants::FERRY_R;
+        double shootYawOffset_ = ShooterConstants::SHOOT_ANG_OFFSET;
 
         bool hasShot_;
         ShooterConstants::ShootConfig shot_;

@@ -92,7 +92,7 @@ namespace ShooterConstants{
     };
 
     const Feedforward PIVOT_FF = {
-        .ks = 0.04,
+        .ks = 0.03,
         .kv = 0.366,
         .ka = 0.0552,
         .kg = 0.475
@@ -161,6 +161,8 @@ namespace ShooterConstants{
     const double SHOOT_YAW_PERCENT = 0.5;
     const double LINEUP_YAW_PERCENT = 0.37; //0.45
     const double PIVOT_ANG_PERCENT = 0.7; // 0.8
+    
+    const double SHOOT_ANG_OFFSET = 0.0;
 
     //Field Data
 
