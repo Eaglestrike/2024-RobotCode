@@ -48,6 +48,7 @@ class Wrist: public Mechanism{
         MechState GetState();
         // double getSetPt();
         double GetMaxVolts();
+        double GetManualVolts();
     private:
         void MoveToSetPt();
         void ChangeSetPt(double newPos); //pos should be in radians, w 0 as extended and parallel to ground
@@ -76,7 +77,7 @@ class Wrist: public Mechanism{
 
         //Shuffleboard
         ShuffleboardSender m_shuff;
-        double MAX_VEL = 7.0, MAX_ACC = 17.0;
+        double MAX_VEL = 20.0, MAX_ACC = 35.0;
         TrapezoidalProfile m_trapezoidalProfile;
         
         #if WRIST_AUTOTUNING
@@ -93,7 +94,8 @@ class Wrist: public Mechanism{
 
         double ENCODER_OFFSET = 1.68 + M_PI/2.0 - 1.3411 + 0.1134;
         
-        double MAX_VOLTS = 5.0;
+        double MAX_VOLTS = 12.0;
+        double MANUAL_MAX_VOLTS = 5.0;
         
         // will prob change
         double REL_CONV_FACTOR = 1.0 * (8.0 / 66.0) * (18.0 / 66.0);

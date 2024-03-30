@@ -209,6 +209,9 @@ void Wrist::CoreShuffleboardInit(){
     m_shuff.PutNumber("velErr", 0.0, {1,1,6,4}); 
     m_shuff.PutNumber("ff out", 0.0, {1,1,7,4}); 
     m_shuff.PutNumber("pid out", 0.0, {1,1,8,4});
+
+    m_trapezoidalProfile.setMaxAcc(MAX_ACC);
+    m_trapezoidalProfile.setMaxVel(MAX_VEL);
 }
 
 // double Wrist::getSetPt(){
@@ -269,4 +272,8 @@ void Wrist::SetVoltage(){
 */
 double Wrist::GetMaxVolts() {
     return MAX_VOLTS;
+}
+
+double Wrist::GetManualVolts() {
+    return MANUAL_MAX_VOLTS;
 }
