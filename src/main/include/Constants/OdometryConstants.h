@@ -42,12 +42,12 @@ namespace OdometryConstants {
 
   // drivebase system std dev x, y
   // TODO need to change
-  const vec::Vector2D SYS_STD_DEV_AUTO = {0.001, 0.001}; // 0.001, 0.001
-  const vec::Vector2D SYS_STD_DEV_TELE = {0.001, 0.001}; // 0.01
+  const vec::Vector2D SYS_STD_DEV_AUTO = {0.00044, 0.00044}; // 0.001, 0.001
+  const vec::Vector2D SYS_STD_DEV_TELE = {0.00044, 0.00044}; // 0.01
 
   // camera std dev coefficient (0 stddev if 0 m from camera, increases quadratically with distance)
-  const double CAM_STD_DEV_COEF_AUTO = 0.01; // 0.03
-  const double CAM_STD_DEV_COEF_TELE = 0.01; // 0.003
+  const double CAM_STD_DEV_COEF_AUTO = 0.015; // 0.03
+  const double CAM_STD_DEV_COEF_TELE = 0.015; // 0.003
 
   // turning std dev coef
   const double CAM_TURN_STD_DEV_COEF = 0.01909859317;
@@ -63,7 +63,7 @@ namespace OdometryConstants {
 
   // camera to robot, in m
   const units::meter_t X_OFFSET = units::meter_t{0.083};
-  const units::meter_t Y_OFFSET = units::meter_t{0};
+  const units::meter_t Y_OFFSET = units::meter_t{0.12};
   const units::meter_t Z_OFFSET = units::meter_t{0.6604};
   const units::radian_t PITCH_OFFSET = units::radian_t{0.509};
   const units::radian_t ROLL_OFFSET = units::radian_t{0};
