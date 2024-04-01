@@ -34,6 +34,7 @@ public:
   double GetAng() const;
   double GetYaw() const;
   vec::Vector2D GetVel() const;
+  vec::Vector2D GetDBVel() const;
   double GetAngVel() const;
   double GetAngNorm() const;
   double GetJoystickAng() const;

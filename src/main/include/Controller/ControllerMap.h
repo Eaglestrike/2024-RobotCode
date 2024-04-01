@@ -18,8 +18,9 @@ namespace Actions{
         SLOW_MODE,
         FAST_MODE,
         INTAKE,
-        INTAKE_TO_AMP,
-        INTAKE_TO_CHANNEL,
+        AMP_STATE,
+        SHOOT_STATE,
+        FERRY_STATE,
         SHOOT,
         MANUAL_CLIMB,
         MANUAL_INTAKE_WRIST,
@@ -43,7 +44,7 @@ namespace Actions{
         NO_POV_ACTION = -1,
         TEMP,
         CLIMB,
-        AMP_FERRY,
+        THROW,
         HALF_STOW,
         EXTEND,
         ACTION_COUNT_POV //Just the number of actions, as it is at the end of a enum
@@ -79,10 +80,10 @@ namespace ControllerMapData{
         {XBOX_LJOY_Y,           MANUAL_CLIMB}, 
         {XBOX_RJOY_X,           NONE},
         {XBOX_RJOY_Y,           MANUAL_INTAKE_WRIST},
-        {XBOX_A_BUTTON ,        INTAKE_TO_AMP},
+        {XBOX_A_BUTTON ,        AMP_STATE},
         {XBOX_B_BUTTON ,        MANUAL_EJECT_OUT}, // moved amp autolineup to pov right
         {XBOX_X_BUTTON ,        MANUAL_EJECT_IN}, // moved half stow to pov left
-        {XBOX_Y_BUTTON ,        INTAKE_TO_CHANNEL},
+        {XBOX_Y_BUTTON ,        SHOOT_STATE},
         {XBOX_L_BUMPER ,        ZERO_1},
         {XBOX_LTRIGGER ,        MANUAL_1},
         {XBOX_R_BUMPER ,        ZERO_2},
@@ -93,7 +94,8 @@ namespace ControllerMapData{
         {BB_Y_TRIM_UP ,         BRAKE},
         {BB_LEFT ,              ZERO_CLIMB},
         {BB_RIGHT ,             ZERO_INTAKE},
-        {BB_UP,                 SHOOT_AUTO}
+        {BB_UP,                 SHOOT_AUTO},
+        {{BUTTONBOARD, B_9},    FERRY_STATE}
     };
 
     //Allows for maps of buttons to values, such as the index of the buttonboard
@@ -153,6 +155,6 @@ namespace ControllerMapData{
         {XBOX_POV, POV_UP, EXTEND},
         {XBOX_POV, POV_DOWN, CLIMB},
         {XBOX_POV, POV_LEFT, HALF_STOW},
-        {XBOX_POV, POV_RIGHT, AMP_FERRY},
+        {XBOX_POV, POV_RIGHT, THROW},
     };
 };

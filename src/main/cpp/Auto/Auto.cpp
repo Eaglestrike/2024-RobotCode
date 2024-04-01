@@ -328,15 +328,16 @@ void Auto::ShooterPeriodic(double t){
 */
 void Auto::IntakePeriodic(double t){
     //First Action
+    intake_.SetAmp(false);
     if(!intakeTiming_.hasStarted && t > intakeTiming_.start){
-        intake_.Passthrough(false);
+        intake_.Passthrough();
         intakeTiming_.hasStarted = true;
         // std::cout<<"Intake Start"<<std::endl;
     }
     if(intakeTiming_.finished){
     }
     else if(intakeTiming_.hasStarted){
-        intake_.Passthrough(false);
+        intake_.Passthrough();
         //Check if finished
         if(intake_.InChannel()){  // End intake if has game piece
             // std::cout<< "Intake end" << std::endl;

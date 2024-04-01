@@ -22,6 +22,7 @@
 #include "Auto/AutoChooser.h"
 #include "Controller/Controller.h"
 #include "Drive/AutoAngLineup.h"
+#include "Drive/AutoHmLineup.h"
 #include "Drive/SwerveControl.h"
 #include "Climb/Climb.h"
 #include "Intake/Intake.h"
@@ -33,6 +34,8 @@
 #include "Constants/AutoConstants.h"
 
 #include "Shooter/Shooter.h"
+
+#include "RobotState.h"
 
 namespace ph = photon;
 
@@ -55,6 +58,8 @@ class Robot : public frc::TimedRobot {
   private: 
     void ShuffleboardInit();
     void ShuffleboardPeriodic();
+
+    RobotState::State m_state;
 
     // Controller
     Controller m_controller;
@@ -98,6 +103,7 @@ class Robot : public frc::TimedRobot {
 
     // auto lineup
     AutoAngLineup m_autoLineup;
+    AutoHmLineup m_autoHmLineup;
 
     //Auto 
     Auto m_auto;
@@ -109,10 +115,9 @@ class Robot : public frc::TimedRobot {
     frc::SendableChooser<std::string> m_autoEndChooser;
 
     // current buttonboard states
-    bool m_amp = true;
+    bool m_eject = false;
     bool m_wristManual = false;
     bool m_climbManual = false;
-    bool m_eject = false;
     int m_posVal = 0;
 
     // zerored states
