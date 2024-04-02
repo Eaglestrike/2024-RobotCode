@@ -177,6 +177,8 @@ void Robot::RobotPeriodic()
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 110, 199, 0);
   } else if (m_state == RobotState::AMP) {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 255, 0, 0);
+  } else if (m_state == RobotState::FERRY) {
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 0, 0, 0);
   } else {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 0, 255, 0);
   }
