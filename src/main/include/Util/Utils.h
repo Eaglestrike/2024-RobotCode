@@ -22,7 +22,7 @@ namespace Utils {
   bool NearZero(const double num, const double tolerance = NEAR_ZERO_TOLERANCE);
   bool NearZero(const vec::Vector2D vec, const double tolerance = NEAR_ZERO_TOLERANCE);
 
-  double NormalizeAng(const double ang);
+  double NormalizeAng(const double ang); //[-pi, pi]
   double NormalizeAngDeg(const double ang);
 
   std::size_t GetCurTimeMs();

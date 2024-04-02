@@ -73,7 +73,9 @@ void Pivot::CoreTeleopPeriodic(){
     double dt = t - prevT_;
     if(dt > 0.04){
         dt = 0.0;
-        state_ = STOP;
+        if(state_ != STOP && state_ != JUST_VOLTAGE){
+            SetAngle(tempTarg_);
+        }
     }
     switch(state_){
         case STOP:
@@ -93,7 +95,7 @@ void Pivot::CoreTeleopPeriodic(){
             }
 
             Poses::Pose1D target = profile_.currentPose();
-            double ff = ff_.ks*Utils::Sign(target.vel) + ff_.kv*target.vel + ff_.ka*target.acc;
+            double ff = ff_.kv*target.vel + ff_.ka*target.acc;
             double grav = ff_.kg*cos(currPose_.pos); //Have gravity be feedback
             
             volts_ = ff + grav;
@@ -104,13 +106,16 @@ void Pivot::CoreTeleopPeriodic(){
             volts_ += pid;
 
             double absError = std::abs(error.pos);
-            if((absError < inchTol_) && (absError > ShooterConstants::PIVOT_INCH_DEADBAND)){
+            if((absError < inchTol_) && (absError > ShooterConstants::PIVOT_INCH_DEADBAND)){ //Inch within a tolerance
                 cycle_++;
                 cycle_ %= inch_.numCycles;
                 double inch = (cycle_ < inch_.onCycles) ? inch_.volts : 0.0;
                 inch *= Utils::Sign(error.pos);
                 volts_ += inch;
             }
+
+            double direction = Utils::Sign(volts_);
+            volts_ += (ff_.ks + frctn_*sin(currPose_.pos)) * direction; //Friction will be partially feedback
 
             bool finished = profile_.isFinished();
             bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
@@ -142,11 +147,10 @@ void Pivot::CoreTeleopPeriodic(){
             }
 
             if(shuff_.isEnabled()){ //Shuff prints
-                shuff_.PutNumber("pos error", error.pos, {1,1,5,3});
-                shuff_.PutNumber("vel error", error.vel, {1,1,6,3});
+                shuff_.PutNumber("pos error", error.pos, {1,1,6,3});
+                shuff_.PutNumber("vel error", error.vel, {1,1,7,3});
 
-                shuff_.PutNumber("targ pos", target.pos, {1,1,7,3});
-                shuff_.PutNumber("cur pos", currPose_.pos, {1,1,8,3});
+                shuff_.PutNumber("targ pos", target.pos, {1,1,8,3});
             }
             break;
         }
@@ -180,9 +184,10 @@ void Pivot::SetAngle(double angle){
     if(angle > bounds_.max || angle < bounds_.min){
         return;
     }
+    
+    tempTarg_ = angle;
 
     if(hooked_){
-        tempTarg_ = angle;
         if(state_ == UNHOOK){ //No need to regenerate
             return;
         }
@@ -203,7 +208,7 @@ void Pivot::SetAngle(double angle){
         state_ = AIMING;
     }
 
-    if(std::abs(currTarg.pos - angle) > 0.001){ //Basically the same target
+    if(std::abs(currTarg.pos - angle) > 0.0001){ //Basically the same target
         Poses::Pose1D startPose;
         if(profile_.isFinished()){
             startPose = currPose_;
@@ -377,6 +382,7 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("kV", &ff_.kv, {1,1,1,3}, true);
     shuff_.add("kA", &ff_.ka, {1,1,2,3}, true);
     shuff_.add("kG", &ff_.kg, {1,1,3,3}, true);
+    shuff_.add("frctn", &frctn_, {1,1,4,3}, true);
 
     shuff_.add("kP", &pid_.kp, {1,1,0,4}, true);
     shuff_.add("kI", &pid_.ki, {1,1,1,4}, true);

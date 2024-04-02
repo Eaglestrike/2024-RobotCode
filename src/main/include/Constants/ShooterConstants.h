@@ -49,12 +49,12 @@ namespace ShooterConstants{
     const double FLYWHEEL_GEARING = 24.0/36.0;
 
     const double FLYWHEEL_R = 0.0508;
-    const double FLYWHEEL_MAX_A = 40.0; //Max Acceleration
+    const double FLYWHEEL_MAX_A = 30.0; //Max Acceleration 40.0
     const double FLYWHEEL_MAX_VOLTS = 10.0; //Max velocity -> ~20.0
 
     const PID FLYWHEEL_PID = {
         .kp = 0.0,
-        .ki = 0.07,
+        .ki = 1.0, //0.07
         .kd = 0.0
     };
 
@@ -65,6 +65,8 @@ namespace ShooterConstants{
     };
 
     const double FLYWHEEL_VEL_TOL = 0.5;
+
+    const uint FLYWHEEL_FILTER_SIZE = 10;
 
     //Pivot Constants
     const int PIVOT_ID = 37;
@@ -85,30 +87,24 @@ namespace ShooterConstants{
  
     const PID PIVOT_PID = {
         .kp = 10.0, //11.0
-        .ki = 0.4,
-        .kd = 0.2
-    };
-
-    const PID PIVOT_AMP_PID = {
-        .kp = 5.0,
-        .ki = 0.4,
-        .kd = 0.2
+        .ki = 0.0,
+        .kd = 0.5
     };
 
     const Feedforward PIVOT_FF = {
-        .ks = 0.01,
+        .ks = 0.03,
         .kv = 0.366,
-        .ka = 0.0152,
+        .ka = 0.0552,
         .kg = 0.475
     };
+    const double PIVOT_FRCTN = 0.02;
 
     const Incher PIVOT_INCH = {
-        .volts = 0.7,
+        .volts = 0.1,
         .onCycles = 2,
         .numCycles = 20
     };
-    
-    const double PIVOT_INCH_TOL = 0.01;
+    const double PIVOT_INCH_TOL = 0.02;
     const double PIVOT_INCH_DEADBAND = 0.007;
 
     const double PIVOT_MAX_V = 5.5;
@@ -163,8 +159,10 @@ namespace ShooterConstants{
     const double SHOOT_VEL_TOL = 0.3;
     //const double SHOOT_YAW_TOL = 0.05;
     const double SHOOT_YAW_PERCENT = 0.5;
-    const double LINEUP_YAW_PERCENT = 0.45;
+    const double LINEUP_YAW_PERCENT = 0.37; //0.45
     const double PIVOT_ANG_PERCENT = 0.7; // 0.8
+    
+    const double SHOOT_ANG_OFFSET = 0.0;
 
     //Field Data
 
@@ -203,10 +201,8 @@ namespace ShooterConstants{
 
     const vec::Vector2D ABSOLUTE_MISS = {10000000.0, 10000000.0}; //Forward kinematic miss
 
-
-    //Shooter amp : ang:1.0, vel:3.9
     //Constants for time calculation (t = kD * d + cT)
-    const double kD = 0.0489123;
+    const double kD = 0.049123;
     const double cT = 0.177579;
     const double prepareT = 0.1;
 
