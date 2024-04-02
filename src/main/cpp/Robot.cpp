@@ -11,6 +11,8 @@
 
 #include <fmt/core.h>
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <photon/PhotonUtils.h>
+#include <frc/apriltag/AprilTagFieldLayout.h>
 
 #include "Constants/AutoConstants.h"
 #include "Constants/AutoLineupConstants.h"
@@ -35,7 +37,7 @@ Robot::Robot() :
   //Sensors
   m_client{"10.1.14.202", 44590, 500, 5000}, // 10.1.14.202
   m_isSecondTag{false},
-  m_odom{false},
+  m_odom{true},
   //Auto
   m_autoLineup{DebugConfig::AUTO_LINEUP, m_odom},
   m_autoHmLineup{DebugConfig::AUTO_LINEUP, m_odom},
@@ -74,37 +76,16 @@ Robot::Robot() :
     double angVel = m_swerveController.GetRobotAngularVel();
     m_odom.UpdateEncoder(vel, angNavX, yawNavX, angVel);
 
-    // update camera odometry
-    std::vector<double> camData = m_client.GetData();
-    if (m_client.HasConn() && !m_client.IsStale()) {
-      // int camId = static_cast<int>(camData[0]);
-      int tagId = static_cast<int>(camData[1]);
-      double x = camData[2];
-      double y = camData[3];
-      // double angZ = camData[4];
-      long long age = static_cast<long long>(camData[5]);
-      long long uniqueId = static_cast<long long>(camData[6]);
-
-      //Print Stream
-      // std::string data = "";
-      // for(int i = 0; i < 7; i++){
-      //   std::stringstream stream;
-      //   stream << std::fixed << std::setprecision(4) << camData[i];
-      //   data += stream.str() + ",";
-      // }
-      // frc::SmartDashboard::PutString("Cam Data", data);
-
-      if (tagId != 0 && m_isSecondTag) {
-        frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
-        frc::SmartDashboard::PutNumber("Cams x dist", x);
-        frc::SmartDashboard::PutNumber("Cams z dist", y);
-        m_odom.UpdateCams({x, y}, tagId, uniqueId, age);
-      }
-
-      m_isSecondTag = true;
-    } else {
-      m_isSecondTag = false;
-    } },
+    // cams from photon
+    ph::PhotonPipelineResult res = m_camera.GetLatestResult();
+    m_tagDetected = res.HasTargets();
+    if (m_tagDetected) {
+      ph::PhotonTrackedTarget targ = res.GetBestTarget();
+      double latency = res.GetLatency().value();
+      m_odom.UpdateCams(targ, latency);
+      frc::SmartDashboard::PutNumber("Last Tag ID", targ.GetFiducialId()); 
+    }
+    },
               5_ms, 2_ms);
 }
 
@@ -785,9 +766,9 @@ void Robot::ShuffleboardPeriodic()
     double ang = m_odom.GetAng();
     vec::Vector2D pos = m_odom.GetPos();
 
-    frc::SmartDashboard::PutBoolean("Cams Connected", m_client.HasConn());
-    frc::SmartDashboard::PutBoolean("Cams Stale", m_client.IsStale());
-    frc::SmartDashboard::PutBoolean("Tag Detected", m_odom.GetTagDetected());
+    // frc::SmartDashboard::PutBoolean("Cams Connected", m_client.HasConn());
+    // frc::SmartDashboard::PutBoolean("Cams Stale", m_client.IsStale());
+    frc::SmartDashboard::PutBoolean("Tag Detected", m_tagDetected);
 
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
@@ -796,9 +777,9 @@ void Robot::ShuffleboardPeriodic()
     frc::SmartDashboard::PutData("Robot Field", &m_field);
 
     // logger
-    m_logger.LogBool("Cams Stale", m_client.IsStale());
-    m_logger.LogBool("Cams Connected", m_client.HasConn());
-    m_logger.LogBool("Tag Detected", m_odom.GetTagDetected());
+    // m_logger.LogBool("Cams Stale", m_client.IsStale());
+    // m_logger.LogBool("Cams Connected", m_client.HasConn());
+    m_logger.LogBool("Tag Detected", m_tagDetected);
     m_logger.LogNum("Pos X", pos.x());
     m_logger.LogNum("Pos Y", pos.y());
     m_logger.LogNum("Ang", ang);

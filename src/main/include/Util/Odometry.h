@@ -3,12 +3,15 @@
 #include <map>
 #include <utility>
 
+#include <frc/apriltag/AprilTagFieldLayout.h>
 #include <frc/smartdashboard/Field2d.h>
+#include <photon/PhotonCamera.h>
 
 #include "Util/PoseEstimator.h"
 #include "Util/simplevectors.hpp"
 
 namespace vec = svector;
+namespace ph = photon;
 
 /**
  * Odometry class for localization
@@ -41,6 +44,7 @@ public:
 
   void UpdateEncoder(const vec::Vector2D &vel, const double &angNavXAbs, const double &navXYaw, const double &swerveAngVel);
   void UpdateCams(const vec::Vector2D &relPos, const int &tagId, const long long &uniqueId, const long long &age);
+  void UpdateCams(const ph::PhotonTrackedTarget &target, const double &latency);
 
   void ShuffleboardInit();
   void ShuffleboardPeriodic();
@@ -70,6 +74,8 @@ private:
   std::map<double, double> m_angHistory;
 
   bool m_trustCamsMore;
+
+  frc::AprilTagFieldLayout m_fieldLayout;
 
   // debug stuff
   vec::Vector2D m_camPos; // only used for shuffleboard prints for now

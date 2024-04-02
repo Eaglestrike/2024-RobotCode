@@ -3,7 +3,11 @@
 #include <cmath>
 #include <iostream>
 
+#include <frc/apriltag/AprilTagFields.h>
+#include <frc/geometry/Pose3d.h>
+#include <frc/geometry/Transform3d.h>
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <photon/PhotonUtils.h>
 
 #include "Constants/FieldConstants.h"
 #include "Constants/OdometryConstants.h"
@@ -19,7 +23,9 @@ Odometry::Odometry(const bool &shuffleboard) :
   m_prevDriveTime{Utils::GetCurTimeS()}, m_estimator{OdometryConstants::SYS_STD_DEV_AUTO},
   m_uniqueId{-1000}, m_timeOffset{OdometryConstants::CAM_TIME_OFFSET}, m_prevCamTime{-1000},
   m_camStdDevCoef{OdometryConstants::CAM_STD_DEV_COEF_AUTO}, m_turnStdDevCoef{OdometryConstants::CAM_TURN_STD_DEV_COEF},
-  m_trustCamsMore{false} {}
+  m_trustCamsMore{false} {
+  m_fieldLayout = frc::LoadAprilTagLayoutField(frc::AprilTagField::k2024Crescendo);
+}
 
 /**
  * Sets starting configuration, then resets position.
@@ -350,6 +356,79 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
 
   // update prev cam time
   m_prevCamTime = curTime;
+}
+
+/**
+ * Updates cameras from photon pipeline
+ * 
+ * @param target Photon best target
+ * @param latency latency in ms
+*/
+void Odometry::UpdateCams(const ph::PhotonTrackedTarget &target, const double &latency) {
+  using namespace OdometryConstants;
+
+  double camTime = Utils::GetCurTimeS() - latency / 1000.0;
+
+  // tag position
+  std::optional<frc::Pose3d> tagPoseRes = m_fieldLayout.GetTagPose(target.GetFiducialId()); 
+  // bad tag ID
+  if (!tagPoseRes) {
+    return;
+  }
+
+  // camera to target
+  frc::Transform3d camToTarg = target.GetBestCameraToTarget();
+  frc::Pose3d camToTargPose = {camToTarg.Translation(), camToTarg.Rotation()};
+  camToTargPose = camToTargPose.RotateBy(frc::Rotation3d{-ROLL_OFFSET, -PITCH_OFFSET, units::radian_t{0}});
+
+  // rotate relative cam pos to absolute
+  // using angle from when camera data was read
+  std::pair<bool, double> histAng = GetInterpolAng(camTime);
+  double angNavX = histAng.second;
+  if (!histAng.first) {
+    angNavX = GetAng();
+  }
+  frc::Pose3d tagPose = tagPoseRes.value();
+  camToTarg = {camToTarg.Translation(), {camToTarg.Rotation().X(), camToTarg.Rotation().Y(), units::radian_t{-Utils::NormalizeAng(angNavX)} + tagPose.Rotation().Z()}};
+
+  // find robot pos from cameras
+  frc::Pose3d fieldToRobot = tagPose + camToTarg.Inverse() + ROBOT_CAM_TRANSFORM;
+  frc::Transform2d camToTarg2d = {camToTargPose.X(), camToTargPose.Y(), camToTargPose.Rotation().Z()};
+  vec::Vector2D camToTargVec = {camToTarg2d.X().value(), camToTarg2d.Y().value()};
+  vec::Vector2D robotPosCams = {fieldToRobot.X().value(), fieldToRobot.Y().value()};
+
+  // reject if apriltag pos is too far away
+  vec::Vector2D odomPos = GetPos();
+  if (magn(odomPos - robotPosCams) > OdometryConstants::AT_REJECT) {
+    // std::cout << "too faar" << std::endl;
+    return;
+  }
+
+  // check if outside field
+  double margin = Utils::InToM(FieldConstants::FIELD_MARGIN);
+  double fWidth = Utils::InToM(FieldConstants::FIELD_WIDTH);
+  double fHeight = Utils::InToM(FieldConstants::FIELD_HEIGHT);
+  if (robotPosCams.x() < -margin || robotPosCams.x() > fWidth + margin
+   || robotPosCams.y() < -margin || robotPosCams.y() > fHeight + margin) {
+    // std::cout << "outside field" << std::endl;
+    return;
+  }
+
+  // update cams in pose estimator
+
+  if (m_shuffleboard) {
+    frc::SmartDashboard::PutString("Robot To Tag", camToTargVec.toString());
+    frc::SmartDashboard::PutString("Robot Cam Pos", robotPosCams.toString());
+  }
+
+  double distToTarget = ph::PhotonUtils::CalculateDistanceToTarget(Z_OFFSET, tagPose.Z(), PITCH_OFFSET, units::degree_t{target.GetPitch()}).value();
+  double stdDev = m_camStdDevCoef * distToTarget * distToTarget;
+  if (magn(odomPos - robotPosCams) > OdometryConstants::TRUST_CAMS_MORE_THRESH && m_trustCamsMore) {
+    stdDev = 0;
+  }
+
+  m_estimator.UpdateCams(camTime, robotPosCams, {stdDev, stdDev});
+  m_camPos = robotPosCams;
 }
 
 void Odometry::ShuffleboardInit() {
