@@ -37,7 +37,7 @@ Robot::Robot() :
   //Sensors
   m_client{"10.1.14.202", 44590, 500, 5000}, // 10.1.14.202
   m_isSecondTag{false},
-  m_odom{true},
+  m_odom{false},
   //Auto
   m_autoLineup{DebugConfig::AUTO_LINEUP, m_odom},
   m_autoHmLineup{DebugConfig::AUTO_LINEUP, m_odom},
