@@ -96,9 +96,13 @@ void Pivot::CoreTeleopPeriodic(){
 
             Poses::Pose1D target = profile_.currentPose();
             double ff = ff_.kv*target.vel + ff_.ka*target.acc;
+            
+            double direction = Utils::Sign(target.vel);
+            double frict = (ff_.ks + frctn_*sin(currPose_.pos)) * direction; //Friction
+
             double grav = ff_.kg*cos(currPose_.pos); //Have gravity be feedback
             
-            volts_ = ff + grav;
+            volts_ = ff + frict + grav;
 
             Poses::Pose1D error = target - currPose_;
             accum_ += error.pos * dt;
@@ -113,9 +117,6 @@ void Pivot::CoreTeleopPeriodic(){
                 inch *= Utils::Sign(error.pos);
                 volts_ += inch;
             }
-
-            double direction = Utils::Sign(volts_);
-            volts_ += (ff_.ks + frctn_*sin(currPose_.pos)) * direction; //Friction will be partially feedback
 
             bool finished = profile_.isFinished();
             bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);

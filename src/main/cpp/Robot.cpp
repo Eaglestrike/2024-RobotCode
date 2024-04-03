@@ -155,7 +155,7 @@ void Robot::RobotPeriodic()
 
   m_shooter.Trim(m_controller.getValueOnce(ControllerMapData::GET_SHOOTER_TRIM, {0, 0})); // Trim shooter
   m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetYaw());
-  m_shooter.SetGamepiece(m_intake.InShooter());
+  m_shooter.SetGamepiece(m_intake.HasGamePiece());
 
   // LED vertical
   if (m_intake.HasGamePiece() || m_eject)
@@ -284,11 +284,13 @@ void Robot::TeleopPeriodic()
   int ctrlVal = m_controller.getValueOnce(ControllerMapData::SCORING_POS, 0);
   if (ctrlVal != 0) {
     m_shooter.Stop();
+    m_state = RobotState::SHOOT;
     m_posVal = ctrlVal;
   }
 
   if (m_controller.getPressedOnce(SHOOT_AUTO)) {
     m_shooter.Stop();
+    m_state = RobotState::SHOOT;
     m_posVal = 0;
   }
 
@@ -356,7 +358,7 @@ void Robot::TeleopPeriodic()
       }
     }
     else if (m_controller.getPressed(SHOOT)){
-      if(m_intake.HasGamePiece()){
+      if(m_intake.InShooter()){
         bool canShoot = m_shooter.CanShoot(m_posVal);
         switch(m_state){
           case RobotState::SHOOT:

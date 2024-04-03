@@ -92,15 +92,15 @@ namespace ShooterConstants{
     };
 
     const Feedforward PIVOT_FF = {
-        .ks = 0.03,
-        .kv = 0.366,
-        .ka = 0.0552,
+        .ks = 0.01, //0.03
+        .kv = 0.356, //0.366
+        .ka = 0.00, //0.0552
         .kg = 0.475
     };
-    const double PIVOT_FRCTN = 0.02;
+    const double PIVOT_FRCTN = 0.03; //0.02
 
     const Incher PIVOT_INCH = {
-        .volts = 0.1,
+        .volts = 0.05,
         .onCycles = 2,
         .numCycles = 20
     };
@@ -162,7 +162,7 @@ namespace ShooterConstants{
     const double LINEUP_YAW_PERCENT = 0.37; //0.45
     const double PIVOT_ANG_PERCENT = 0.7; // 0.8
     
-    const double SHOOT_ANG_OFFSET = 0.0;
+    const double SHOOT_ANG_OFFSET = 0.125;
 
     //Field Data
 
@@ -202,7 +202,7 @@ namespace ShooterConstants{
     const vec::Vector2D ABSOLUTE_MISS = {10000000.0, 10000000.0}; //Forward kinematic miss
 
     //Constants for time calculation (t = kD * d + cT)
-    const double kD = 0.049123;
+    const double kD = 0.049123; //0.02
     const double cT = 0.177579;
     const double prepareT = 0.1;
 
