@@ -214,15 +214,14 @@ void AutoHmLineup::Periodic() {
   if (AtAngTarget()) {
     if (!m_isDoneAng) {
       m_isDoneAng = true;
-      m_angCorrect.SetTolerance(AutoConstants::ANG_TOL_BIG, std::numeric_limits<double>::infinity());
+      m_angCorrect.SetTolerance(AutoConstants::AMP_ANG_TOL_BIG, std::numeric_limits<double>::infinity());
     }
     m_angCorrect.Reset();
     setAngVel = 0;
   } else {
     if (m_isDoneAng) {
       m_isDoneAng = false;
-      double aTol = m_shuff.GetNumber("ang tol", AutoConstants::ANG_TOL);
-      m_angCorrect.SetTolerance(AutoConstants::ANG_TOL, std::numeric_limits<double>::infinity());
+      m_angCorrect.SetTolerance(AutoConstants::AMP_ANG_TOL, std::numeric_limits<double>::infinity());
     }
   }
 
@@ -269,8 +268,8 @@ void AutoHmLineup::Periodic(double angVel) {
   if (AtPosTarget()) {
     if (!m_isDonePos) {
       m_isDonePos = true;
-      m_posCorrectX.SetTolerance(AutoConstants::POS_TOL_BIG, std::numeric_limits<double>::infinity());
-      m_posCorrectY.SetTolerance(AutoConstants::POS_TOL_BIG, std::numeric_limits<double>::infinity());
+      m_posCorrectX.SetTolerance(AutoConstants::AMP_POS_TOL_BIG, std::numeric_limits<double>::infinity());
+      m_posCorrectY.SetTolerance(AutoConstants::AMP_POS_TOL_BIG, std::numeric_limits<double>::infinity());
     }
 
     m_posCorrectX.Reset();
@@ -279,8 +278,8 @@ void AutoHmLineup::Periodic(double angVel) {
   } else {
     if (m_isDonePos) {
       m_isDonePos = false;
-      m_posCorrectX.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
-      m_posCorrectY.SetTolerance(AutoConstants::POS_TOL, std::numeric_limits<double>::infinity());
+      m_posCorrectX.SetTolerance(AutoConstants::AMP_POS_TOL, std::numeric_limits<double>::infinity());
+      m_posCorrectY.SetTolerance(AutoConstants::AMP_POS_TOL, std::numeric_limits<double>::infinity());
     }
   }
 

@@ -122,8 +122,8 @@ namespace ShooterConstants{
 
     const std::map<double, ShootConfig> SHOOT_DATA = {
     //distance-> ang, vel
-        {0.0,   {1.085,  15.0}}, //0 distance shot (used just for interpolation)
-        {1.32,  {1.085,  15.0}},
+        {0.0,   {1.15,  15.0}}, //0 distance shot (used just for interpolation)
+        {1.32,  {1.15,  15.0}},
         {1.51,  {0.97,  17.0}},
         {1.68,  {0.93,  17.0}},
         {1.88,  {0.87,  17.0}},
@@ -162,7 +162,7 @@ namespace ShooterConstants{
     const double LINEUP_YAW_PERCENT = 0.37; //0.45
     const double PIVOT_ANG_PERCENT = 0.7; // 0.8
     
-    const double SHOOT_ANG_OFFSET = 0.125;
+    const double SHOOT_ANG_OFFSET = 0;
 
     //Field Data
 

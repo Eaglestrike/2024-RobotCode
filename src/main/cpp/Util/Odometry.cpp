@@ -312,9 +312,11 @@ void Odometry::UpdateCams(const vec::Vector2D &relPos, const int &tagId, const l
   }
 
   // filter out IDs on the other side of the field
-  if ((SideHelper::IsBlue() && FieldConstants::BLUE_TAGS.find(tagId) == FieldConstants::BLUE_TAGS.end()) || (!SideHelper::IsBlue() && FieldConstants::RED_TAGS.find(tagId) == FieldConstants::RED_TAGS.end())) {
-    // std::cout << "other side of field" << std::endl;
-    return;
+  if (!FieldConstants::FULL_FIELD_ODOM) {
+    if ((SideHelper::IsBlue() && FieldConstants::BLUE_TAGS.find(tagId) == FieldConstants::BLUE_TAGS.end()) || (!SideHelper::IsBlue() && FieldConstants::RED_TAGS.find(tagId) == FieldConstants::RED_TAGS.end())) {
+      // std::cout << "other side of field" << std::endl;
+      return;
+    }
   }
 
   // add tag position to get absolute robot position
