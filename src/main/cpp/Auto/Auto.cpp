@@ -222,7 +222,7 @@ void Auto::AutoPeriodic(){
 
     if(useAngLineup){
         if(shooter_.UseAutoLineup()){ //Angle lineup
-            autoLineup_.SetTarget(shooter_.GetTargetRobotYaw());
+            autoLineup_.SetTarget(shooter_.GetTargetRobotYaw() + SHOOT_ANG_OFFSET);
             segments_.Periodic(autoLineup_.GetAngVel());  
         }
         else{
@@ -599,6 +599,8 @@ void Auto::ShuffleboardInit(){
     
     shuff_.add("Intake Padding", &INTAKE_PADDING, {1,1,4,3}, true);
     shuff_.add("Intake Time", &INTAKE_TIME, {1,1,5,3}, true);
+
+    shuff_.add("Auto Yaw Offset", &SHOOT_ANG_OFFSET, {1,1,1,4}, true);
 
     //Print Pathing
     shuff_.addButton("Print Path", [&]{

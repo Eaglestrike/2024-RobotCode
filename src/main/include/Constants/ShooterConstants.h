@@ -132,8 +132,8 @@ namespace ShooterConstants{
         {2.64,  {0.69,  17.0}},
         {3.08,  {0.625, 18.0}},
         {3.46,  {0.585, 18.0}},
-        {3.89,  {0.54,  18.0}},
-        {4.37,  {0.51,  18.0}}
+        {3.89,  {0.575,  18.0}},
+        {4.37,  {0.535,  18.0}}
     };
 
     const std::map<double, ShootConfig> FERRY_DATA = {
@@ -162,16 +162,17 @@ namespace ShooterConstants{
     const double LINEUP_YAW_PERCENT = 0.37; //0.45
     const double PIVOT_ANG_PERCENT = 0.7; // 0.8
     
-    const double SHOOT_ANG_OFFSET = 0;
+    const double SHOOT_ANG_OFFSET_TELE = 0;
+    const double SHOOT_ANG_OFFSET_AUTO = 0;
 
     //Field Data
 
     //Speaker center positions (x, y)
     const vec::Vector2D RED_SPEAKER = {16.54-0.30-0.075-0.075, 5.58};
-    const vec::Vector2D BLUE_SPEAKER = {0.0+0.15+0.225, 5.58};
+    const vec::Vector2D BLUE_SPEAKER = {0.0+0.15+0.225+0.075, 5.58};
 
-    const vec::Vector2D RED_CORNER = {15.362, 6.357};
-    const vec::Vector2D BLUE_CORNER = {0.932, 6.357};
+    const vec::Vector2D RED_CORNER = {15.912, 6.357};
+    const vec::Vector2D BLUE_CORNER = {0.35, 6.357};
     const double FERRY_R = 0.4;
 
     //Dimensions of the shootable area

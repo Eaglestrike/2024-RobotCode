@@ -99,7 +99,7 @@ class Shooter : public Mechanism{
         double kD_ = ShooterConstants::kD;
         double cT_ = ShooterConstants::cT;
         double ferryR_ = ShooterConstants::FERRY_R;
-        double shootYawOffset_ = ShooterConstants::SHOOT_ANG_OFFSET;
+        double shootYawOffset_ = ShooterConstants::SHOOT_ANG_OFFSET_TELE;
 
         bool hasShot_;
         ShooterConstants::ShootConfig shot_;
