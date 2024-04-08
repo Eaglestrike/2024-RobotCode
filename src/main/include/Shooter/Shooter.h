@@ -59,6 +59,7 @@ class Shooter : public Mechanism{
         double GetTargetRobotYaw();
 
         void SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);//odom info passing in
+        void SetAcceleration(vec::Vector2D acc);
         void SetNavX(AHRS* navx);
         void SetHooked(bool hooked);
 
@@ -108,6 +109,7 @@ class Shooter : public Mechanism{
         vec::Vector2D robotPos_;
         vec::Vector2D robotVel_;
         double robotYaw_;
+        vec::Vector2D robotAcc_;
 
         //Tolerances
         double posTol_ = ShooterConstants::SHOOT_POS_TOL; //Driving position tolerance

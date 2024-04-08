@@ -9,6 +9,7 @@
 #include "Util/Poses.h"
 #include "Util/Mechanism.h"
 #include "Util/TrapezoidalProfile.h"
+#include "Util/simplevectors.hpp"
 
 #include "Constants/ShooterConstants.h"
 
@@ -40,6 +41,7 @@ class Pivot : public Mechanism{
         void SetTolerance(double posTol);
         void SetHooked(bool hooked);
         void SetNavX(AHRS* navx);
+        void SetAcceleration(double acc);
         Poses::Pose1D GetPose();
         double GetTolerance();
 
@@ -93,6 +95,8 @@ class Pivot : public Mechanism{
         double maxV_;
         double maxA_;
         TrapezoidalProfile profile_;
+
+        double robotAcc_;
 
         Poses::Pose1D currPose_; //Angle (rad)
 

@@ -325,6 +325,9 @@ void Robot::TeleopPeriodic()
   double curYaw = m_odom.GetAngNorm();
   double curJoystickAng = m_odom.GetJoystickAng();
 
+  vec::Vector2D expAcc = m_odom.GetVel() - (setVel*SwerveConstants::CONTROL_KV);
+  m_shooter.SetAcceleration(expAcc);
+
   // auto lineup to amp
   if (m_controller.getPOVDownOnce(AMP_AUTO_LINEUP))
   {
