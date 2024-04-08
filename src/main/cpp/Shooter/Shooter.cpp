@@ -252,6 +252,10 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     double dist = (-b-std::sqrt(determinant))/(2.0*a);
     double t = kD_*dist + cT_;
 
+    if (Utils::NearZero(robotVel, 0.15)) {
+        dist = toSpeaker.magn();
+    }
+
     toSpeaker -= (robotVel*t);
     #else
     double dist = toSpeaker.magn();
@@ -333,9 +337,9 @@ void Shooter::Ferry(vec::Vector2D robotPos, vec::Vector2D robotVel){
     if(state_ == MANUAL_TARGET){ //Don't exit manual when called
         return;
     }
-    if(!hasPiece_){
-        return;
-    }
+    // if(!hasPiece_){
+    //     return;
+    // }
 
     //Speaker targetting
     bool blue = SideHelper::IsBlue();
@@ -449,6 +453,10 @@ bool Shooter::CanShoot(int posVal){
             double posError = (targetPos_ - robotPos_).magn();
             double velError = (targetVel_ - robotVel_).magn();
             double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
+
+            if (state_ == FERRY) {
+                velError = 0;
+            }
 
             if ((posVal != 0)) {
                 posError = 0;
