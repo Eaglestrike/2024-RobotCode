@@ -107,10 +107,11 @@ void Pivot::CoreTeleopPeriodic(){
             Poses::Pose1D error = target - currPose_;
             accum_ += error.pos * dt;
             double pid = pid_.kp*error.pos + pid_.ki*accum_ + pid_.kd*error.vel;
+            pid = std::clamp(pid, -pidMax_, pidMax_);
             volts_ += pid;
 
             double absError = std::abs(error.pos);
-            if((absError < inchTol_) && (absError > ShooterConstants::PIVOT_INCH_DEADBAND)){ //Inch within a tolerance
+            if((absError < inchTol_) && (absError > inchDead_)){ //Inch within a tolerance
                 cycle_++;
                 cycle_ %= inch_.numCycles;
                 double inch = (cycle_ < inch_.onCycles) ? inch_.volts : 0.0;
@@ -377,7 +378,7 @@ void Pivot::CoreShuffleboardInit(){
                     );
     shuff_.add("pos tol", &posTol_, {1,1,4,2});
     shuff_.add("vel tol", &velTol_, {1,1,5,2});
-    shuff_.add("regen tol", &regenTol_, {1,1,6,2});
+    // shuff_.add("regen tol", &regenTol_, {1,1,6,2});
 
     shuff_.add("kS", &ff_.ks, {1,1,0,3}, true);
     shuff_.add("kV", &ff_.kv, {1,1,1,3}, true);
@@ -388,11 +389,13 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("kP", &pid_.kp, {1,1,0,4}, true);
     shuff_.add("kI", &pid_.ki, {1,1,1,4}, true);
     shuff_.add("kD", &pid_.kd, {1,1,2,4}, true);
+    shuff_.add("pid max", &pidMax_, {1,1,3,4}, true);
 
-    shuff_.add("inch volts", &inch_.volts, {1,1,0,5}, true);
-    shuff_.add("inch onCycles", &inch_.onCycles, {1,1,1,5}, true);
-    shuff_.add("inch numCycles", &inch_.numCycles, {1,1,2,5}, true);
-    shuff_.add("inch tol", &inchTol_, {1,1,3,5}, true);
+    shuff_.add("inch volts", &inch_.volts, {1,1,5,4}, true);
+    shuff_.add("inch onCycles", &inch_.onCycles, {1,1,6,4}, true);
+    shuff_.add("inch numCycles", &inch_.numCycles, {1,1,7,4}, true);
+    shuff_.add("inch tol", &inchTol_, {1,1,8,4}, true);
+    shuff_.add("inch dead", &inchDead_, {1,1,9,4}, true);
 }
 
 void Pivot::CoreShuffleboardPeriodic(){

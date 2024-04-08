@@ -90,6 +90,7 @@ namespace ShooterConstants{
         .ki = 0.0,
         .kd = 0.5
     };
+    const double PIVOT_PID_MAX = 2.0;
 
     const Feedforward PIVOT_FF = {
         .ks = 0.01, //0.03
