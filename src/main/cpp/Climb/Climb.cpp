@@ -1,5 +1,7 @@
 #include "Climb/Climb.h"
 
+#include "Util/Utils.h"
+
 Climb::Climb(bool enabled, bool dbg): 
     m_shuff{"Climb", dbg},
     Mechanism{"climb", enabled, dbg}
@@ -33,7 +35,9 @@ void Climb::CoreTeleopPeriodic(){
             if (m_state != MANUAL) {
                 Brake();
             }
-            info = CLIMB_INFO;
+            if (Utils::GetCurTimeS() - m_startTimeDown > UNRATCHET_WAIT) {
+                info = CLIMB_INFO;
+            }
             break;
     }
 
@@ -139,6 +143,7 @@ void Climb::Stow(){
 }
 
 void Climb::PullUp(){
+    m_startTimeDown = Utils::GetCurTimeS();
     SetTarget(CLIMB);
 }
 

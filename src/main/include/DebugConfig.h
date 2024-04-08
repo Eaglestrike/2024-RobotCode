@@ -13,6 +13,7 @@ namespace DebugConfig{
     const bool CLIMB    = false;
 
     const bool DRIVE    = false;
+    const bool AUTO_LINEUP = false;
 
     const bool INTAKE   = false;
 
@@ -20,8 +21,6 @@ namespace DebugConfig{
         const bool SHOOTER      = false;
         const bool LEFT_FLY     = false;
         const bool RIGHT_FLY    = false;
-        const bool PIVOT        = true;
+        const bool PIVOT        = false;
     } SHOOTER;
-
-    const bool AUTO_LINEUP = false;
 }

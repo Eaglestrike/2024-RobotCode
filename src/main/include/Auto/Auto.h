@@ -82,6 +82,7 @@ class Auto{
         double SHOOT_PADDING = AutoConstants::SHOOT_PADDING;
 
         double SHOOT_POS_TOL = AutoConstants::SHOOT_POS_TOL;
+        double SHOOT_ANG_OFFSET = ShooterConstants::SHOOT_ANG_OFFSET_AUTO;
 
         std::string ElementToString(const AutoConstants::AutoElement element);
         ShuffleboardSender shuff_;

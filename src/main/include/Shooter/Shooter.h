@@ -30,31 +30,37 @@ class Shooter : public Mechanism{
         enum State{
             STOP,
             SHOOT,
+            FERRY,
             AMP,
             STROLL, //Set to low speed
             MANUAL_TARGET, //Manual input angles
-            EJECT
+            EJECT,
+            THROW //Ferry low
         };
   
         Shooter(std::string name, bool enabled, bool shuffleboard);
 
         void Stop();
+        void ExitState();
         void Stroll();
         void Amp();
         void ManualTarget(double target);
         void Eject(); //Only spins flywheels
-        void ZeroRelative();
+        void Ferry(vec::Vector2D robotPos, vec::Vector2D robotVel);
+        void Throw();
 
         void SetUp(double vel, double spin, double ang);
         void Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needGamePiece);
         void SetGamepiece(bool hasPiece);
 
         void Trim(vec::Vector2D trim); //Up/down left/right trim for target
+        void ZeroRelative();
 
         bool CanShoot(int posVal = 0);
         bool UseAutoLineup();
         vec::Vector2D GetTrim();
         bool IsManual();
+        bool PivotAtTarget();
 
         double GetTargetRobotYaw();
 
@@ -86,11 +92,16 @@ class Shooter : public Mechanism{
 
         //Shooter config
         double strollSpeed_ = ShooterConstants::STROLL_SPEED;
+        double ejectSpeed_ = ShooterConstants::EJECT_SPEED;
+        double shootAmpSpeed_ = ShooterConstants::SHOOT_AMP_SPEED;
         double shootTime_ = ShooterConstants::SHOOT_TIME;
 
         std::map<double, ShooterConstants::ShootConfig> shootData_ = ShooterConstants::SHOOT_DATA;
+        std::map<double, ShooterConstants::ShootConfig> ferryData_ = ShooterConstants::FERRY_DATA;
         double kD_ = ShooterConstants::kD;
         double cT_ = ShooterConstants::cT;
+        double ferryR_ = ShooterConstants::FERRY_R;
+        double shootYawOffset_ = ShooterConstants::SHOOT_ANG_OFFSET_TELE;
 
         bool hasShot_;
         ShooterConstants::ShootConfig shot_;

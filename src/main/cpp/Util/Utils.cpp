@@ -227,6 +227,33 @@ vec::Vector2D Utils::MultiplyComps(const vec::Vector2D v1, const vec::Vector2D v
 }
 
 /**
+ * Rounds vec to 2 digits
+ * 
+ * @param vec vector
+ * 
+ * @returns vector in 2 digits
+*/
+vec::Vector2D Utils::Round2(const vec::Vector2D vec) {
+  vec::Vector2D ret;
+  for (int i = 0; i < 2; i++) {
+    ret[i] = std::round(vec[i] * 100.0) / 100.0;
+  }
+
+  return ret;
+}
+
+/**
+ * Rounds number to 2 digits
+ * 
+ * @param num number
+ * 
+ * @returns rounded number
+*/
+double Utils::Round2(const double num) {
+  return std::round(num * 100.0) / 100.0;
+}
+
+/**
  * Returns the sign of the double
  * 
  * @returns -1.0, 0.0, or 1.0
