@@ -294,9 +294,9 @@ void Auto::ShooterPeriodic(double t){
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
         //Feed into shooter when can shoot
-        int posVal = pathNum_ == 0 ? 3 : 0;
- 
-        bool forceShoot = (pathNum_ == 0 && t > 2) ||  (t > shooterTiming_.end + SHOOT_PADDING); //Exceeded time given
+        int posVal = pathNum_ == 1 ? 3 : 0;
+
+        bool forceShoot = (pathNum_ == 1 && t > 2) ||  (t > shooterTiming_.end + SHOOT_PADDING); //Exceeded time given
         if(forceShoot || (shooter_.CanShoot(posVal) && intake_.InShooter())){ 
             intake_.FeedIntoShooter();
             isShooting_ = true;
@@ -326,15 +326,16 @@ void Auto::ShooterPeriodic(double t){
 */
 void Auto::IntakePeriodic(double t){
     //First Action
+    intake_.SetAmp(false);
     if(!intakeTiming_.hasStarted && t > intakeTiming_.start){
-        intake_.Passthrough(false);
+        intake_.Passthrough();
         intakeTiming_.hasStarted = true;
         // std::cout<<"Intake Start"<<std::endl;
     }
     if(intakeTiming_.finished){
     }
     else if(intakeTiming_.hasStarted){
-        intake_.Passthrough(false);
+        intake_.Passthrough();
         //Check if finished
         if(intake_.InChannel()){  // End intake if has game piece
             // std::cout<< "Intake end" << std::endl;

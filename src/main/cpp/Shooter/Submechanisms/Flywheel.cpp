@@ -81,13 +81,13 @@ void Flywheel::CoreTeleopPeriodic(){
                     state_ = State::AT_TARGET; //At target due to tolerances
                 }
                 else{
-                    profile_.Regenerate(currPose_);
-                    // accum_ = 0.0;
+                    // profile_.Regenerate(currPose_);
+                    accum_ = 0.0;
                 }
             }
             if (state_ == State::AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
-                    profile_.Regenerate(currPose_);
+                    // profile_.Regenerate(currPose_);
                     state_ = State::RAMPING;
                     // accum_ = 0.0;
                 }
@@ -126,13 +126,18 @@ void Flywheel::SetTarget(double vel){
     Poses::Pose1D startPose;
     if(profile_.isFinished()){
         startPose = currPose_;
-        // if(!atTarget){
-        //     accum_ = 0.0;
-        // }
+        if(!atTarget){
+            accum_ = 0.0;
+        }
     }
     else{
+        // if(std::abs(vel - targVel_) < 0.05){
+        //     return;
+        // }
+        // targVel_ = vel;
         startPose = profile_.GetPose();
     }
+    
     profile_.SetTarget(vel, startPose);
 
     if(atTarget){
@@ -219,7 +224,7 @@ void Flywheel::CoreShuffleboardInit(){
                         },
                     {1,1,2,2}
                     );
-    shuff_.add("vel tol", &velTol_, {1,1,3,2});
+    shuff_.add("vel tol", &velTol_, {1,1,3,2}, true);
 
     shuff_.add("kS", &feedforward_.ks, {1,1,0,3}, true);
     shuff_.add("kV", &feedforward_.kv, {1,1,1,3}, true);

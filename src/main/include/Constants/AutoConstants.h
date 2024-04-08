@@ -32,6 +32,9 @@ namespace AutoConstants {
   const double ANG_TOL = Utils::DegToRad(2);
   const double ANG_TOL_BIG = Utils::DegToRad(5);
 
+  const double AMP_POS_TOL = 0.05;
+  const double AMP_ANG_TOL = 0.03;
+
   // const double JITTER_FILTER = 0.005;
 
   enum AutoType{

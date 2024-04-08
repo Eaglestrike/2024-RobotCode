@@ -11,9 +11,12 @@
 
 #include <fmt/core.h>
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <photon/PhotonUtils.h>
+#include <frc/apriltag/AprilTagFieldLayout.h>
 
 #include "Constants/AutoConstants.h"
 #include "Constants/AutoLineupConstants.h"
+#include "Constants/FieldConstants.h"
 #include "Controller/ControllerMap.h"
 #include "DebugConfig.h"
 #include "Util/SideHelper.h"
@@ -36,7 +39,8 @@ Robot::Robot() :
   m_isSecondTag{false},
   m_odom{false},
   //Auto
-  m_autoLineup{DebugConfig::AUTO_LINEUP, m_odom},  
+  m_autoLineup{DebugConfig::AUTO_LINEUP, m_odom},
+  m_autoHmLineup{DebugConfig::AUTO_LINEUP, m_odom},
   m_auto{DebugConfig::AUTO, m_swerveController, m_odom, m_autoLineup, m_intake, m_shooter, m_logger},
   m_autoChooser{false, m_auto},
   m_led{}
@@ -74,37 +78,16 @@ Robot::Robot() :
     double angVel = m_swerveController.GetRobotAngularVel();
     m_odom.UpdateEncoder(vel, angNavX, yawNavX, angVel);
 
-    // update camera odometry
-    std::vector<double> camData = m_client.GetData();
-    if (m_client.HasConn() && !m_client.IsStale()) {
-      // int camId = static_cast<int>(camData[0]);
-      int tagId = static_cast<int>(camData[1]);
-      double x = camData[2];
-      double y = camData[3];
-      // double angZ = camData[4];
-      long long age = static_cast<long long>(camData[5]);
-      long long uniqueId = static_cast<long long>(camData[6]);
-
-      //Print Stream
-      // std::string data = "";
-      // for(int i = 0; i < 7; i++){
-      //   std::stringstream stream;
-      //   stream << std::fixed << std::setprecision(4) << camData[i];
-      //   data += stream.str() + ",";
-      // }
-      // frc::SmartDashboard::PutString("Cam Data", data);
-
-      if (tagId != 0 && m_isSecondTag) {
-        frc::SmartDashboard::PutNumber("Last Tag ID", tagId);
-        frc::SmartDashboard::PutNumber("Cams x dist", x);
-        frc::SmartDashboard::PutNumber("Cams z dist", y);
-        m_odom.UpdateCams({x, y}, tagId, uniqueId, age);
-      }
-
-      m_isSecondTag = true;
-    } else {
-      m_isSecondTag = false;
-    } },
+    // cams from photon
+    ph::PhotonPipelineResult res = m_camera.GetLatestResult();
+    m_tagDetected = res.HasTargets();
+    if (m_tagDetected) {
+      ph::PhotonTrackedTarget targ = res.GetBestTarget();
+      double latency = res.GetLatency().value();
+      m_odom.UpdateCams(targ, latency);
+      frc::SmartDashboard::PutNumber("Last Tag ID", targ.GetFiducialId()); 
+    }
+    },
               5_ms, 2_ms);
 }
 
@@ -115,6 +98,7 @@ void Robot::RobotInit()
   m_auto.ShuffleboardInit();
   m_odom.ShuffleboardInit();
   m_autoLineup.ShuffleboardInit();
+  m_autoHmLineup.ShuffleboardInit();
 
   m_navx->Reset();
   m_navx->ZeroYaw();
@@ -143,6 +127,7 @@ void Robot::RobotPeriodic()
   m_auto.ShuffleboardPeriodic();
   m_odom.ShuffleboardPeriodic();
   m_autoLineup.ShuffleboardPeriodic();
+  m_autoHmLineup.ShuffleboardPeriodic();
 
   // ZERO DRIVEBASE
   if (m_controller.getPressedOnce(ZERO_YAW))
@@ -172,7 +157,7 @@ void Robot::RobotPeriodic()
 
   m_shooter.Trim(m_controller.getValueOnce(ControllerMapData::GET_SHOOTER_TRIM, {0, 0})); // Trim shooter
   m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetYaw());
-  m_shooter.SetGamepiece(m_intake.InShooter());
+  m_shooter.SetGamepiece(m_intake.InChannel() || m_intake.InShooter());
 
   // LED vertical
   if (m_intake.HasGamePiece() || m_eject)
@@ -192,8 +177,10 @@ void Robot::RobotPeriodic()
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 69, 0, 40);
   } else if (m_posVal != 0) {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 110, 199, 0);
-  } else if (m_amp) {
+  } else if (m_state == RobotState::AMP) {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 255, 0, 0);
+  } else if (m_state == RobotState::FERRY) {
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 0, 0, 0);
   } else {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 0, 255, 0);
   }
@@ -299,11 +286,13 @@ void Robot::TeleopPeriodic()
   int ctrlVal = m_controller.getValueOnce(ControllerMapData::SCORING_POS, 0);
   if (ctrlVal != 0) {
     m_shooter.Stop();
+    m_state = RobotState::SHOOT;
     m_posVal = ctrlVal;
   }
 
   if (m_controller.getPressedOnce(SHOOT_AUTO)) {
     m_shooter.Stop();
+    m_state = RobotState::SHOOT;
     m_posVal = 0;
   }
 
@@ -329,49 +318,81 @@ void Robot::TeleopPeriodic()
   m_shooter.SetAcceleration(expAcc);
 
   // auto lineup to amp
-  if (m_controller.getPOVDownOnce(AMP_AUTO_LINEUP))
-  {
-    m_logger.Info("Input", "Starting Angle Lineup");
-    m_autoLineup.SetTarget(AutoLineupConstants::AMP_LINEUP_ANG);
-  }
+  // if (m_controller.getPOVDownOnce(AMP_FERRY))
+  // {
+  //   m_logger.Info("Input", "Starting Angle Lineup");
+  //   vec::Vector2D ampPos = SideHelper::IsBlue() ? FieldConstants::BLUE_AMP : FieldConstants::RED_AMP;
+  //   vec::Vector2D vecToAmp = ampPos - m_odom.GetPos();
+  //   m_autoLineup.SetTarget(angle(vecToAmp));
+  //   m_autoLineup.Start();
+  // }
 
   // Intake
+  m_intake.SetAmp(m_state != RobotState::SHOOT);
   bool useAutoLineup = false;
-  
   if (!m_wristManual)
   {
     if (m_controller.getPOVDownOnce(HALF_STOW))
     {
       m_intake.HalfStow();
     }
-    if (m_controller.getPressedOnce(INTAKE_TO_AMP))
+    if (m_controller.getPressedOnce(AMP_STATE))
     {
-      if (m_amp == false && m_intake.GetState() == Intake::PASSTHROUGH){
-        m_intake.Passthrough(true);
+      if ((m_state == RobotState::SHOOT) && m_intake.GetState() == Intake::PASSTHROUGH){
+        m_intake.Passthrough();
       }
-      m_amp = true;
+      m_state = RobotState::AMP;
     }
-    if (m_controller.getPressedOnce(INTAKE_TO_CHANNEL))
+    if (m_controller.getPressedOnce(SHOOT_STATE))
     {
-      m_amp = false;
+      m_state = RobotState::SHOOT;
+    }
+    if (m_controller.getPressedOnce(FERRY_STATE))
+    {
+      m_state = RobotState::FERRY;
     }
 
     //Shooting
     if (m_controller.getPressed(FORCE_SHOOT)) {
       m_intake.FeedIntoShooter();
-    } else if (m_controller.getPressed(SHOOT)){
-      if(m_intake.HasGamePiece()){
-        if (!m_amp) {
-          if (m_posVal != 3) {
+    }
+    else if (m_controller.getPOVDown(THROW)) {
+      m_shooter.Throw();
+      if (m_shooter.CanShoot()) {
+        m_intake.FeedIntoShooter();
+      }
+    }
+    else if (m_controller.getPressed(SHOOT)){
+      if(m_intake.InShooter()){
+        bool canShoot = m_shooter.CanShoot(m_posVal);
+        switch(m_state){
+          case RobotState::SHOOT:
+            if (m_posVal != 3) {
+              m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
+            } else {
+              m_autoLineup.SetTarget(m_odom.GetAngNorm());
+            }
+            useAutoLineup = m_shooter.UseAutoLineup();
+            break;
+          case RobotState::FERRY:
             m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
-          } else {
-            m_autoLineup.SetTarget(m_odom.GetAngNorm());
-          }
-          useAutoLineup = m_shooter.UseAutoLineup();
+            useAutoLineup = m_shooter.UseAutoLineup();
+            break;
+          case RobotState::AMP:
+            if(!m_autoHmLineup.HasStarted()){
+              vec::Vector2D target = SideHelper::IsBlue() ? FieldConstants::BLUE_AMP : FieldConstants::RED_AMP;
+              m_autoHmLineup.SetTarget(target, M_PI/2.0);
+              m_autoHmLineup.Start();
+            }
+            m_autoHmLineup.Periodic();
+            canShoot &= m_autoHmLineup.AtTarget();
+            break;
         }
-        if(m_shooter.CanShoot(m_posVal)){
+        
+        if(canShoot){
           m_intake.FeedIntoShooter();
         }
+        m_shooter.ExitState(); //Exit state
       }
       else
       {
@@ -380,27 +401,36 @@ void Robot::TeleopPeriodic()
     }
     else if (m_controller.getPressed(INTAKE))
     {
-      m_intake.Passthrough(m_amp);
+      m_intake.Passthrough();
       m_shooter.Stroll();
     }
     else if ((m_intake.GetState() == Intake::AMP_INTAKE || m_intake.GetState() == Intake::PASSTHROUGH) && !m_intake.HasGamePiece())
     {
       m_intake.Stow();
+      m_autoHmLineup.Stop();
+    }
+    else{
+      m_autoHmLineup.Stop();
     }
   }
 
   //Shooter config
-  if(m_amp){
-    m_shooter.Amp();
-  }
-  else{
-    if(m_posVal == 0){
-      m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), true);  //Shoot into speaker
-    }
-    else{
-      vec::Vector2D manualLineupPos = SideHelper::GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[m_posVal - 1]); //Manual positions
-      m_shooter.Prepare(manualLineupPos, {0, 0}, true);
-    }
+  switch(m_state){
+    case RobotState::SHOOT:
+      if(m_posVal == 0){
+        m_shooter.Prepare(m_odom.GetPos(), m_odom.GetVel(), true);  //Shoot into speaker
+      }
+      else{
+        vec::Vector2D manualLineupPos = SideHelper::GetPos(AutoLineupConstants::BLUE_SHOOT_LOCATIONS[m_posVal - 1]); //Manual positions
+        m_shooter.Prepare(manualLineupPos, {0, 0}, true);
+      }
+      break;
+    case RobotState::FERRY:
+      m_shooter.Ferry(m_odom.GetPos(), m_odom.GetVel());
+      break;
+    case RobotState::AMP:
+      m_shooter.Amp();
+      break;
   }
 
   // Manual
@@ -447,18 +477,24 @@ void Robot::TeleopPeriodic()
     m_shooter.ManualTarget(shooterManualPos);
   }
 
-  // eject
+  // Eject
   if (m_controller.getPressed(MANUAL_EJECT_IN) || m_controller.getPressed(MANUAL_EJECT_OUT))
   {
+    if (!m_eject) {
+      m_ejectStartTimer = Utils::GetCurTimeS();
+    }
     m_eject = true;
     m_shooter.Eject();
+
     if (m_controller.getPressed(MANUAL_EJECT_IN) && m_controller.getPressed(MANUAL_EJECT_OUT))
     {
       m_intake.EjectSplit();
     }
     else if (m_controller.getPressed(MANUAL_EJECT_IN))
     {
-      m_intake.EjectForward();
+      if (m_shooter.PivotAtTarget() || Utils::GetCurTimeS() - m_ejectStartTimer > ShooterConstants::EJECT_TIME_DELAY) {
+        m_intake.EjectForward();
+      }
     }
     else
     {
@@ -487,7 +523,10 @@ void Robot::TeleopPeriodic()
   }
 
   // auto lineup
-  if (m_controller.getPOVDown(AMP_AUTO_LINEUP) || useAutoLineup) // Angle lineup when shooting
+  if(m_controller.getPressed(SHOOT) && m_intake.HasGamePiece() && m_state == RobotState::AMP){
+    m_swerveController.SetRobotVelocity(m_autoHmLineup.GetExpVel(), m_autoHmLineup.GetExpAngVel(), curYaw);
+  }
+  else if (m_controller.getPressed(SHOOT) && useAutoLineup) // Angle lineup when shooting
   {
     double angVel = m_autoLineup.GetAngVel();
     m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);
@@ -605,17 +644,30 @@ void Robot::TestPeriodic()
   double yVolts = m_swerveYTuner.getVoltage();
 
   m_swerveController.SetRobotVelocity({xVolts, yVolts}, 0.0, curYaw);
-#else
-  m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
 #endif
 
   if (m_controller.getPressed(INTAKE))
   {
-    m_intake.Passthrough(m_amp);
+    m_intake.Passthrough();
   }
   if (m_controller.getPressed(SHOOT))
   {
-    m_intake.FeedIntoShooter();
+    if(m_state == RobotState::AMP){
+      if(!m_autoHmLineup.HasStarted()){
+        m_autoHmLineup.Start();
+      }
+      m_autoHmLineup.Periodic();
+    }
+    else{
+      m_intake.FeedIntoShooter();
+    }
+  }
+
+  if(m_controller.getPressed(SHOOT) && m_state == RobotState::AMP){
+    m_swerveController.SetRobotVelocity(m_autoHmLineup.GetExpVel(), m_autoHmLineup.GetExpAngVel(), curYaw);
+  }
+  else{
+    m_swerveController.SetRobotVelocityTele(setVel, w, curYaw, curJoystickAng);
   }
 
   m_swerveController.Periodic();
@@ -715,7 +767,7 @@ void Robot::ShuffleboardPeriodic()
     m_intake.Log(m_logger);
     m_shooter.Log(m_logger);
     m_logger.LogNum("Manual Pos Val", m_posVal);
-    m_logger.LogBool("Amp mode", m_amp);
+    m_logger.LogBool("Amp mode", m_state == RobotState::AMP);
   }
 
   // ODOMETRY
@@ -723,9 +775,9 @@ void Robot::ShuffleboardPeriodic()
     double ang = m_odom.GetAng();
     vec::Vector2D pos = m_odom.GetPos();
 
-    frc::SmartDashboard::PutBoolean("Cams Connected", m_client.HasConn());
-    frc::SmartDashboard::PutBoolean("Cams Stale", m_client.IsStale());
-    frc::SmartDashboard::PutBoolean("Tag Detected", m_odom.GetTagDetected());
+    // frc::SmartDashboard::PutBoolean("Cams Connected", m_client.HasConn());
+    // frc::SmartDashboard::PutBoolean("Cams Stale", m_client.IsStale());
+    frc::SmartDashboard::PutBoolean("Tag Detected", m_tagDetected);
 
     frc::SmartDashboard::PutNumber("Robot Angle", ang);
     frc::SmartDashboard::PutString("Robot Position", pos.toString());
@@ -734,9 +786,9 @@ void Robot::ShuffleboardPeriodic()
     frc::SmartDashboard::PutData("Robot Field", &m_field);
 
     // logger
-    m_logger.LogBool("Cams Stale", m_client.IsStale());
-    m_logger.LogBool("Cams Connected", m_client.HasConn());
-    m_logger.LogBool("Tag Detected", m_odom.GetTagDetected());
+    // m_logger.LogBool("Cams Stale", m_client.IsStale());
+    // m_logger.LogBool("Cams Connected", m_client.HasConn());
+    m_logger.LogBool("Tag Detected", m_tagDetected);
     m_logger.LogNum("Pos X", pos.x());
     m_logger.LogNum("Pos Y", pos.y());
     m_logger.LogNum("Ang", ang);

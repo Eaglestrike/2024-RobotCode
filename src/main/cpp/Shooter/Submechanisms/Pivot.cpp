@@ -71,9 +71,11 @@ void Pivot::CorePeriodic(){
 void Pivot::CoreTeleopPeriodic(){
     double t = Utils::GetCurTimeS();
     double dt = t - prevT_;
-    if(dt > 0.3){
+    if(dt > 0.04){
         dt = 0.0;
-        state_ = STOP;
+        if(state_ != STOP && state_ != JUST_VOLTAGE){
+            SetAngle(tempTarg_);
+        }
     }
     switch(state_){
         case STOP:
@@ -94,9 +96,13 @@ void Pivot::CoreTeleopPeriodic(){
 
             Poses::Pose1D target = profile_.currentPose();
             double ff = ff_.kv*target.vel + ff_.ka*target.acc;
+            
+            double direction = Utils::Sign(target.vel);
+            double frict = (ff_.ks + frctn_*sin(currPose_.pos)) * direction; //Friction
+
             double grav = ff_.kg*cos(currPose_.pos); //Have gravity be feedback
             
-            volts_ = ff + grav;
+            volts_ = ff + frict + grav;
 
             Poses::Pose1D error = target - currPose_;
             accum_ += error.pos * dt;
@@ -112,9 +118,6 @@ void Pivot::CoreTeleopPeriodic(){
                 volts_ += inch;
             }
             double accDamp = accDampener_ * robotAcc_ * sin(currPose_.pos);
-
-            double direction = Utils::Sign(volts_);
-            volts_ += (ff_.ks + frctn_*sin(currPose_.pos)) * direction; //Friction will be partially feedback
 
             bool finished = profile_.isFinished();
             bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
@@ -134,11 +137,13 @@ void Pivot::CoreTeleopPeriodic(){
                 }
                 else if(std::abs(error.pos) > regenTol_){ //Regenerate when too off
                     profile_.regenerate(currPose_);
+                    accum_ = 0.0;
                 }
             }
             else if (state_ == AT_TARGET){
                 if(!atTarget){ //Regenerate profile if it shifts out of bounds (TODO test)
                     profile_.regenerate(currPose_);
+                    accum_ = 0.0;
                     state_ = AIMING;
                 }
             }
@@ -181,9 +186,10 @@ void Pivot::SetAngle(double angle){
     if(angle > bounds_.max || angle < bounds_.min){
         return;
     }
+    
+    tempTarg_ = angle;
 
     if(hooked_){
-        tempTarg_ = angle;
         if(state_ == UNHOOK){ //No need to regenerate
             return;
         }
@@ -204,7 +210,7 @@ void Pivot::SetAngle(double angle){
         state_ = AIMING;
     }
 
-    if(std::abs(currTarg.pos - angle) > 0.001){ //Basically the same target
+    if(std::abs(currTarg.pos - angle) > 0.0001){ //Basically the same target
         Poses::Pose1D startPose;
         if(profile_.isFinished()){
             startPose = currPose_;
@@ -266,6 +272,10 @@ Poses::Pose1D Pivot::GetRelPose(){
 bool Pivot::AtTarget(){
     //std::cout<<"Pivot: "<<StateToString(state_)<<std::endl;
     return (state_ == AT_TARGET);
+}
+
+void Pivot::SetPID(ShooterConstants::PID pid){
+    pid_ = pid;
 }
 
 /**

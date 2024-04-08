@@ -38,6 +38,7 @@ class Pivot : public Mechanism{
 
         bool AtTarget();
 
+        void SetPID(ShooterConstants::PID pid);
         void SetTolerance(double posTol);
         void SetHooked(bool hooked);
         void SetNavX(AHRS* navx);
