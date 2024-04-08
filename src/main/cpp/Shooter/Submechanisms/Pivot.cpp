@@ -353,7 +353,7 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("pos", &currPose_.pos, {1,1,4,1}, false);
     shuff_.add("vel", &currPose_.vel, {1,1,5,1}, false);
     shuff_.add("acc", &currPose_.acc, {1,1,6,1}, false);
-    shuff_.add("robotAcc", &robotAcc_, {1,1,7,1}, false});
+    shuff_.add("robotAcc", &robotAcc_, {1,1,7,1}, false);
     //shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
 
     shuff_.add("hooked", &hooked_, {1,1,7,2}, true);

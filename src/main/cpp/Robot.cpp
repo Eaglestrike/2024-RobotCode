@@ -156,7 +156,7 @@ void Robot::RobotPeriodic()
   }
 
   m_shooter.Trim(m_controller.getValueOnce(ControllerMapData::GET_SHOOTER_TRIM, {0, 0})); // Trim shooter
-  m_shooter.SetOdometry(Utils::Round2(m_odom.GetPos()), m_odom.GetVel(), Utils::Round2(m_odom.GetYaw()));
+  m_shooter.SetOdometry(m_odom.GetPos(), m_odom.GetVel(), m_odom.GetYaw());
   m_shooter.SetGamepiece(m_intake.InChannel() || m_intake.InShooter());
 
   // LED vertical
@@ -259,7 +259,6 @@ void Robot::TeleopInit()
 
   m_shooter.ZeroRelative();
   m_shooter.Stop();
-  m_intake.Stow();
 
   m_posVal = 0;
   m_controller.stopBuffer();
@@ -315,7 +314,7 @@ void Robot::TeleopPeriodic()
   double curYaw = m_odom.GetAngNorm();
   double curJoystickAng = m_odom.GetJoystickAng();
 
-  vec::Vector2D expAcc = m_odom.GetVel() - (setVel*SwerveConstants::CONTROL_KV);
+  vec::Vector2D expAcc = setVel*SwerveConstants::CONTROL_KV - m_odom.GetVel();
   m_shooter.SetAcceleration(expAcc);
 
   // auto lineup to amp
@@ -386,7 +385,7 @@ void Robot::TeleopPeriodic()
               m_autoHmLineup.Start();
             }
             m_autoHmLineup.Periodic();
-            // canShoot &= m_autoHmLineup.AtTarget();
+            canShoot &= m_autoHmLineup.AtTarget();
             break;
         }
         
@@ -525,7 +524,7 @@ void Robot::TeleopPeriodic()
 
   // auto lineup
   if(m_controller.getPressed(SHOOT) && m_intake.HasGamePiece() && m_state == RobotState::AMP){
-    // m_swerveController.SetRobotVelocity(m_autoHmLineup.GetExpVel(), m_autoHmLineup.GetExpAngVel(), curYaw);
+    m_swerveController.SetRobotVelocity(m_autoHmLineup.GetExpVel(), m_autoHmLineup.GetExpAngVel(), curYaw);
   }
   else if (m_controller.getPressed(SHOOT) && useAutoLineup) // Angle lineup when shooting
   {
