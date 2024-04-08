@@ -86,6 +86,8 @@ namespace SwerveConstants
   const double NORMAL_SWERVE_MULT = 12.0;
   const double SLOW_SWERVE_MULT = 0.25;
 
+  const double CONTROL_KV = 5.5/12.0;
+
   const double PITCH_OFFSET = -0.02;
   const double ROLL_OFFSET = M_PI-0.02;
 

@@ -533,13 +533,19 @@ bool Shooter::IsManual() {
     return state_ == MANUAL_TARGET;
 }
 
-/**
- * Debug odometry
-*/
 void Shooter::SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw){
     robotPos_ = robotPos;
     robotVel_ = robotVel;
     robotYaw_ = robotYaw;
+}
+
+void Shooter::SetAcceleration(vec::Vector2D acc){
+    double pivotAcc = vec::Vector2D{cos(robotYaw_),sin(robotYaw_)}.dot(acc);
+    pivot_.SetAcceleration(pivotAcc);
+    if(shuff_.isEnabled()){
+        shuff_.PutNumber("acc x", acc.x(), {1,1,9,0});
+        shuff_.PutNumber("acc y", acc.y(), {1,1,10,0});
+    }
 }
 
 void Shooter::SetHooked(bool hooked){

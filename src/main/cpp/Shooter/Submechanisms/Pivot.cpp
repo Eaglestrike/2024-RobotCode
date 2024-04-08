@@ -117,7 +117,7 @@ void Pivot::CoreTeleopPeriodic(){
                 inch *= Utils::Sign(error.pos);
                 volts_ += inch;
             }
-            double accDamp = accDampener_ * navX_->GetRawAccelX() * sin(currPose_.pos);
+            double accDamp = accDampener_ * robotAcc_ * sin(currPose_.pos);
 
             bool finished = profile_.isFinished();
             bool atTarget = (std::abs(error.pos) < posTol_) && (std::abs(error.vel) < velTol_);
@@ -299,6 +299,10 @@ void Pivot::SetNavX(AHRS* navX){
     navX_ = navX;
 }
 
+void Pivot::SetAcceleration(double acc){
+    robotAcc_ = acc;
+}
+
 /**
  * Get Pose
 */
@@ -349,7 +353,8 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("pos", &currPose_.pos, {1,1,4,1}, false);
     shuff_.add("vel", &currPose_.vel, {1,1,5,1}, false);
     shuff_.add("acc", &currPose_.acc, {1,1,6,1}, false);
-    shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
+    shuff_.add("robotAcc", &robotAcc_, {1,1,7,1}, false});
+    //shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
 
     shuff_.add("hooked", &hooked_, {1,1,7,2}, true);
 
@@ -411,10 +416,10 @@ void Pivot::CoreShuffleboardPeriodic(){
     // shuff_.PutNumber("absPos", absPose.pos);
     // shuff_.PutNumber("absVel", absPose.vel);
 
-    shuff_.PutNumber("navx X", (double)navX_->GetWorldLinearAccelX(),{1,1,9,0});
-    shuff_.PutNumber("navx Y", (double)navX_->GetWorldLinearAccelY(),{1,1,9,1});
-    shuff_.PutNumber("navx Z", (double)navX_->GetWorldLinearAccelZ(),{1,1,9,2});
-    shuff_.PutNumber("navx yaw", (double)navX_->GetYaw(),{1,1,9,3});
+    // shuff_.PutNumber("navx X", (double)navX_->GetWorldLinearAccelX(),{1,1,9,0});
+    // shuff_.PutNumber("navx Y", (double)navX_->GetWorldLinearAccelY(),{1,1,9,1});
+    // shuff_.PutNumber("navx Z", (double)navX_->GetWorldLinearAccelZ(),{1,1,9,2});
+    // shuff_.PutNumber("navx yaw", (double)navX_->GetYaw(),{1,1,9,3});
 
     shuff_.update(true);
 
