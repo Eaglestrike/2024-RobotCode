@@ -36,8 +36,11 @@ namespace FieldConstants {
   // speaker location
   const vec::Vector2D BLUE_SPEAKER = {-0.1, 5.79};
 
-  const std::set<int> BLUE_TAGS = {7, 8, 14};
-  const std::set<int> RED_TAGS = {3, 4, 13};
+  const bool FULL_FIELD_ODOM = false;
+  const bool USE_ALL_TAGS = true;
+  const std::set<int> BLUE_TAGS = {7, 14, 15, 16};
+  const std::set<int> RED_TAGS = {4, 11, 12, 13};
+  const std::set<int> ALL_TAGS = {4, 7, 11, 12, 13, 14, 15, 16};
 
   // amp location
   const vec::Vector2D BLUE_AMP = {1.815, 7.888};

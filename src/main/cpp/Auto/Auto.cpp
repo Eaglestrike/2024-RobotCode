@@ -222,8 +222,7 @@ void Auto::AutoPeriodic(){
 
     if(useAngLineup){
         if(shooter_.UseAutoLineup()){ //Angle lineup
-            autoLineup_.Recalc(shooter_.GetTargetRobotYaw());
-            autoLineup_.Periodic();
+            autoLineup_.SetTarget(shooter_.GetTargetRobotYaw() + SHOOT_ANG_OFFSET);
             segments_.Periodic(autoLineup_.GetAngVel());  
         }
         else{
@@ -231,7 +230,6 @@ void Auto::AutoPeriodic(){
         }
     }
     else{
-        autoLineup_.Stop();
         segments_.Periodic();
     }
     
@@ -243,7 +241,7 @@ void Auto::AutoPeriodic(){
     logger_.LogNum("Auto index", index_);
     logger_.LogNum("Shooter ang lineup targ", autoLineup_.GetTargAng());
     logger_.LogNum("Shooter ang lineup exp", autoLineup_.GetExpAng());
-    logger_.LogNum("Shooter ang lineup state", autoLineup_.GetState());
+    logger_.LogBool("Shooter ang lineup state", autoLineup_.AtTarget());
     logger_.LogBool("Drive Started", driveTiming_.hasStarted);
     logger_.LogBool("Shooter Started", shooterTiming_.hasStarted);
     logger_.LogBool("Intake Started", intakeTiming_.hasStarted);
@@ -328,15 +326,16 @@ void Auto::ShooterPeriodic(double t){
 */
 void Auto::IntakePeriodic(double t){
     //First Action
+    intake_.SetAmp(false);
     if(!intakeTiming_.hasStarted && t > intakeTiming_.start){
-        intake_.Passthrough(false);
+        intake_.Passthrough();
         intakeTiming_.hasStarted = true;
         // std::cout<<"Intake Start"<<std::endl;
     }
     if(intakeTiming_.finished){
     }
     else if(intakeTiming_.hasStarted){
-        intake_.Passthrough(false);
+        intake_.Passthrough();
         //Check if finished
         if(intake_.InChannel()){  // End intake if has game piece
             // std::cout<< "Intake end" << std::endl;
@@ -600,6 +599,8 @@ void Auto::ShuffleboardInit(){
     
     shuff_.add("Intake Padding", &INTAKE_PADDING, {1,1,4,3}, true);
     shuff_.add("Intake Time", &INTAKE_TIME, {1,1,5,3}, true);
+
+    shuff_.add("Auto Yaw Offset", &SHOOT_ANG_OFFSET, {1,1,1,4}, true);
 
     //Print Pathing
     shuff_.addButton("Print Path", [&]{

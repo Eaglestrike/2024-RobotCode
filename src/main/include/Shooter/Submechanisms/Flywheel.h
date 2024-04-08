@@ -10,6 +10,8 @@
 
 #include "Constants/ShooterConstants.h"
 
+#include <queue>
+
 using ctre::phoenix6::hardware::TalonFX;
 
 class Flywheel : public Mechanism{
@@ -62,6 +64,10 @@ class Flywheel : public Mechanism{
         ShooterConstants::PID pid_;
         double accum_;
         double prevT_;
+
+        std::queue<double> filter_;
+        double filterSum_;
+        int filterSize_ = ShooterConstants::FLYWHEEL_FILTER_SIZE;
 
         double velTol_;
 

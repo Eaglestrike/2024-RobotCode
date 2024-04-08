@@ -12,6 +12,7 @@
 #include <frc/TimedRobot.h>
 #include <frc/smartdashboard/SendableChooser.h>
 #include <frc/smartdashboard/Field2d.h>
+#include <photon/PhotonCamera.h>
 
 #include "ShuffleboardSender/ShuffleboardSender.h"
 
@@ -21,6 +22,7 @@
 #include "Auto/AutoChooser.h"
 #include "Controller/Controller.h"
 #include "Drive/AutoAngLineup.h"
+#include "Drive/AutoHmLineup.h"
 #include "Drive/SwerveControl.h"
 #include "Climb/Climb.h"
 #include "Intake/Intake.h"
@@ -32,6 +34,10 @@
 #include "Constants/AutoConstants.h"
 
 #include "Shooter/Shooter.h"
+
+#include "RobotState.h"
+
+namespace ph = photon;
 
 class Robot : public frc::TimedRobot {
   public:
@@ -52,6 +58,8 @@ class Robot : public frc::TimedRobot {
   private: 
     void ShuffleboardInit();
     void ShuffleboardPeriodic();
+
+    RobotState::State m_state;
 
     // Controller
     Controller m_controller;
@@ -81,9 +89,11 @@ class Robot : public frc::TimedRobot {
     FFAutotuner m_swerveYTuner{"Swerve Y", FFAutotuner::SIMPLE}; //0.1711, 1.384, 0.1398
     #endif
     
-    // Vision (Jetson)
+    // Vision
     SocketClient m_client;
     bool m_isSecondTag;
+    ph::PhotonCamera m_camera{"USB_webcam"};
+    bool m_tagDetected = false;
     
     // Odometry
     Odometry m_odom;
@@ -93,6 +103,7 @@ class Robot : public frc::TimedRobot {
 
     // auto lineup
     AutoAngLineup m_autoLineup;
+    AutoHmLineup m_autoHmLineup;
 
     //Auto 
     Auto m_auto;
@@ -104,10 +115,9 @@ class Robot : public frc::TimedRobot {
     frc::SendableChooser<std::string> m_autoEndChooser;
 
     // current buttonboard states
-    bool m_amp = true;
+    bool m_eject = false;
     bool m_wristManual = false;
     bool m_climbManual = false;
-    bool m_eject = false;
     int m_posVal = 0;
 
     // zerored states
