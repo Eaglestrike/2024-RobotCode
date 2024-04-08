@@ -22,9 +22,10 @@ class TrapezoidalProfile{
         double getMaxAcc();
         void setMaxVel(double maxVel);
         void setMaxAcc(double maxAcc);
+        
+        void Zero(Poses::Pose1D pose);
 
     private:
-        void Zero(Poses::Pose1D pose);
 
         frc::Timer timer_;
 

@@ -194,7 +194,7 @@ void Pivot::SetAngle(double angle){
         }
         angle = ShooterConstants::PIVOT_UNHOOK;
     }
-    Poses::Pose1D currTarg = profile_.getTargetPose();
+
     Poses::Pose1D target = {.pos = angle, .vel = 0.0, .acc = 0.0};
 
     Poses::Pose1D error = target - currPose_;
@@ -204,22 +204,22 @@ void Pivot::SetAngle(double angle){
     }
     else if(atTarget){
         state_ = AT_TARGET;
+        profile_.Zero(target);
+        return;
     }
     else{
         state_ = AIMING;
     }
 
-    if(std::abs(currTarg.pos - angle) > 0.0001){ //Basically the same target
-        Poses::Pose1D startPose;
-        if(profile_.isFinished()){
-            startPose = currPose_;
-            accum_ = 0.0;
-        }
-        else{
-            startPose = profile_.currentPose();
-        }
-        profile_.setTarget(startPose, target);
+    Poses::Pose1D startPose;
+    if(profile_.isFinished()){
+        startPose = currPose_;
+        accum_ = 0.0;
     }
+    else{
+        startPose = profile_.currentPose();
+    }
+    profile_.setTarget(startPose, target);
 }
 
 /**
