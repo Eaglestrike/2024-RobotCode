@@ -331,13 +331,13 @@ void Pivot::CoreShuffleboardInit(){
     //Voltage Control (row 0)
     shuff_.add("volts", &volts_, {1,1,0,0}, true);
     shuff_.add("max volts", &maxVolts_, {1,1,1,0}, true);
-    shuff_.addButton("Set Voltage",
-                    [&](){
-                            SetVoltage(volts_);
-                            std::cout<<"Set Voltage to " << volts_ << std::endl;
-                        },
-                    {1,1,2,0}
-                    );
+    // shuff_.addButton("Set Voltage",
+    //                 [&](){
+    //                         SetVoltage(volts_);
+    //                         std::cout<<"Set Voltage to " << volts_ << std::endl;
+    //                     },
+    //                 {1,1,2,0}
+    //                 );
     shuff_.addButton("Stop", [&](){Stop();}, {1,1,3,0});
 
     //Info (middle-right)
@@ -345,7 +345,7 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("pos", &currPose_.pos, {1,1,4,1}, false);
     shuff_.add("vel", &currPose_.vel, {1,1,5,1}, false);
     shuff_.add("acc", &currPose_.acc, {1,1,6,1}, false);
-    shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
+    // shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
 
     shuff_.add("hooked", &hooked_, {1,1,7,2}, true);
 
