@@ -259,6 +259,8 @@ void Robot::TeleopInit()
   m_shooter.Stop();
   m_intake.Stow();
 
+  m_climb.TeleopInit();
+
   m_posVal = 0;
   m_controller.stopBuffer();
 }

@@ -16,12 +16,21 @@ void Climb::CorePeriodic(){
     UpdatePos();
 }
 
+void Climb::CoreTeleopInit() {
+    m_beginTime = Utils::GetCurTimeS();
+}
+
 void Climb::CoreTeleopPeriodic(){
     StateInfo info;
+    double curTime = Utils::GetCurTimeS();
     switch (m_targ){
         case STOWED:
-            if (m_state != MANUAL) {
-                Brake();
+            if (m_state != MANUAL && m_state != AT_TARGET) {
+                if (curTime - m_beginTime > TELE_PERIOD - 1.0) {
+                    Brake();
+                } else {
+                    ReleaseBrake();
+                }
             }
             info = STOW_INFO;
             break;
@@ -32,12 +41,14 @@ void Climb::CoreTeleopPeriodic(){
             info = EXTENDED_INFO;
             break;
         case CLIMB:
-            if (m_state != MANUAL) {
-                Brake();
+            if (m_state != MANUAL && m_state != AT_TARGET) {
+                if (curTime - m_beginTime > TELE_PERIOD - 1.0) {
+                    Brake();
+                } else {
+                    ReleaseBrake();
+                }
             }
-            if (Utils::GetCurTimeS() - m_startTimeDown > UNRATCHET_WAIT) {
-                info = CLIMB_INFO;
-            }
+            info = CLIMB_INFO;
             break;
     }
 
@@ -65,7 +76,9 @@ void Climb::CoreTeleopPeriodic(){
                 m_state = MOVING;
             }
 
-            Brake();
+            if (m_targ == STOWED || m_targ == CLIMB) {
+                Brake();
+            }
             break;
         case MANUAL:
             if (m_pos <= MIN_POS-1 && m_manualVolts < 0) {
