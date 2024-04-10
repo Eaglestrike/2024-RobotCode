@@ -76,7 +76,7 @@ void Climb::CoreTeleopPeriodic(){
                 m_state = MOVING;
             }
 
-            if (m_targ == STOWED || m_targ == CLIMB) {
+            if (m_targ == STOWED || m_targ == CLIMB || m_targ == TMANUAL) {
                 Brake();
             }
             break;
