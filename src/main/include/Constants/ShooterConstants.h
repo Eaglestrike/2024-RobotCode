@@ -121,20 +121,48 @@ namespace ShooterConstants{
         double vel;
     };
 
+    // const std::map<double, ShootConfig> SHOOT_DATA = {
+    // //distance-> ang, vel
+    //     {0.0,   {1.15,  10.0}}, //0 distance shot (used just for interpolation)
+    //     {1.32,  {1.15,  13.0}},
+    //     {1.51,  {0.97,  17.0}},
+    //     {1.68,  {0.93,  17.0}},
+    //     {1.88,  {0.87,  17.0}},
+    //     {2.10,  {0.81,  17.0}},
+    //     {2.37,  {0.74,  17.0}},
+    //     {2.64,  {0.69,  17.0}},
+    //     {3.08,  {0.625, 18.0}},
+    //     {3.46,  {0.585, 18.0}},
+    //     {3.89,  {0.575,  18.0}},
+    //     {4.37,  {0.535,  18.0}}
+    // };
+
     const std::map<double, ShootConfig> SHOOT_DATA = {
     //distance-> ang, vel
-        {0.0,   {1.15,  10.0}}, //0 distance shot (used just for interpolation)
-        {1.32,  {1.15,  13.0}},
-        {1.51,  {0.97,  17.0}},
-        {1.68,  {0.93,  17.0}},
-        {1.88,  {0.87,  17.0}},
-        {2.10,  {0.81,  17.0}},
-        {2.37,  {0.74,  17.0}},
-        {2.64,  {0.69,  17.0}},
-        {3.08,  {0.625, 18.0}},
-        {3.46,  {0.585, 18.0}},
-        {3.89,  {0.575,  18.0}},
-        {4.37,  {0.535,  18.0}}
+        {0.0, {1.12, 14}},
+        {1.32, {1.1, 14}},
+        {1.6, {1, 15}},
+        {1.76, {0.95, 16}},
+        {1.97, {0.9, 17}},
+        {2.14, {0.86, 17}},
+        {2.28, {0.83, 17}},
+        {2.5, {0.78, 17}},
+        {2.67, {0.75, 18}},
+        {2.84, {0.73, 18}},
+        {3.04, {0.69, 18}},
+        {3.21, {0.66, 18}},
+        {3.42, {0.65, 18}},
+        {3.57, {0.621, 18}},
+        {3.74, {0.6, 19}},
+        {3.99, {0.584, 19}},
+        {4.18, {0.56, 19}},
+        {4.47, {0.53, 19}},
+        // from here on, shots get sketchy
+        {4.62, {0.52, 20}},
+        {4.852, {0.51, 20}},
+        {5.035, {0.5, 20}},
+        {5.239, {0.49, 20}},
+        {5.35, {0.48, 20}}
     };
 
     const std::map<double, ShootConfig> FERRY_DATA = {
@@ -164,14 +192,14 @@ namespace ShooterConstants{
     const double LINEUP_YAW_PERCENT = 0.37; //0.45
     const double PIVOT_ANG_PERCENT = 0.7; // 0.8
     
-    const double SHOOT_ANG_OFFSET_TELE = 0;
-    const double SHOOT_ANG_OFFSET_AUTO = 0.1;
+    const double SHOOT_ANG_OFFSET_TELE = 0.09;
+    const double SHOOT_ANG_OFFSET_AUTO = 0.09;
 
     //Field Data
 
     //Speaker center positions (x, y)
-    const vec::Vector2D RED_SPEAKER = {16.54-0.30-0.075-0.075, 5.58};
-    const vec::Vector2D BLUE_SPEAKER = {0.0+0.15+0.225+0.075, 5.58};
+    const vec::Vector2D RED_SPEAKER = {16.54/*-0.30-0.075-0.075*/, 5.58};
+    const vec::Vector2D BLUE_SPEAKER = {0.0/*+0.15+0.225+0.075*/, 5.58};
 
     const vec::Vector2D RED_CORNER = {15.912, 7.057};
     const vec::Vector2D BLUE_CORNER = {0.35, 7.057};
