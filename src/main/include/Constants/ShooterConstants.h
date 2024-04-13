@@ -50,7 +50,7 @@ namespace ShooterConstants{
 
     const double FLYWHEEL_R = 0.0508;
     const double FLYWHEEL_MAX_A = 30.0; //Max Acceleration 40.0
-    const double FLYWHEEL_MAX_VOLTS = 10.0; //Max velocity -> ~20.0
+    const double FLYWHEEL_MAX_VOLTS = 12.0; //Max velocity -> ~20.0
 
     const PID FLYWHEEL_PID = {
         .kp = 0.0,
@@ -86,22 +86,22 @@ namespace ShooterConstants{
     const double PIVOT_OFFSET = 5.587;
  
     const PID PIVOT_PID = {
-        .kp = 10.0, //11.0
+        .kp = 9.0,//10.0, //11.0
         .ki = 0.0,
-        .kd = 0.5
+        .kd = 0.4 //0.5
     };
-    const double PIVOT_PID_MAX = 2.0;
+    const double PIVOT_PID_MAX = 0.5; //2.0;
 
     const Feedforward PIVOT_FF = {
         .ks = 0.01, //0.03
         .kv = 0.356, //0.366
-        .ka = 0.00, //0.0552
-        .kg = 0.475
+        .ka = 0.005, //0.0552
+        .kg = 0.55 //0.475
     };
     const double PIVOT_FRCTN = 0.03; //0.02
 
     const Incher PIVOT_INCH = {
-        .volts = 0.05,
+        .volts = 0.0, //0.05,
         .onCycles = 2,
         .numCycles = 20
     };
@@ -162,7 +162,10 @@ namespace ShooterConstants{
         {4.852, {0.51, 20}},
         {5.035, {0.5, 20}},
         {5.239, {0.49, 20}},
-        {5.35, {0.48, 20}}
+        {5.35, {0.48, 20}},
+        {5.61, {0.477, 20}},
+        {6.0, {0.47, 20}},
+        {7.0, {0.47, 20}}
     };
 
     const std::map<double, ShootConfig> FERRY_DATA = {
@@ -233,12 +236,16 @@ namespace ShooterConstants{
     const vec::Vector2D ABSOLUTE_MISS = {10000000.0, 10000000.0}; //Forward kinematic miss
 
     //Constants for time calculation (t = kD * d + cT)
-    const double kD = 0.049123; //0.02
-    const double cT = 0.177579;
+    const double kD = 0.0343988; //0.049123;
+    const double cT = 0.195793; //0.177579;
+    const double kPiv = 1.0;
+    const double kVolts = 0.0;
     const double prepareT = 0.1;
 
     // amp
     const double PIVOT_AMP = 1.1; //1.15
     const double FLYWHEEL_SPEED_AMP = 3.3; //4.25
     const double FLYWHEEL_SPIN_AMP = 0.0; //-0.25
+
+    //TRAP : 84 in, 7.8 v, 1.0 a
 }

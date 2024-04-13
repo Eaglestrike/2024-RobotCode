@@ -98,6 +98,8 @@ class Shooter : public Mechanism{
         std::map<double, ShooterConstants::ShootConfig> ferryData_ = ShooterConstants::FERRY_DATA;
         double kD_ = ShooterConstants::kD;
         double cT_ = ShooterConstants::cT;
+        double kPiv_ = ShooterConstants::kPiv;
+        double kVolts_ = ShooterConstants::kVolts;
         double ferryR_ = ShooterConstants::FERRY_R;
         double shootYawOffset_ = ShooterConstants::SHOOT_ANG_OFFSET_TELE;
 

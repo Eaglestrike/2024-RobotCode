@@ -41,6 +41,7 @@ class Pivot : public Mechanism{
         void SetHooked(bool hooked);
         Poses::Pose1D GetPose();
         double GetTolerance();
+        double GetTargetTime();
 
         std::string GetStateStr();
 

@@ -214,7 +214,6 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
         return;
     }
 
-    state_ = SHOOT;
     targetPos_ = robotPos;
 
     //Speaker targetting
@@ -251,6 +250,9 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
 
     double dist = (-b-std::sqrt(determinant))/(2.0*a);
     double t = kD_*dist + cT_;
+    if(state_ == SHOOT){
+        t += kPiv_*pivot_.GetTargetTime();
+    }
 
     if (Utils::NearZero(robotVel, 0.15)) {
         dist = toSpeaker.magn();
@@ -331,6 +333,8 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
 
     autoStroll_ = needGamePiece;
     SetUp(shotVel, 0.0, pivotAng);
+
+    state_ = SHOOT;
 }
 
 void Shooter::Ferry(vec::Vector2D robotPos, vec::Vector2D robotVel){
@@ -680,7 +684,9 @@ void Shooter::CoreShuffleboardInit(){
     shuff_.add("Shot Ang", &shot_.ang, {1,1,1,3});
     shuff_.add("kD", &kD_, {1,1,4,3}, true);
     shuff_.add("cT", &cT_, {1,1,5,3}, true);
-    shuff_.add("Yaw Offset", &shootYawOffset_, {1,1,6,3}, true);
+    shuff_.add("kPiv", &kPiv_, {1,1,6,3}, true);
+    shuff_.add("kPiv", &kVolts_, {1,1,7,3}, true);
+    shuff_.add("Yaw Offset", &shootYawOffset_, {1,1,8,3}, true);
     
     //Tolerance (row 4)
     shuff_.add("pos tol", &posTol_, {1,1,0,4}, true);

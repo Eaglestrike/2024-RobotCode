@@ -216,6 +216,7 @@ void Robot::AutonomousInit()
   m_autoLineup.SetPID(AutoLineupConstants::ANG_AUTO_P, AutoLineupConstants::ANG_AUTO_I, AutoLineupConstants::ANG_AUTO_D);
 
   // zero
+  m_intake.SetAmp(false);
   if (!m_intakeZeroed) {
     m_intake.Zero();
     m_intakeZeroed = true;
@@ -326,7 +327,7 @@ void Robot::TeleopPeriodic()
   // }
 
   // Intake
-  m_intake.SetAmp(m_state != RobotState::SHOOT);
+  m_intake.SetAmp(true); //m_state != RobotState::SHOOT
   bool useAutoLineup = false;
   if (!m_wristManual)
   {
