@@ -236,8 +236,8 @@ namespace ShooterConstants{
     const vec::Vector2D ABSOLUTE_MISS = {10000000.0, 10000000.0}; //Forward kinematic miss
 
     //Constants for time calculation (t = kD * d + cT)
-    const double kD = 0.0343988; //0.049123;
-    const double cT = 0.195793; //0.177579;
+    const double kD = 0.0432453; //0.049123;
+    const double cT = 0.182254; //0.177579;
     const double kPiv = 1.0;
     const double kVolts = 0.0;
     const double prepareT = 0.1;
