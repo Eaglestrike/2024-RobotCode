@@ -158,7 +158,9 @@ void Shooter::Trap(){
     ShooterConstants::Trap closest;
     double minDist = 100000000000000000.0;
     for(const ShooterConstants::Trap& trap: ShooterConstants::TRAPS){
-        vec::Vector2D targPos = trap.pos + (vec::Vector2D{cos(trap.ang),sin(trap.ang)} * ShooterConstants::TRAP_DIST);
+        vec::Vector2D trapPos = SideHelper::GetPos(trap.pos);
+        double trapAng = SideHelper::GetAng(trap.ang);
+        vec::Vector2D targPos = trapPos + (vec::Vector2D{cos(trapAng),sin(trapAng)} * ShooterConstants::TRAP_DIST);
         double dist = (trap.pos - robotPos_).magn();
         if(dist < minDist){
             closest.ang = trap.ang + M_PI;
@@ -550,6 +552,13 @@ bool Shooter::UseAutoLineup(){
     double yawError = Utils::NormalizeAng(targetYaw_ - robotYaw_);
 
     return (yawError > posYawTol_*lineupYawPercent_) || (yawError < negYawTol_*lineupYawPercent_);
+}
+
+/**
+ * Returns trap target
+*/
+vec::Vector2D Shooter::GetTrapTarget(){
+    return targetPos_;
 }
 
 /**

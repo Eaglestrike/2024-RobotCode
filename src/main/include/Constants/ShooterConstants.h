@@ -240,8 +240,8 @@ namespace ShooterConstants{
         {2.0/3.0*M_PI,  {4.661, 4.555}},
         {4.0/3.0*M_PI,  {4.692, 3.675}}
     };
-    double TRAP_DIST = 84 * 0.0254;
-    ShootConfig TRAP_SHOT = {.ang = 1.0, .vel = 7.8};
+    const double TRAP_DIST = 84 * 0.0254;
+    const ShootConfig TRAP_SHOT = {.ang = 1.0, .vel = 7.8};
 
     const double SHOOTER_HEIGHT = 0.0;
 
