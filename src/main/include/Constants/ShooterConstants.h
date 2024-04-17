@@ -174,7 +174,7 @@ namespace ShooterConstants{
         {6.6, {1.0, 12.5}},
         {7.6, {0.9, 13.5}},
         {9.3, {0.9, 16}},
-        {14.0, {0.9, 16}}
+        {14.0, {0.9, 20}}
     };
 
     //const double K_SPIN = 0.0; //Constant of how much the robot spins the note
