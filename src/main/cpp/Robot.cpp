@@ -179,6 +179,8 @@ void Robot::RobotPeriodic()
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 255, 0, 0);
   } else if (m_state == RobotState::FERRY) {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 0, 0, 0);
+  } else if (m_state == RobotState::TRAP) {
+    m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 255, 255, 255, 0);
   } else {
     m_led.SetLEDSegment(LEDConstants::LEDSegment::HORIZONTAL, 0, 0, 255, 0);
   }
@@ -342,6 +344,10 @@ void Robot::TeleopPeriodic()
         m_intake.Passthrough();
       }
       m_state = RobotState::AMP;
+    }
+    if (m_controller.getPressedOnce(TRAP_STATE))
+    {
+      m_state = RobotState::TRAP;
     }
     if (m_controller.getPressedOnce(SHOOT_STATE))
     {

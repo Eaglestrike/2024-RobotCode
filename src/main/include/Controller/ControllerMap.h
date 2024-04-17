@@ -19,6 +19,7 @@ namespace Actions{
         FAST_MODE,
         INTAKE,
         AMP_STATE,
+        TRAP_STATE,
         SHOOT_STATE,
         FERRY_STATE,
         SHOOT,
@@ -95,6 +96,7 @@ namespace ControllerMapData{
         {BB_LEFT ,              ZERO_CLIMB},
         {BB_RIGHT ,             ZERO_INTAKE},
         {BB_UP,                 SHOOT_AUTO},
+        {{BUTTONBOARD, B_8},    TRAP_STATE},
         {{BUTTONBOARD, B_9},    FERRY_STATE}
     };
 
