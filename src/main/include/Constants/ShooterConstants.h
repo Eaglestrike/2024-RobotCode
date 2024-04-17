@@ -242,6 +242,9 @@ namespace ShooterConstants{
     const double kVolts = 0.0;
     const double prepareT = 0.1;
 
+    const double ferrykD = 0.5;
+    const double ferrycT = 0.0;
+
     // amp
     const double PIVOT_AMP = 1.1; //1.15
     const double FLYWHEEL_SPEED_AMP = 3.3; //4.25
