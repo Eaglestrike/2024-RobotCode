@@ -20,6 +20,7 @@ class Auto{
         void SetPath(uint index, AutoConstants::AutoPath path);
         void SetSegment(uint index, std::string to, std::string back); //Drive -> Intake -> Drive -> Shoot
         void SetSegment(uint index, std::string path); //Drive -> Intake -> Shoot in place
+        void SetAlternate(uint index, std::string to); //Drive -> Intake (if missing far notes)
         void SetDrive(uint index, std::string path);
         void Clear();
 
@@ -44,6 +45,7 @@ class Auto{
         FRCLogger &logger_;
 
         std::vector<AutoConstants::AutoPath> paths_; //Path instructions
+        std::vector<AutoConstants::AutoPath> alternates_; //Path instructions
 
         double autoStart_;
 
@@ -52,6 +54,7 @@ class Auto{
         double blockStart_;
         double blockEnd_;
         void NextBlock();
+        void RunAlternate();
         void EvaluateElement(AutoConstants::AutoElement element);
         void EvaluateDriveElement(AutoConstants::AutoElement element);
         void EvaluateShootElement(AutoConstants::AutoElement element);

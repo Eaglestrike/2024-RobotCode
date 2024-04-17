@@ -199,6 +199,23 @@ std::string SideHelper::GetPath(std::string path) {
 }
 
 /**
+ * Returns if it's a far location
+ * 
+ * @param name location name
+ * 
+ * @returns bool
+*/
+bool SideHelper::IsFar(std::string name) {
+  bool isFar = (name == AutoConstants::L_FAR);
+  isFar |= (name == AutoConstants::ML_FAR);
+  isFar |= (name == AutoConstants::M_FAR);
+  isFar |= (name == AutoConstants::MR_FAR);
+  isFar |= (name == AutoConstants::R_FAR);
+
+  return isFar;
+}
+
+/**
  * Gets ang spline, and mirror it to red if we are red
  * 
  * @param inp Input spline

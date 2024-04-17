@@ -88,6 +88,17 @@ void AutoChooser::ProcessChoosers(bool dryRun) {
     }
     prevName = secondary;
   }
+
+  //Set Alternate Paths (in reverse order)
+  std::string primary = m_positions[0].first;
+  for (int i = 1; i < m_positions.size(); i++) {
+    std::string nextPath = m_positions[i].first;
+    if(SideHelper::IsFar(nextPath) && SideHelper::IsFar(primary)){
+      std::string path = primary + "_to_" + nextPath + ".csv";
+      m_auto.SetAlternate(i-1, path);
+    }
+    primary = nextPath;
+  }
 }
 
 /**
