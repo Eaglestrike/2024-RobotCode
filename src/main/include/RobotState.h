@@ -4,6 +4,7 @@ namespace RobotState{
     enum State{
       SHOOT,
       FERRY,
-      AMP
+      AMP,
+      TRAP
     };
 }

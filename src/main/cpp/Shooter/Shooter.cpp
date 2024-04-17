@@ -139,9 +139,43 @@ void Shooter::Amp(){
     if(!hasPiece_){
         return;
     }
+
     pivot_.SetTolerance(0.04);
     SetUp(ShooterConstants::FLYWHEEL_SPEED_AMP, ShooterConstants::FLYWHEEL_SPIN_AMP, ShooterConstants::PIVOT_AMP);
     state_ = AMP;
+}
+
+
+void Shooter::Trap(){
+    if(state_ == MANUAL_TARGET){ //Don't exit manual when called
+        return;
+    }
+    if(!hasPiece_){
+        return;
+    }
+
+    //Find nearest trap
+    ShooterConstants::Trap closest;
+    double minDist = 100000000000000000.0;
+    for(const ShooterConstants::Trap& trap: ShooterConstants::TRAPS){
+        vec::Vector2D targPos = trap.pos + (vec::Vector2D{cos(trap.ang),sin(trap.ang)} * ShooterConstants::TRAP_DIST);
+        double dist = (trap.pos - robotPos_).magn();
+        if(dist < minDist){
+            closest.ang = trap.ang + M_PI;
+            closest.pos = targPos;
+            minDist = dist;
+        }
+    }
+
+    targetPos_ = closest.pos;
+    targetVel_ = {0.0, 0.0};
+    targetYaw_ = closest.ang;
+    negYawTol_ = -0.01;
+    posYawTol_ = 0.01;
+
+    pivot_.SetTolerance(0.01);
+    SetUp(ShooterConstants::TRAP_SHOT.vel, 0.0, ShooterConstants::TRAP_SHOT.ang);
+    state_ = TRAP;
 }
 
 /**
@@ -451,7 +485,9 @@ bool Shooter::CanShoot(int posVal){
     bool canShoot = false;
     switch(state_){
         case SHOOT:
-            [[falllthrough]];
+            [[fallthrough]];
+        case TRAP:
+            [[fallthrough]];
         case FERRY:
         {
             double posError = (targetPos_ - robotPos_).magn();
@@ -462,7 +498,7 @@ bool Shooter::CanShoot(int posVal){
                 velError = 0;
             }
 
-            if ((posVal != 0)) {
+            if (posVal != 0) {
                 posError = 0;
                 velError = 0;
                 if ((posVal == 3)) {
@@ -618,6 +654,7 @@ std::string Shooter::StateToString(State state){
     switch(state){
         case STOP: return "Stop";
         case SHOOT: return "Shoot";
+        case TRAP: return "Trap";
         case FERRY: return "Ferry";
         case AMP: return "Amp";
         case STROLL: return "Stroll";

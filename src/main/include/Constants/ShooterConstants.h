@@ -231,6 +231,18 @@ namespace ShooterConstants{
         BLUE_SPEAKER + vec::Vector2D{0.0, -SPEAKER_WIDTH/2.0},
     };
 
+    struct Trap{
+        double ang;
+        vec::Vector2D pos;
+    };
+    const std::vector<Trap> TRAPS = {
+        {0.0,           {5.308, 4.106}},
+        {2.0/3.0*M_PI,  {4.661, 4.555}},
+        {4.0/3.0*M_PI,  {4.692, 3.675}}
+    };
+    double TRAP_DIST = 84 * 0.0254;
+    ShootConfig TRAP_SHOT = {.ang = 1.0, .vel = 7.8};
+
     const double SHOOTER_HEIGHT = 0.0;
 
     const vec::Vector2D ABSOLUTE_MISS = {10000000.0, 10000000.0}; //Forward kinematic miss
@@ -246,6 +258,4 @@ namespace ShooterConstants{
     const double PIVOT_AMP = 1.1; //1.15
     const double FLYWHEEL_SPEED_AMP = 3.3; //4.25
     const double FLYWHEEL_SPIN_AMP = 0.0; //-0.25
-
-    //TRAP : 84 in, 7.8 v, 1.0 a
 }

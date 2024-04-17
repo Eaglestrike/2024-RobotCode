@@ -329,6 +329,7 @@ void Robot::TeleopPeriodic()
   // Intake
   m_intake.SetAmp(true); //m_state != RobotState::SHOOT
   bool useAutoLineup = false;
+  bool useHmLineup = false;
   if (!m_wristManual)
   {
     if (m_controller.getPOVDownOnce(HALF_STOW))
@@ -378,14 +379,22 @@ void Robot::TeleopPeriodic()
             useAutoLineup = m_shooter.UseAutoLineup();
             break;
           case RobotState::AMP:
+            // if(!m_autoHmLineup.HasStarted()){
+            //   vec::Vector2D target = SideHelper::IsBlue() ? FieldConstants::BLUE_AMP : FieldConstants::RED_AMP;
+            //   m_autoHmLineup.SetTarget(target, M_PI/2.0);
+            //   m_autoHmLineup.Start();
+            // }
+            // m_autoHmLineup.Periodic();
+            // canShoot &= m_autoHmLineup.AtTarget();
+            break;
+          case RobotState::TRAP:
+            m_shooter.Trap(); //Calculate expected positions
             if(!m_autoHmLineup.HasStarted()){
-              vec::Vector2D target = SideHelper::IsBlue() ? FieldConstants::BLUE_AMP : FieldConstants::RED_AMP;
-              m_autoHmLineup.SetTarget(target, M_PI/2.0);
+              m_autoHmLineup.SetTarget(m_shooter.GetTrapTarget(), m_shooter.GetTargetRobotYaw());
               m_autoHmLineup.Start();
             }
             m_autoHmLineup.Periodic();
-            // canShoot &= m_autoHmLineup.AtTarget();
-            break;
+            useHmLineup = true;
         }
         
         if(canShoot){
@@ -430,6 +439,8 @@ void Robot::TeleopPeriodic()
     case RobotState::AMP:
       m_shooter.Amp();
       break;
+    case RobotState::TRAP:
+      m_shooter.Trap();
   }
 
   // Manual
@@ -522,10 +533,10 @@ void Robot::TeleopPeriodic()
   }
 
   // auto lineup
-  if(m_controller.getPressed(SHOOT) && m_intake.HasGamePiece() && m_state == RobotState::AMP){
-    // m_swerveController.SetRobotVelocity(m_autoHmLineup.GetExpVel(), m_autoHmLineup.GetExpAngVel(), curYaw);
+  if(useHmLineup){
+    m_swerveController.SetRobotVelocity(m_autoHmLineup.GetExpVel(), m_autoHmLineup.GetExpAngVel(), curYaw);
   }
-  else if (m_controller.getPressed(SHOOT) && useAutoLineup) // Angle lineup when shooting
+  else if (useAutoLineup) // Angle lineup when shooting
   {
     double angVel = m_autoLineup.GetAngVel();
     m_swerveController.SetRobotVelocityTele(setVel, angVel, curYaw, curJoystickAng);

@@ -29,6 +29,7 @@ class Shooter : public Mechanism{
         enum State{
             STOP,
             SHOOT,
+            TRAP,
             FERRY,
             AMP,
             STROLL, //Set to low speed
@@ -43,6 +44,7 @@ class Shooter : public Mechanism{
         void ExitState();
         void Stroll();
         void Amp();
+        void Trap();
         void ManualTarget(double target);
         void Eject(); //Only spins flywheels
         void Ferry(vec::Vector2D robotPos, vec::Vector2D robotVel);
@@ -62,6 +64,7 @@ class Shooter : public Mechanism{
         bool PivotAtTarget();
 
         double GetTargetRobotYaw();
+        vec::Vector2D GetTrapTarget();
 
         void SetOdometry(vec::Vector2D robotPos, vec::Vector2D robotVel, double robotYaw);//Debug info passing in
         void SetHooked(bool hooked);
@@ -127,8 +130,6 @@ class Shooter : public Mechanism{
         double shootYawPercent_ = ShooterConstants::SHOOT_YAW_PERCENT; //Percent of shootable area
         double lineupYawPercent_ = ShooterConstants::LINEUP_YAW_PERCENT; //Percent of lineup needing area
         double pivotAngPercent_ = ShooterConstants::PIVOT_ANG_PERCENT;
-        
-
 
         //Kinematic calculations (unused)
         struct FKRes{
