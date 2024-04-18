@@ -54,7 +54,7 @@ namespace ShooterConstants{
 
     const PID FLYWHEEL_PID = {
         .kp = 0.0,
-        .ki = 1.0, //0.07
+        .ki = 0.5, //1.0
         .kd = 0.0
     };
 
@@ -115,6 +115,8 @@ namespace ShooterConstants{
     const double PIVOT_VEL_TOL = 0.2;
     const double PIVOT_REGEN_TOL = 0.1;
 
+    const double PIVOT_SPEAKER_OFFSET = 0.02;
+
     //Shooter data
     struct ShootConfig{
         double ang;
@@ -174,7 +176,7 @@ namespace ShooterConstants{
         {6.6, {1.0, 12.5}},
         {7.6, {0.9, 13.5}},
         {9.3, {0.9, 16}},
-        {14.0, {0.9, 20}}
+        {14.0, {0.8, 20}}
     };
 
     //const double K_SPIN = 0.0; //Constant of how much the robot spins the note
@@ -193,7 +195,7 @@ namespace ShooterConstants{
     //const double SHOOT_YAW_TOL = 0.05;
     const double SHOOT_YAW_PERCENT = 0.5;
     const double LINEUP_YAW_PERCENT = 0.37; //0.45
-    const double PIVOT_ANG_PERCENT = 0.7; // 0.8
+    const double PIVOT_ANG_PERCENT = 0.6; // 0.8
     
     const double SHOOT_ANG_OFFSET_TELE = 0.09;
     const double SHOOT_ANG_OFFSET_AUTO = 0.09;

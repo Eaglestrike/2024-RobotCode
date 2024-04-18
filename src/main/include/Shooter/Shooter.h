@@ -102,6 +102,7 @@ class Shooter : public Mechanism{
         double kVolts_ = ShooterConstants::kVolts;
         double ferryR_ = ShooterConstants::FERRY_R;
         double shootYawOffset_ = ShooterConstants::SHOOT_ANG_OFFSET_TELE;
+        double shootPivAngOffset_ = ShooterConstants::PIVOT_SPEAKER_OFFSET;
 
         bool hasShot_;
         ShooterConstants::ShootConfig shot_;

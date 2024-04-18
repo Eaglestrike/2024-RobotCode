@@ -317,6 +317,8 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     double pivotAng = lowerPercent*lowerShot.ang + upperPercent*upperShot.ang;
     double shotVel = lowerPercent*lowerShot.vel + upperPercent*upperShot.vel;
 
+    pivotAng += shootPivAngOffset_;
+
     //Pivot set tolerance (max - min)/2.0
     double pivotTol = (std::atan(dist/ShooterConstants::SPEAKER_MIN) - std::atan((dist-ShooterConstants::SPEAKER_DEPTH)/ShooterConstants::SPEAKER_MIN))/2.0;
     pivot_.SetTolerance(pivotTol * pivotAngPercent_);
@@ -697,6 +699,8 @@ void Shooter::CoreShuffleboardInit(){
 
     shuff_.add("yaw pos", &posYawTol_, {1,1,6,4}, false);
     shuff_.add("yaw neg", &negYawTol_, {1,1,7,4}, false);    
+
+    shuff_.add("Piv Ang Offset", &shootPivAngOffset_, {1,1,8,4}, true);
 }
 
 void Shooter::CoreShuffleboardPeriodic(){
