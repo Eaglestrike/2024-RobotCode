@@ -322,16 +322,17 @@ void Auto::ShooterPeriodic(double t){
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
         //Feed into shooter when can shoot
-        int posVal = pathNum_ == 1 ? 3 : 0;
+        int posVal = (pathNum_ == 1) ? 3 : 0;
 
         bool forceShoot = (pathNum_ == 1 && t > 2) ||  (t > shooterTiming_.end + SHOOT_PADDING); //Exceeded time given
-        if(forceShoot || (shooter_.CanShoot(posVal) && intake_.InShooter())){ 
+        bool hasPiece = intake_.InShooter() || intake_.InChannel();
+        if(forceShoot || (shooter_.CanShoot(posVal) && hasPiece)){ 
             intake_.FeedIntoShooter();
             isShooting_ = true;
         }
         
         //Finish shooting can't see piece
-        if(isShooting_ && (!intake_.InShooter())){
+        if(isShooting_ && (!hasPiece)){
             shooterTiming_.finished = true;
             isShooting_ = false;
             // std::cout<<"Shooter end" << std::endl;
