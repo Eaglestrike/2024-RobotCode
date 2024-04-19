@@ -346,7 +346,7 @@ void Robot::TeleopPeriodic()
     {
       m_state = RobotState::SHOOT;
     }
-    if (m_controller.getPressedOnce(FERRY_STATE))
+    if (m_controller.getPressedOnce(ZERO_2))
     {
       m_state = RobotState::FERRY;
     }

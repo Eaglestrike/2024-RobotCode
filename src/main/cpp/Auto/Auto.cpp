@@ -241,6 +241,10 @@ void Auto::AutoPeriodic(){
     if(driveTiming_.finished && shooterTiming_.finished && intakeTiming_.finished){
         NextBlock();
     }
+
+    DrivePeriodic(t);
+    ShooterPeriodic(t);
+    IntakePeriodic(t);
     
     bool useAngLineup = (pathNum_ != 0) && shooterTiming_.hasStarted && (!shooterTiming_.finished) && (intakeTiming_.finished);
     if(shuff_.isEnabled()){
@@ -249,21 +253,20 @@ void Auto::AutoPeriodic(){
     }
 
     if(useAngLineup){
+        double angVel = 0.0;
         if(shooter_.UseAutoLineup()){ //Angle lineup
-            autoLineup_.SetTarget(shooter_.GetTargetRobotYaw() + SHOOT_ANG_OFFSET);
-            segments_.Periodic(autoLineup_.GetAngVel());  
+            autoLineup_.SetTarget(shooter_.GetTargetRobotYaw() + SHOOT_ANG_OFFSET);   
+            angVel = autoLineup_.GetAngVel();
         }
         else{
-            segments_.Periodic(0.0);
+            autoLineup_.GetAngVel();
         }
+        segments_.Periodic(angVel);
     }
     else{
         segments_.Periodic();
+        autoLineup_.Stop();
     }
-    
-    DrivePeriodic(t);
-    ShooterPeriodic(t);
-    IntakePeriodic(t);
 
     logger_.LogNum("Auto path num", pathNum_);
     logger_.LogNum("Auto index", index_);
@@ -463,7 +466,7 @@ void Auto::NextBlock(){
  * Sets up the next block (the actions between 2 AFTERS)
 */
 void Auto::RunAlternate(){
-    if(pathNum_ >= (int)paths_.size()){
+    if(pathNum_ >= (int)alternates_.size()){
         return;
     }
     AutoPath altPath = alternates_[pathNum_];
@@ -511,6 +514,9 @@ void Auto::RunAlternate(){
 
     pathNum_++;
     index_ = 0;
+    if(pathNum_ >= paths_.size()){
+        return;
+    }
     AutoPath path = paths_[pathNum_];
     while(true){//Find next intake command
         if(index_ >= (int)path.size()){
