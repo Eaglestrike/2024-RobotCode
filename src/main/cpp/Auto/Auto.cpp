@@ -155,6 +155,7 @@ void Auto::SetDrive(uint index, std::string path){
 */
 void Auto::Clear(){
     paths_.clear();
+    alternates_.clear();
     SetPath(0, {{SHOOT, AFTER}});
     inChannel_ = true;
 }
@@ -255,10 +256,12 @@ void Auto::AutoPeriodic(){
     if(useAngLineup){
         double angVel = 0.0;
         if(shooter_.UseAutoLineup()){ //Angle lineup
+            std::cout << "shooter auto lineup true" << std::endl;
             autoLineup_.SetTarget(shooter_.GetTargetRobotYaw() + SHOOT_ANG_OFFSET);   
             angVel = autoLineup_.GetAngVel();
         }
         else{
+            std::cout << "shooter auto lineup true" << std::endl;
             autoLineup_.GetAngVel();
         }
         segments_.Periodic(angVel);
@@ -324,11 +327,12 @@ void Auto::ShooterPeriodic(double t){
     }
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
+        vec::Vector2D vel = odometry_.GetDBVel();
         //Feed into shooter when can shoot
-        // int posVal = (pathNum_ == 1) ? 3 : 0;
-        int posVal = 0;
+        int posVal = (pathNum_ == 1) ? 3 : 0;
 
-        bool forceShoot = /*(pathNum_ == 1 && t > 2) || */  (t > shooterTiming_.end + SHOOT_PADDING); //Exceeded time given
+        // adjust t to 1.4??
+        bool forceShoot = (pathNum_ == 1 && t > 2) || (t > shooterTiming_.end + SHOOT_PADDING); //Exceeded time given
         bool hasPiece = intake_.InShooter() || intake_.InChannel();
         if(forceShoot || (shooter_.CanShoot(posVal) && hasPiece)){ 
             intake_.FeedIntoShooter();
@@ -455,11 +459,11 @@ void Auto::NextBlock(){
         intakeTiming_.end = std::max(intakeTiming_.end, driveTiming_.end);
     }
 
-    if(index_ >= (int)path.size()){//Finished this path
-        pathNum_++;
-        index_ = 0;
-        return;
-    }
+    // if(index_ >= (int)path.size()){//Finished this path
+    //     pathNum_++;
+    //     index_ = 0;
+    //     return;
+    // }
 }
 
 
@@ -707,13 +711,20 @@ void Auto::ShuffleboardInit(){
 
     //Print Pathing
     shuff_.addButton("Print Path", [&]{
+        std::cout<<"------Print Path------"<<std::endl;
         for(uint i = 0; i < paths_.size(); i++){
             std::cout<<"Path "<<i<<std::endl;
             for(AutoElement element : paths_[i]){
                 std::cout<<ElementToString(element)<<std::endl;
             }
         };
-        std::cout<<"Printed Path"<<std::endl;
+        std::cout<<"------Print Alternate-----"<<std::endl;
+        for(uint i = 0; i < alternates_.size(); i++){
+            std::cout<<"Path "<<i<<std::endl;
+            for(AutoElement element : alternates_[i]){
+                std::cout<<ElementToString(element)<<std::endl;
+            }
+        };
     },{3,2,6,0});
 }
 

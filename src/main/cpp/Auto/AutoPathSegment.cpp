@@ -217,8 +217,12 @@ void AutoPathSegment::Periodic(){
  * Periodic (only linear motion)
 */
 void AutoPathSegment::Periodic(double angVel) {
+  // get current pos
+  const double curAng = m_odom.GetAng();
+  const vec::Vector2D curPos = m_odom.GetPos();
+
   if(!m_hasStarted){
-    // std::cout<<"Has not started segment"<<std::endl;
+    m_swerve.SetRobotVelocity({0.0, 0.0}, angVel, curAng);
     return;
   }
   // get relative time
@@ -230,10 +234,6 @@ void AutoPathSegment::Periodic(double angVel) {
 
   // get feed forward velocity 
   const vec::Vector2D curExpectedVel = m_spline.pos.getVel(curTimeRel);
-
-  // get current pos
-  const double curAng = m_odom.GetAng();
-  const vec::Vector2D curPos = m_odom.GetPos();
 
   const vec::Vector2D curVel = m_swerve.GetRobotVelocity(curAng);
 

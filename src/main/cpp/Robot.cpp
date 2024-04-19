@@ -376,6 +376,7 @@ void Robot::TeleopPeriodic()
           case RobotState::FERRY:
             m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
             useAutoLineup = m_shooter.UseAutoLineup();
+            canShoot = false;
             break;
           case RobotState::AMP:
             if(!m_autoHmLineup.HasStarted()){

@@ -68,7 +68,7 @@ void AutoAngLineup::SetTarget(double targAng) {
     currPose = m_profile.currentPose();
   }
   double targNorm = currPose.pos + Utils::NormalizeAng(targAng - currPose.pos);
-  std::cout << "curAng: " << m_odom.GetAng() << " targ ang: " << targNorm << std::endl; 
+  //std::cout << "curAng: " << m_odom.GetAng() << " targ ang: " << targNorm << std::endl; 
   m_profile.setTarget(currPose, {targNorm, 0.0, 0.0});
 }
 

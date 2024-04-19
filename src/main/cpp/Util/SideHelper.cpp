@@ -101,12 +101,12 @@ double SideHelper::GetAngVel(double blueAngVel) {
  * 
  * @param idx index if out of bounds, chooses 1
  * 
- * @note On blue, [0, 1, 2] are [L, M, R] respectively, but on red, [0, 1, 2] are [R, M, L] respectively
+ * @note On blue, [0, 1, 2, 3] are [L, M, R, line] respectively, but on red, [0, 1, 2, 3] are [line, R, M, L] respectively
  * 
  * @returns Start pose
 */
 AutoConstants::StartPose SideHelper::GetStartingPose(int idx) {
-  if (idx < 0 || idx > 2) {
+  if (idx < 0 || idx > 3) {
     idx = 1;
   }
 
@@ -117,6 +117,8 @@ AutoConstants::StartPose SideHelper::GetStartingPose(int idx) {
       return {SideHelper::GetPos(AutoConstants::BLUE_M.pos), SideHelper::GetAng(AutoConstants::BLUE_M.ang)};
     case 2:
       return {SideHelper::GetPos(AutoConstants::BLUE_R.pos), SideHelper::GetAng(AutoConstants::BLUE_R.ang)};
+    case 3:
+      return {SideHelper::GetPos(AutoConstants::BLUE_LINE.pos), SideHelper::GetAng(AutoConstants::BLUE_LINE.ang)};
   } 
 
   return {SideHelper::GetPos(AutoConstants::BLUE_M.pos), SideHelper::GetAng(AutoConstants::BLUE_M.ang)};
@@ -130,12 +132,16 @@ AutoConstants::StartPose SideHelper::GetStartingPose(int idx) {
  * @returns Start pose
 */
 AutoConstants::StartPose SideHelper::GetStartingPose(std::string pos) {
-  int idx = 1;
+  int idx = 0;
 
   if (pos == AutoConstants::L_START) {
     idx = 0;
+  } else if (pos == AutoConstants::M_START) {
+    idx = 1;
   } else if (pos == AutoConstants::R_START) {
     idx = 2;
+  } else {
+    return GetStartingPose(3);
   }
 
   if (!IsBlue()) {

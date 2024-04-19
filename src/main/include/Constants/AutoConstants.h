@@ -80,6 +80,7 @@ namespace AutoConstants {
   const StartPose BLUE_L = {{0.666, 6.721}, 4.2309};
   const StartPose BLUE_M = {{1.265, 5.526}, 3.141592};
   const StartPose BLUE_R = {{0.597, 4.41}, 2.0375};
+  const StartPose BLUE_LINE = {{1.52, 2.655}, 3.141592};
 
   // auto positions array size
   const int POS_ARR_SIZE = 8;

@@ -95,6 +95,7 @@ void AutoChooser::ProcessChoosers(bool dryRun) {
     std::string nextPath = m_positions[i].first;
     if(SideHelper::IsFar(nextPath) && SideHelper::IsFar(primary)){
       std::string path = primary + "_to_" + nextPath + ".csv";
+      path = SideHelper::GetPath(path);
       m_auto.SetAlternate(i-1, path);
     }
     primary = nextPath;
