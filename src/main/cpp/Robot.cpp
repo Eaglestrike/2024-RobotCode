@@ -691,6 +691,7 @@ void Robot::ShuffleboardInit()
     m_startChooser.AddOption(AutoConstants::L_START, AutoConstants::L_START);
     m_startChooser.AddOption(AutoConstants::M_START, AutoConstants::M_START);
     m_startChooser.AddOption(AutoConstants::R_START, AutoConstants::R_START);
+    m_startChooser.AddOption(AutoConstants::LINE_START, AutoConstants::LINE_START);
     frc::SmartDashboard::PutData("Start", &m_startChooser);
 
     for (int i = 0; i < AutoConstants::POS_ARR_SIZE - 2; i++)

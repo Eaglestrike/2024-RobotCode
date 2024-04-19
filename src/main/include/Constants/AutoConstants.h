@@ -88,11 +88,13 @@ namespace AutoConstants {
   const std::string L_NAME = "Left";
   const std::string M_NAME = "Mid";
   const std::string R_NAME = "Right";
+  const std::string LINE_NAME = "Line";
   const std::string S_NAME = "Skip";
 
   const std::string L_START = "LeftStart";
   const std::string M_START = "MidStart";
   const std::string R_START = "RightStart";
+  const std::string LINE_START = "LineStart";
 
   const std::string L_NEAR = "LeftNear";
   const std::string M_NEAR = "MidNear";
