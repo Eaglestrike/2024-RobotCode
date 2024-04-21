@@ -216,6 +216,7 @@ void Robot::AutonomousInit()
   m_autoLineup.SetPID(AutoLineupConstants::ANG_AUTO_P, AutoLineupConstants::ANG_AUTO_I, AutoLineupConstants::ANG_AUTO_D);
 
   // zero
+  m_intake.SetAmp(false);
   if (!m_intakeZeroed) {
     m_intake.Zero();
     m_intakeZeroed = true;
@@ -258,6 +259,8 @@ void Robot::TeleopInit()
   m_shooter.ZeroRelative();
   m_shooter.Stop();
   m_intake.Stow();
+
+  m_climb.TeleopInit();
 
   m_posVal = 0;
   m_controller.stopBuffer();
@@ -324,7 +327,7 @@ void Robot::TeleopPeriodic()
   // }
 
   // Intake
-  m_intake.SetAmp(m_state != RobotState::SHOOT);
+  m_intake.SetAmp(true); //m_state != RobotState::SHOOT
   bool useAutoLineup = false;
   if (!m_wristManual)
   {
@@ -343,7 +346,7 @@ void Robot::TeleopPeriodic()
     {
       m_state = RobotState::SHOOT;
     }
-    if (m_controller.getPressedOnce(FERRY_STATE))
+    if (m_controller.getPressedOnce(ZERO_2))
     {
       m_state = RobotState::FERRY;
     }
@@ -373,6 +376,7 @@ void Robot::TeleopPeriodic()
           case RobotState::FERRY:
             m_autoLineup.SetTarget(m_shooter.GetTargetRobotYaw());
             useAutoLineup = m_shooter.UseAutoLineup();
+            canShoot = false;
             break;
           case RobotState::AMP:
             if(!m_autoHmLineup.HasStarted()){
@@ -688,6 +692,7 @@ void Robot::ShuffleboardInit()
     m_startChooser.AddOption(AutoConstants::L_START, AutoConstants::L_START);
     m_startChooser.AddOption(AutoConstants::M_START, AutoConstants::M_START);
     m_startChooser.AddOption(AutoConstants::R_START, AutoConstants::R_START);
+    m_startChooser.AddOption(AutoConstants::LINE_START, AutoConstants::LINE_START);
     frc::SmartDashboard::PutData("Start", &m_startChooser);
 
     for (int i = 0; i < AutoConstants::POS_ARR_SIZE - 2; i++)

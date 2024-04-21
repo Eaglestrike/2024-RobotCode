@@ -21,6 +21,7 @@ class AutoAngLineup{
         bool AtTarget();
 
         void SetTarget(double targAng);
+        void Stop();
 
         void SetProfileConfig(double maxSpeed, double maxAccel);
         void SetPID(double kP, double kI, double kD);

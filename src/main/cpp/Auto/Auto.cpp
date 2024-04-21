@@ -102,6 +102,34 @@ void Auto::SetSegment(uint index, std::string path){
     );
 }
 
+
+/**
+ * Sets an alternate auto segment in case it missed the piece
+ * 
+ * @param path filename of drive path (ex: to.csv)
+*/
+void Auto::SetAlternate(uint index, std::string path){
+    if(index == 0){
+        std::cout<<"bad index 0 Auto::SetAlternate"<<std::endl;
+        return;
+    }
+    if(path == ""){ //Check if it's an empty path
+        SetPath(index, {});
+        return;
+    }
+
+    if(index > 1000){
+        return;
+    }
+    for(uint i = alternates_.size(); i <= index; i++){
+        alternates_.push_back({});
+    }
+    AutoConstants::AutoPath autoPath = {{DRIVE, AFTER, path},
+                                        {INTAKE, BEFORE_END}};
+    alternates_[index] = autoPath;
+    LoadPath(autoPath);
+}
+
 /**
  * Sets an auto segment to just drive
  * 
@@ -127,6 +155,7 @@ void Auto::SetDrive(uint index, std::string path){
 */
 void Auto::Clear(){
     paths_.clear();
+    alternates_.clear();
     SetPath(0, {{SHOOT, AFTER}});
     inChannel_ = true;
 }
@@ -213,6 +242,10 @@ void Auto::AutoPeriodic(){
     if(driveTiming_.finished && shooterTiming_.finished && intakeTiming_.finished){
         NextBlock();
     }
+
+    DrivePeriodic(t);
+    ShooterPeriodic(t);
+    IntakePeriodic(t);
     
     bool useAngLineup = (pathNum_ != 0) && shooterTiming_.hasStarted && (!shooterTiming_.finished) && (intakeTiming_.finished);
     if(shuff_.isEnabled()){
@@ -221,21 +254,22 @@ void Auto::AutoPeriodic(){
     }
 
     if(useAngLineup){
+        double angVel = 0.0;
         if(shooter_.UseAutoLineup()){ //Angle lineup
-            autoLineup_.SetTarget(shooter_.GetTargetRobotYaw() + SHOOT_ANG_OFFSET);
-            segments_.Periodic(autoLineup_.GetAngVel());  
+            std::cout << "shooter auto lineup true" << std::endl;
+            autoLineup_.SetTarget(shooter_.GetTargetRobotYaw() + SHOOT_ANG_OFFSET);   
+            angVel = autoLineup_.GetAngVel();
         }
         else{
-            segments_.Periodic(0.0);
+            std::cout << "shooter auto lineup true" << std::endl;
+            autoLineup_.GetAngVel();
         }
+        segments_.Periodic(angVel);
     }
     else{
         segments_.Periodic();
+        autoLineup_.Stop();
     }
-    
-    DrivePeriodic(t);
-    ShooterPeriodic(t);
-    IntakePeriodic(t);
 
     logger_.LogNum("Auto path num", pathNum_);
     logger_.LogNum("Auto index", index_);
@@ -293,17 +327,20 @@ void Auto::ShooterPeriodic(double t){
     }
     else if(shooterTiming_.hasStarted){
         vec::Vector2D pos{odometry_.GetPos()};
+        vec::Vector2D vel = odometry_.GetDBVel();
         //Feed into shooter when can shoot
-        int posVal = pathNum_ == 1 ? 3 : 0;
+        int posVal = (pathNum_ == 1) ? 3 : 0;
 
-        bool forceShoot = (pathNum_ == 1 && t > 2) ||  (t > shooterTiming_.end + SHOOT_PADDING); //Exceeded time given
-        if(forceShoot || (shooter_.CanShoot(posVal) && intake_.InShooter())){ 
+        // adjust t to 1.4??
+        bool forceShoot = (pathNum_ == 1 && t > 2) || (t > shooterTiming_.end + SHOOT_PADDING); //Exceeded time given
+        bool hasPiece = intake_.InShooter() || intake_.InChannel();
+        if(forceShoot || (shooter_.CanShoot(posVal) && hasPiece)){ 
             intake_.FeedIntoShooter();
             isShooting_ = true;
         }
         
         //Finish shooting can't see piece
-        if(isShooting_ && (!intake_.InShooter())){
+        if(isShooting_ && (!hasPiece)){
             shooterTiming_.finished = true;
             isShooting_ = false;
             // std::cout<<"Shooter end" << std::endl;
@@ -344,6 +381,7 @@ void Auto::IntakePeriodic(double t){
         if(t > intakeTiming_.end + INTAKE_PADDING){
             // std::cout<<"Intake expire"<<std::endl;
             intakeTiming_.finished = true;
+            RunAlternate();
             //intake_.Stow();
         }
     }
@@ -421,10 +459,79 @@ void Auto::NextBlock(){
         intakeTiming_.end = std::max(intakeTiming_.end, driveTiming_.end);
     }
 
-    if(index_ >= (int)path.size()){//Finished this path
-        pathNum_++;
-        index_ = 0;
+    // if(index_ >= (int)path.size()){//Finished this path
+    //     pathNum_++;
+    //     index_ = 0;
+    //     return;
+    // }
+}
+
+
+/**
+ * Sets up the next block (the actions between 2 AFTERS)
+*/
+void Auto::RunAlternate(){
+    if(pathNum_ >= (int)alternates_.size()){
         return;
+    }
+    AutoPath altPath = alternates_[pathNum_];
+    uint altIndex = 0;
+    if(altPath.size() == 0){ // No Alt
+        return;
+    }
+    AutoElement firstElement = altPath[altIndex];
+
+    ResetTiming(channelTiming_);
+    ResetTiming(intakeTiming_);
+    ResetTiming(shooterTiming_);
+    ResetTiming(driveTiming_);
+    
+    blockStart_ = Utils::GetCurTimeS() - autoStart_ + firstElement.offset;
+
+    //Figure out the block duration/initialize the first element
+    switch(firstElement.action){
+        case DRIVE:
+            segments_.SetAutoPath(firstElement.data);
+            blockEnd_ = blockStart_ + segments_.GetDuration();
+            break;
+        case SHOOT:
+            blockEnd_ = blockStart_ + SHOOT_TIME;
+            break;
+        case INTAKE:
+            blockEnd_ = blockStart_ + INTAKE_TIME;
+            break;
+        default:
+            std::cout<<"Did not deal with auto action case NB "<< firstElement.action <<std::endl;
+    }
+    EvaluateElement(firstElement);
+    altIndex++;
+
+    //Lookahead for execution in this block
+    for(;altIndex < (int)altPath.size();altIndex++){
+        AutoElement element = altPath[altIndex];
+        EvaluateElement(element);
+    }
+
+    //Set intake to end of drive
+    if(!intakeTiming_.finished){
+        intakeTiming_.end = std::max(intakeTiming_.end, driveTiming_.end);
+    }
+
+    pathNum_++;
+    index_ = 0;
+    if(pathNum_ >= paths_.size()){
+        return;
+    }
+    AutoPath path = paths_[pathNum_];
+    while(true){//Find next intake command
+        if(index_ >= (int)path.size()){
+            return;
+        }
+        if(path[index_].action == INTAKE){
+            index_++;
+            return;
+        }
+        index_++;
     }
 }
 
@@ -604,13 +711,20 @@ void Auto::ShuffleboardInit(){
 
     //Print Pathing
     shuff_.addButton("Print Path", [&]{
+        std::cout<<"------Print Path------"<<std::endl;
         for(uint i = 0; i < paths_.size(); i++){
             std::cout<<"Path "<<i<<std::endl;
             for(AutoElement element : paths_[i]){
                 std::cout<<ElementToString(element)<<std::endl;
             }
         };
-        std::cout<<"Printed Path"<<std::endl;
+        std::cout<<"------Print Alternate-----"<<std::endl;
+        for(uint i = 0; i < alternates_.size(); i++){
+            std::cout<<"Path "<<i<<std::endl;
+            for(AutoElement element : alternates_[i]){
+                std::cout<<ElementToString(element)<<std::endl;
+            }
+        };
     },{3,2,6,0});
 }
 

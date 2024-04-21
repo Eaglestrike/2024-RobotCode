@@ -107,10 +107,11 @@ void Pivot::CoreTeleopPeriodic(){
             Poses::Pose1D error = target - currPose_;
             accum_ += error.pos * dt;
             double pid = pid_.kp*error.pos + pid_.ki*accum_ + pid_.kd*error.vel;
+            pid = std::clamp(pid, -pidMax_, pidMax_);
             volts_ += pid;
 
             double absError = std::abs(error.pos);
-            if((absError < inchTol_) && (absError > ShooterConstants::PIVOT_INCH_DEADBAND)){ //Inch within a tolerance
+            if((absError < inchTol_) && (absError > inchDead_)){ //Inch within a tolerance
                 cycle_++;
                 cycle_ %= inch_.numCycles;
                 double inch = (cycle_ < inch_.onCycles) ? inch_.volts : 0.0;
@@ -194,7 +195,7 @@ void Pivot::SetAngle(double angle){
         }
         angle = ShooterConstants::PIVOT_UNHOOK;
     }
-    Poses::Pose1D currTarg = profile_.getTargetPose();
+
     Poses::Pose1D target = {.pos = angle, .vel = 0.0, .acc = 0.0};
 
     Poses::Pose1D error = target - currPose_;
@@ -204,22 +205,26 @@ void Pivot::SetAngle(double angle){
     }
     else if(atTarget){
         state_ = AT_TARGET;
+        profile_.Zero(target);
+        return;
     }
     else{
         state_ = AIMING;
     }
 
-    if(std::abs(currTarg.pos - angle) > 0.0001){ //Basically the same target
-        Poses::Pose1D startPose;
-        if(profile_.isFinished()){
-            startPose = currPose_;
-            accum_ = 0.0;
+    Poses::Pose1D startPose;
+    if(profile_.isFinished()){
+        if(std::abs(error.pos) < regenTol_){
+            profile_.Zero(target);
+            return;
         }
-        else{
-            startPose = profile_.currentPose();
-        }
-        profile_.setTarget(startPose, target);
+        startPose = currPose_;
+        accum_ = 0.0;
     }
+    else{
+        startPose = profile_.currentPose();
+    }
+    profile_.setTarget(startPose, target);
 }
 
 /**
@@ -305,6 +310,13 @@ double Pivot::GetTolerance() {
     return posTol_;
 }
 
+double Pivot::GetTargetTime(){
+    if(state_ == AT_TARGET){
+        return 0.0;
+    }
+    return profile_.getDuration();
+}
+
 std::string Pivot::GetStateStr() {
     return StateToString(state_);
 }
@@ -330,13 +342,13 @@ void Pivot::CoreShuffleboardInit(){
     //Voltage Control (row 0)
     shuff_.add("volts", &volts_, {1,1,0,0}, true);
     shuff_.add("max volts", &maxVolts_, {1,1,1,0}, true);
-    shuff_.addButton("Set Voltage",
-                    [&](){
-                            SetVoltage(volts_);
-                            std::cout<<"Set Voltage to " << volts_ << std::endl;
-                        },
-                    {1,1,2,0}
-                    );
+    // shuff_.addButton("Set Voltage",
+    //                 [&](){
+    //                         SetVoltage(volts_);
+    //                         std::cout<<"Set Voltage to " << volts_ << std::endl;
+    //                     },
+    //                 {1,1,2,0}
+    //                 );
     shuff_.addButton("Stop", [&](){Stop();}, {1,1,3,0});
 
     //Info (middle-right)
@@ -344,7 +356,7 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("pos", &currPose_.pos, {1,1,4,1}, false);
     shuff_.add("vel", &currPose_.vel, {1,1,5,1}, false);
     shuff_.add("acc", &currPose_.acc, {1,1,6,1}, false);
-    shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
+    // shuff_.addButton("zero", [&](){Zero(); std::cout<<"Zeroed"<<std::endl;}, {1,1,6,2});
 
     shuff_.add("hooked", &hooked_, {1,1,7,2}, true);
 
@@ -388,11 +400,13 @@ void Pivot::CoreShuffleboardInit(){
     shuff_.add("kP", &pid_.kp, {1,1,0,4}, true);
     shuff_.add("kI", &pid_.ki, {1,1,1,4}, true);
     shuff_.add("kD", &pid_.kd, {1,1,2,4}, true);
+    shuff_.add("pid max", &pidMax_, {1,1,3,4}, true);
 
-    shuff_.add("inch volts", &inch_.volts, {1,1,0,5}, true);
-    shuff_.add("inch onCycles", &inch_.onCycles, {1,1,1,5}, true);
-    shuff_.add("inch numCycles", &inch_.numCycles, {1,1,2,5}, true);
-    shuff_.add("inch tol", &inchTol_, {1,1,3,5}, true);
+    // shuff_.add("inch volts", &inch_.volts, {1,1,5,4}, true);
+    // shuff_.add("inch onCycles", &inch_.onCycles, {1,1,6,4}, true);
+    // shuff_.add("inch numCycles", &inch_.numCycles, {1,1,7,4}, true);
+    // shuff_.add("inch tol", &inchTol_, {1,1,8,4}, true);
+    // shuff_.add("inch dead", &inchDead_, {1,1,9,4}, true);
 }
 
 void Pivot::CoreShuffleboardPeriodic(){

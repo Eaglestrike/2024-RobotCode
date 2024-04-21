@@ -80,6 +80,7 @@ namespace AutoConstants {
   const StartPose BLUE_L = {{0.666, 6.721}, 4.2309};
   const StartPose BLUE_M = {{1.265, 5.526}, 3.141592};
   const StartPose BLUE_R = {{0.597, 4.41}, 2.0375};
+  const StartPose BLUE_LINE = {{1.52, 2.655}, 3.141592};
 
   // auto positions array size
   const int POS_ARR_SIZE = 8;
@@ -88,11 +89,13 @@ namespace AutoConstants {
   const std::string L_NAME = "Left";
   const std::string M_NAME = "Mid";
   const std::string R_NAME = "Right";
+  const std::string LINE_NAME = "Line";
   const std::string S_NAME = "Skip";
 
   const std::string L_START = "LeftStart";
   const std::string M_START = "MidStart";
   const std::string R_START = "RightStart";
+  const std::string LINE_START = "LineStart";
 
   const std::string L_NEAR = "LeftNear";
   const std::string M_NEAR = "MidNear";

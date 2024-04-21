@@ -214,7 +214,6 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
         return;
     }
 
-    state_ = SHOOT;
     targetPos_ = robotPos;
 
     //Speaker targetting
@@ -251,6 +250,9 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
 
     double dist = (-b-std::sqrt(determinant))/(2.0*a);
     double t = kD_*dist + cT_;
+    if(state_ == SHOOT){
+        t += kPiv_*pivot_.GetTargetTime();
+    }
 
     if (Utils::NearZero(robotVel, 0.15)) {
         dist = toSpeaker.magn();
@@ -289,11 +291,11 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     posYawTol_ = std::clamp(posYawTol_, 0.01, M_PI/2.0); //Tol cannot be greater than 90 degrees
     negYawTol_ = std::clamp(negYawTol_, -M_PI/2.0, -0.01);
 
-    targetYaw_ += shootYawOffset_;
+    targetYaw_ = (2 * targetYaw_ + posYawTol_ + negYawTol_) / 2;
+    posYawTol_ = (posYawTol_ - negYawTol_) / 2;
+    negYawTol_ = -posYawTol_;
 
-    // targetYaw_ = (2 * targetYaw_ + posYawTol_ + negYawTol_) / 2;
-    // posYawTol_ = (posYawTol_ - negYawTol_) / 2;
-    // negYawTol_ = -posYawTol_;
+    targetYaw_ += shootYawOffset_;
 
     auto shot = shootData_.lower_bound(dist);
     if((shot == shootData_.begin()) || (shot == shootData_.end())){ //No shot in data (too far or too close)
@@ -315,6 +317,8 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
     double pivotAng = lowerPercent*lowerShot.ang + upperPercent*upperShot.ang;
     double shotVel = lowerPercent*lowerShot.vel + upperPercent*upperShot.vel;
 
+    pivotAng += shootPivAngOffset_;
+
     //Pivot set tolerance (max - min)/2.0
     double pivotTol = (std::atan(dist/ShooterConstants::SPEAKER_MIN) - std::atan((dist-ShooterConstants::SPEAKER_DEPTH)/ShooterConstants::SPEAKER_MIN))/2.0;
     pivot_.SetTolerance(pivotTol * pivotAngPercent_);
@@ -331,6 +335,8 @@ void Shooter::Prepare(vec::Vector2D robotPos, vec::Vector2D robotVel, bool needG
 
     autoStroll_ = needGamePiece;
     SetUp(shotVel, 0.0, pivotAng);
+
+    state_ = SHOOT;
 }
 
 void Shooter::Ferry(vec::Vector2D robotPos, vec::Vector2D robotVel){
@@ -680,7 +686,9 @@ void Shooter::CoreShuffleboardInit(){
     shuff_.add("Shot Ang", &shot_.ang, {1,1,1,3});
     shuff_.add("kD", &kD_, {1,1,4,3}, true);
     shuff_.add("cT", &cT_, {1,1,5,3}, true);
-    shuff_.add("Yaw Offset", &shootYawOffset_, {1,1,6,3}, true);
+    shuff_.add("kPiv", &kPiv_, {1,1,6,3}, true);
+    shuff_.add("kPiv", &kVolts_, {1,1,7,3}, true);
+    shuff_.add("Yaw Offset", &shootYawOffset_, {1,1,8,3}, true);
     
     //Tolerance (row 4)
     shuff_.add("pos tol", &posTol_, {1,1,0,4}, true);
@@ -691,6 +699,8 @@ void Shooter::CoreShuffleboardInit(){
 
     shuff_.add("yaw pos", &posYawTol_, {1,1,6,4}, false);
     shuff_.add("yaw neg", &negYawTol_, {1,1,7,4}, false);    
+
+    shuff_.add("Piv Ang Offset", &shootPivAngOffset_, {1,1,8,4}, true);
 }
 
 void Shooter::CoreShuffleboardPeriodic(){

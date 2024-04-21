@@ -24,6 +24,7 @@ namespace SideHelper {
   double GetManualLineupAng(int idx);
 
   std::string GetPath(std::string path);
+  bool IsFar(std::string name);
 
   hm::Hermite<2> GetSplinePos(hm::Hermite<2> inp);
   hm::Hermite<1> GetSplineAng(hm::Hermite<1> inp);

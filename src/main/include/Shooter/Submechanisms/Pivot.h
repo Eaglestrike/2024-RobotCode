@@ -41,6 +41,7 @@ class Pivot : public Mechanism{
         void SetHooked(bool hooked);
         Poses::Pose1D GetPose();
         double GetTolerance();
+        double GetTargetTime();
 
         std::string GetStateStr();
 
@@ -76,12 +77,14 @@ class Pivot : public Mechanism{
         } bounds_;
 
         ShooterConstants::PID pid_ = ShooterConstants::PIVOT_PID;
+        double pidMax_ = ShooterConstants::PIVOT_PID_MAX;
         double accum_;
         double prevT_;
         ShooterConstants::Feedforward ff_ = ShooterConstants::PIVOT_FF;
         ShooterConstants::Incher inch_ = ShooterConstants::PIVOT_INCH;
         int cycle_;
         double inchTol_ = ShooterConstants::PIVOT_INCH_TOL;
+        double inchDead_ = ShooterConstants::PIVOT_INCH_DEADBAND;
         double frctn_ = ShooterConstants::PIVOT_FRCTN; //Increase voltage as friction increases with sin(angle)
 
         double posTol_;

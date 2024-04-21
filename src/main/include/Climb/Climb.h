@@ -47,6 +47,7 @@ class Climb : public Mechanism{
         void Brake();
         void ReleaseBrake();
         void CorePeriodic() override;
+        void CoreTeleopInit() override;
         void CoreTeleopPeriodic() override;
         void CoreShuffleboardInit() override;
         void CoreShuffleboardPeriodic() override;
@@ -98,4 +99,9 @@ class Climb : public Mechanism{
                                 -8.0}; // retain volts
         StateInfo EXTENDED_INFO = {MAX_POS-5.0,
                                     8.0}; // prob 0
+        
+
+        double TELE_PERIOD = 135.0;
+
+        double m_beginTime;
 };
