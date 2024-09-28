@@ -7,6 +7,7 @@ Climb::Climb(bool enabled, bool dbg):
     Mechanism{"climb", enabled, dbg}
 {
     m_master.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
+    m_master.SetInverted(true);
     Zero();
     // m_slave.SetControl(Follower(Ids::MASTER_CLIMB_MOTOR, false));
 }

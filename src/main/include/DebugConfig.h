@@ -10,7 +10,7 @@ namespace EnableConfig{
 namespace DebugConfig{
     const bool AUTO     = false;
 
-    const bool CLIMB    = false;
+    const bool CLIMB    = true;
 
     const bool DRIVE    = false;
     const bool AUTO_LINEUP = false;
@@ -18,7 +18,7 @@ namespace DebugConfig{
     const bool INTAKE   = false;
 
     const struct {
-        const bool SHOOTER      = false;
+        const bool SHOOTER      = true;
         const bool LEFT_FLY     = false;
         const bool RIGHT_FLY    = false;
         const bool PIVOT        = false;
