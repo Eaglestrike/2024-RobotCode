@@ -8,6 +8,7 @@
 #include <rev/CANSparkMax.h>
 
 using ctre::phoenix::motorcontrol::can::WPI_TalonSRX;
+using TalonFX = ctre::phoenix6::hardware::TalonFX;
 
 class Channel : public Mechanism{
     public:
@@ -30,8 +31,8 @@ class Channel : public Mechanism{
 private:
   void SetVoltage();
   ChannelState m_state{STOP};
-  rev::CANSparkMax m_channelMotor;
-  rev::CANSparkMax m_kickerMotor;
+  rev::CANSparkMax  m_channelMotor;
+  TalonFX m_kickerMotor;
   ShuffleboardSender m_shuff;
 
   //Constants

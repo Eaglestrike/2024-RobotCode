@@ -14,9 +14,8 @@ Channel::Channel(bool enabled, bool dbg):
 Mechanism("Channel", enabled, dbg), 
 m_shuff{"Channel", dbg},
 m_channelMotor{IntakeConstants::CHANNEL_MOTOR, rev::CANSparkLowLevel::MotorType::kBrushless}, 
-m_kickerMotor{IntakeConstants::KICKER_MOTOR, rev::CANSparkLowLevel::MotorType::kBrushless}{
-    m_kickerMotor.RestoreFactoryDefaults();
-    m_kickerMotor.SetIdleMode(rev::CANSparkBase::IdleMode::kCoast);
+m_kickerMotor{IntakeConstants::KICKER_MOTOR}{
+    m_kickerMotor.SetNeutralMode(ctre::phoenix6::signals::NeutralModeValue::Brake);
     m_kickerMotor.SetInverted(true);
     m_channelMotor.RestoreFactoryDefaults();
     m_channelMotor.SetIdleMode(rev::CANSparkBase::IdleMode::kBrake);

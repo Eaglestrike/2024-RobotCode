@@ -747,6 +747,7 @@ void Robot::ShuffleboardInit()
   }
 }
 
+
 /**
  * Shuffleboard Periodic
  */
@@ -769,6 +770,19 @@ void Robot::ShuffleboardPeriodic()
     m_shooter.Log(m_logger);
     m_logger.LogNum("Manual Pos Val", m_posVal);
     m_logger.LogBool("Amp mode", m_state == RobotState::AMP);
+
+    // switch(m_state){
+    //   case RobotState::AMP:
+    //     frc::SmartDashboard::PutString("Robot State", "AMP");
+    //     break;
+    //   case RobotState::SHOOT:
+    //    frc::SmartDashboard::PutString("Robot State", "Shoot");
+    //     break;
+    //   case RobotState::FERRY:
+    //     frc::SmartDashboard::PutString("Robot State", "ferry");
+    //     break;
+    // }
+
   }
 
   // ODOMETRY
@@ -785,6 +799,7 @@ void Robot::ShuffleboardPeriodic()
 
     m_field.SetRobotPose(frc::Pose2d{units::meter_t{x(pos)}, units::meter_t{y(pos)}, units::radian_t{ang}});
     frc::SmartDashboard::PutData("Robot Field", &m_field);
+    
 
     // logger
     // m_logger.LogBool("Cams Stale", m_client.IsStale());
@@ -829,6 +844,7 @@ void Robot::ShuffleboardPeriodic()
     // frc::SmartDashboard::PutNumber("diff Ang Vel", navXAngVel - wheelAngVel);
     // frc::SmartDashboard::PutNumber("wheel ang", m_wheelAng);
     // frc::SmartDashboard::PutNumber("error ang", m_odom.GetAng() - m_wheelAng);
+
   }
 
   // SOCKET LOGGING (only if enabled)
