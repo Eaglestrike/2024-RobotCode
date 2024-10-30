@@ -26,17 +26,17 @@ namespace SwerveConstants
   const std::size_t FR_DRIVE_ID = 14; // 17, 14
   const std::size_t BR_DRIVE_ID = 11; // 21, 11
   const std::size_t FL_DRIVE_ID = 21; // 11, 21
-  const std::size_t BL_DRIVE_ID = 0; // 14, 17, 0
+  const std::size_t BL_DRIVE_ID = 33; // 14, 17, 0
 
   const std::size_t FR_TURN_ID = 13; // 18, 13
   const std::size_t BR_TURN_ID = 12; // 15, 12
   const std::size_t FL_TURN_ID = 15; // 12, 15
   const std::size_t BL_TURN_ID = 18; // 13, 18
 
-  const std::size_t FR_ENCODER_ID = 62; // 10, 62
+  const std::size_t FR_ENCODER_ID = 0; // 10, 62, 0
   const std::size_t BR_ENCODER_ID = 42; // 8,  42
   const std::size_t FL_ENCODER_ID = 8; // 42, 8
-  const std::size_t BL_ENCODER_ID = 10;  // 62, 10
+  const std::size_t BL_ENCODER_ID = 6;  // 62, 10, 6
 
   // If positive drive motor does not move swerve module forward when angle is 0
   const bool FR_DRIVE_INVERTED = true;
