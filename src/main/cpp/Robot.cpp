@@ -771,17 +771,17 @@ void Robot::ShuffleboardPeriodic()
     m_logger.LogNum("Manual Pos Val", m_posVal);
     m_logger.LogBool("Amp mode", m_state == RobotState::AMP);
 
-    switch(m_state){
-      case RobotState::AMP:
-        frc::SmartDashboard::PutString("Robot State", "AMP");
-        break;
-      case RobotState::SHOOT:
-       frc::SmartDashboard::PutString("Robot State", "Shoot");
-        break;
-      case RobotState::FERRY:
-        frc::SmartDashboard::PutString("Robot State", "ferry");
-        break;
-    }
+    // switch(m_state){
+    //   case RobotState::AMP:
+    //     frc::SmartDashboard::PutString("Robot State", "AMP");
+    //     break;
+    //   case RobotState::SHOOT:
+    //    frc::SmartDashboard::PutString("Robot State", "Shoot");
+    //     break;
+    //   case RobotState::FERRY:
+    //     frc::SmartDashboard::PutString("Robot State", "ferry");
+    //     break;
+    // }
 
   }
 
